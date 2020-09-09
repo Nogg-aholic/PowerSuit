@@ -27,32 +27,36 @@ public:
 		newout.nGasResistance = this->nGasResistance + OtherStruct.nGasResistance;
 		newout.nPhysicalResistance = this->nPhysicalResistance + OtherStruct.nPhysicalResistance;
 		newout.nHeatResistance = this->nHeatResistance + OtherStruct.nHeatResistance;
-		newout.nFallDamageModifier = this->nFallDamageModifier + OtherStruct.nFallDamageModifier;
+		newout.nFallDamageResistance = this->nFallDamageResistance + OtherStruct.nFallDamageResistance;
+		newout.nFallDamageMod = this->nFallDamageMod + OtherStruct.nFallDamageMod;
+
 		if (OtherStruct.nDamageResistance.Num() > 0)
 		{
+			newout.nDamageResistance = this->nDamageResistance;
 			TArray< TSubclassOf<class UFGDamageType>> arr;
 			OtherStruct.nDamageResistance.GetKeys(arr);
 			for (int32 i = 0; i < arr.Num(); i++)
-				if (this->nDamageResistance.Contains(arr[i]))
-					this->nDamageResistance.Add(arr[i], *this->nDamageResistance.Find(arr[i]) + OtherStruct.nDamageResistance[arr[i]]);
+				if (newout.nDamageResistance.Contains(arr[i]))
+					newout.nDamageResistance.Add(arr[i], *newout.nDamageResistance.Find(arr[i]) + OtherStruct.nDamageResistance[arr[i]]);
 				else
-					this->nDamageResistance.Add(arr[i], OtherStruct.nDamageResistance[arr[i]]);
+					newout.nDamageResistance.Add(arr[i], OtherStruct.nDamageResistance[arr[i]]);
 		}
 		else
 		{
 			newout.nDamageResistance = this->nDamageResistance;
 		}
 		//Health
-		newout.nHealthModifier = this->nHealthModifier + OtherStruct.nHealthModifier;
+		newout.nHealthMod = this->nHealthMod + OtherStruct.nHealthMod;
 		newout.nHealthRegen = this->nHealthRegen + OtherStruct.nHealthRegen;
-		newout.nHealthMultiplier = this->nHealthMultiplier + OtherStruct.nHealthMultiplier;
+		newout.nHealthMult = this->nHealthMult + OtherStruct.nHealthMult;
+		newout.nHealthRegenMult = this->nHealthRegenMult + OtherStruct.nHealthRegenMult;
 
 		//Shield
-		newout.nShieldModifier = this->nShieldModifier + OtherStruct.nShieldModifier;
-		newout.nShieldMultiplier = this->nShieldMultiplier + OtherStruct.nShieldMultiplier;
+		newout.nShieldMod = this->nShieldMod + OtherStruct.nShieldMod;
+		newout.nShieldMult = this->nShieldMult + OtherStruct.nShieldMult;
 		// ShieldRegen
 		newout.nShieldRegen = this->nShieldRegen + OtherStruct.nShieldRegen;
-		newout.nShieldRegenMultiplier = this->nShieldRegenMultiplier + OtherStruct.nShieldRegenMultiplier;
+		newout.nShieldRegenMult = this->nShieldRegenMult + OtherStruct.nShieldRegenMult;
 
 		//Timer
 		
@@ -65,9 +69,9 @@ public:
 		newout.nShieldRegarcheDelayMod = this->nShieldRegarcheDelayMod + OtherStruct.nShieldRegarcheDelayMod;
 
 		// Misc
-		newout.nGravityModifier = this->nGravityModifier + OtherStruct.nGravityModifier;
+		newout.nGravityMod = this->nGravityMod + OtherStruct.nGravityMod;
 		
-		if (OtherStruct.nGravityModifier)
+		if (OtherStruct.nGravityMod)
 			newout.nHasBeltImmunity = true;
 		else
 			newout.nHasBeltImmunity = this->nHasBeltImmunity;
@@ -77,21 +81,26 @@ public:
 		else
 			newout.nHasPipeAccel = this->nHasPipeAccel;
 		
-		newout.nSpeedModifier = this->nSpeedModifier + OtherStruct.nSpeedModifier;
-		newout.nAirSpeedModifierSprint = this->nAirSpeedModifierSprint + OtherStruct.nAirSpeedModifierSprint;
-		newout.nAirSpeedModifierNormal = this->nAirSpeedModifierNormal + OtherStruct.nAirSpeedModifierNormal;
-		newout.nAirSpeedModifierUp = this->nAirSpeedModifierUp + OtherStruct.nAirSpeedModifierUp;
-		newout.nAirSpeedModifierDown = this->nAirSpeedModifierDown + OtherStruct.nAirSpeedModifierDown;
+		if (OtherStruct.nHasFlightUnlock)
+			newout.nHasFlightUnlock = true;
+		else
+			newout.nHasFlightUnlock = this->nHasFlightUnlock;
+		
+		newout.nSpeedMod = this->nSpeedMod + OtherStruct.nSpeedMod;
+		newout.nAirSpeedModSprint = this->nAirSpeedModSprint + OtherStruct.nAirSpeedModSprint;
+		newout.nAirSpeedModNormal = this->nAirSpeedModNormal + OtherStruct.nAirSpeedModNormal;
+		newout.nAirSpeedModUp = this->nAirSpeedModUp + OtherStruct.nAirSpeedModUp;
+		newout.nAirSpeedModDown = this->nAirSpeedModDown + OtherStruct.nAirSpeedModDown;
 		newout.nAirGlobalSpeed = this->nAirGlobalSpeed + OtherStruct.nAirGlobalSpeed;
-		newout.nGroundSpeedModifierSprint = this->nGroundSpeedModifierSprint + OtherStruct.nGroundSpeedModifierSprint;
-		newout.nGroundSpeedModifierNormal = this->nGroundSpeedModifierNormal + OtherStruct.nGroundSpeedModifierNormal;
+		newout.nGroundSpeedModSprint = this->nGroundSpeedModSprint + OtherStruct.nGroundSpeedModSprint;
+		newout.nGroundSpeedModNormal = this->nGroundSpeedModNormal + OtherStruct.nGroundSpeedModNormal;
 		newout.nPipeAccel = this->nPipeAccel + OtherStruct.nPipeAccel;
 
 		newout.InventorySlots = this->InventorySlots + OtherStruct.InventorySlots;
 
 		newout.nDampeningCurve = this->nDampeningCurve;
 
-		newout.nDampeningMultiplier = this->nDampeningMultiplier + OtherStruct.nDampeningMultiplier;
+		newout.nDampeningMult = this->nDampeningMult + OtherStruct.nDampeningMult;
 		newout.nChargeDuration = this->nChargeDuration + OtherStruct.nChargeDuration;
 
 
@@ -111,8 +120,23 @@ public:
 		newout.mClimbSpeed = this->mClimbSpeed + OtherStruct.mClimbSpeed;
 		newout.mMaxSprintSpeed = this->mMaxSprintSpeed + OtherStruct.mMaxSprintSpeed;
 		newout.mMaxSlideAngle = this->mMaxSlideAngle + OtherStruct.mMaxSlideAngle;
-		newout.mBoostJumpZMultiplier = this->mBoostJumpZMultiplier + OtherStruct.mBoostJumpZMultiplier;
-		newout.mBoostJumpVelocityMultiplier = this->mBoostJumpVelocityMultiplier + OtherStruct.mBoostJumpVelocityMultiplier;
+		newout.mBoostJumpZMult = this->mBoostJumpZMult + OtherStruct.mBoostJumpZMult;
+		newout.mBoostJumpVelocityMult = this->mBoostJumpVelocityMult + OtherStruct.mBoostJumpVelocityMult;
+		newout.nExternalPowerMult = this->nExternalPowerMult + OtherStruct.nExternalPowerMult;
+		newout.nExternalPowerMod = this->nExternalPowerMod + OtherStruct.nExternalPowerMod;
+		newout.nExternalPowerMultAirOnly = this->nExternalPowerMultAirOnly + OtherStruct.nExternalPowerMultAirOnly;
+		newout.nExternalPowerModAirOnly = this->nExternalPowerModAirOnly + OtherStruct.nExternalPowerModAirOnly;
+		newout.nExternalPowerMultGroundOnly = this->nExternalPowerMultGroundOnly + OtherStruct.nExternalPowerMultGroundOnly;
+		newout.nExternalPowerModGroundOnly = this->nExternalPowerModGroundOnly + OtherStruct.nExternalPowerModGroundOnly;
+
+		newout.nBaseFuelConsumption = this->nBaseFuelConsumption + OtherStruct.nBaseFuelConsumption;
+		newout.nGroundSprintFuelConsumption = this->nGroundSprintFuelConsumption + OtherStruct.nGroundSprintFuelConsumption;
+		newout.nHoverFuelConsumption = this->nHoverFuelConsumption + OtherStruct.nHoverFuelConsumption;
+		newout.nHoverMoveFuelConsumption = this->nHoverMoveFuelConsumption + OtherStruct.nHoverMoveFuelConsumption;
+		newout.nSprintHoverFuelConsumption = this->nSprintHoverFuelConsumption + OtherStruct.nSprintHoverFuelConsumption;
+		newout.nFuelConsumptionMult = this->nFuelConsumptionMult + OtherStruct.nFuelConsumptionMult;
+		newout.nEmtpyFuelPowerPenalty = this->nEmtpyFuelPowerPenalty + OtherStruct.nEmtpyFuelPowerPenalty;
+		newout.nEmtpyPowerFuelPenalty = this->nEmtpyPowerFuelPenalty + OtherStruct.nEmtpyPowerFuelPenalty;
 
 		return newout;
 	}
@@ -126,6 +150,53 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Power")
 		float nPowerProductionActive = 0;
 
+	/** Mult for External Power */
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | Power | External")
+		float nExternalPowerMult;
+	/** added before nExternalPowerMultiply Multiplication */
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | Power | External")
+		float nExternalPowerMod;
+	/** Mult for External Power */
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | Power | External")
+		float nExternalPowerMultAirOnly;
+	/** added before nExternalPowerMultiply Multiplication */
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | Power | External")
+		float nExternalPowerModAirOnly;
+	/** Mult for External Power */
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | Power | External")
+		float nExternalPowerMultGroundOnly;
+	/** added before nExternalPowerMultiply Multiplication */
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | Power | External")
+		float nExternalPowerModGroundOnly;
+
+
+	// Fuel
+
+		/** MWs added at all times */
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | Fuel")
+		float nBaseFuelConsumption;
+	/** MWs added when Ground Sprint used */
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | Fuel")
+		float nGroundSprintFuelConsumption;
+	/** MWs added when Hovering*/
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | Fuel")
+		float nHoverFuelConsumption;
+	/** MWs added when Hovering and Moving */
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | Fuel")
+		float nHoverMoveFuelConsumption;
+	/** MWs added when Sprint Hovering*/
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | Fuel")
+		float nSprintHoverFuelConsumption;
+	/** -1 -> 100% reduction / .5 -> 50% increase  */
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | Fuel")
+		float nFuelConsumptionMult;
+	/** When Fuel is Empty, this is !subtracted! from PowerProduction*/
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | Fuel")
+		float nEmtpyFuelPowerPenalty;
+	/** When Fuel is Empty, this is !subtracted! from PowerProduction*/
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | Fuel")
+		float nEmtpyPowerFuelPenalty;
+
 	// Resistances
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Resistances")
 		float nRadioactiveRestistance = 0;
@@ -136,32 +207,33 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Resistances")
 		float nHeatResistance = 0;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Resistances")
-		float nFallDamageModifier = 0;
+		float nFallDamageResistance = 0;
+	// if this is -40 , every Fall Damage under 40 wont be applied, everything above is reduced by it
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Resistances")
+		float nFallDamageMod = 0;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Resistances")
 		TMap<TSubclassOf<class UFGDamageType>, float> nDamageResistance;
 
 	// Health
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Health")
-		float nHealthModifier = 0;
+		float nHealthMod = 0;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Health")
+		float nHealthMult = 0;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Health")
 		float nHealthRegen = 0;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Health")
-		float nHealthMultiplier = 0;
-
+		float nHealthRegenMult = 0;
 
 	// Shield
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Shield")
-		float nShieldModifier = 0;
+		float nShieldMod = 0;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Shield")
-		float nShieldMultiplier = 0;
-
-
-
-	// ShieldRegen
+		float nShieldMult = 0;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Shield")
 		float nShieldRegen = 0;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Shield")
-		float nShieldRegenMultiplier = 0;
+		float nShieldRegenMult = 0;
+
 
 	// The time the Suits needs to boot up after Power Out ->  FuseTime = FuseTime * 1 + nFuseTime 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Timer")
@@ -185,87 +257,79 @@ public:
 	
 	// Misc
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Misc")
-		float nGravityModifier = 0;
+		float nGravityMod = 0;
+
 	// Unlocks
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Misc")
 		bool nHasBeltImmunity = false;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Misc")
 		bool nHasPipeAccel = false;
-
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Misc")
+		bool nHasFlightUnlock = false;
 
 
 	//speed control
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category = "EquipmentModule | Movement")
-		float nSpeedModifier = 0;
-	// Air
-
-	// Air Boost Modifier
+		float nSpeedMod = 0;
+	// Air Boost Mod
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Movement | Air")
-		float nAirSpeedModifierSprint = 0;
-	// Air Normal Modifier
+		float nAirSpeedModSprint = 0;
+	// Air Normal Mod
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Movement | Air")
-		float nAirSpeedModifierNormal = 0;
-	// Air up velocity Modifier
+		float nAirSpeedModNormal = 0;
+	// Air up velocity Mod
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Movement | Air")
-		float nAirSpeedModifierUp = 0;
-	// Air down Velocity Modifier
+		float nAirSpeedModUp = 0;
+	// Air down Velocity Mod
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Movement | Air")
-		float nAirSpeedModifierDown = 0;
-
+		float nAirSpeedModDown = 0;
 	// Air Both Sprint and Normal
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Movement | Air")
 		float nAirGlobalSpeed = 0;
-
-	// Ground
-
 	// Groundspeed with Suit Sprint
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Movement | Ground")
-		float nGroundSpeedModifierSprint = 0;
+		float nGroundSpeedModSprint = 0;
 	// Groundspeed Normal
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Movement | Ground")
-		float nGroundSpeedModifierNormal = 0;
-	
-	// Pipe 
-
+		float nGroundSpeedModNormal = 0;
 	// Really carefull here ! this is added ontop of current velocity each frame multiplied with DeltaTime
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Movement | Pipe")
 		float nPipeAccel = 0;
 
+
 	// Inventory 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Inventory")
 		int32 InventorySlots = 0;
-
-
 	// Controls flight Dampening of the Suit
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Movement | Air")
 		UCurveFloat * nDampeningCurve = nullptr;
 
-	// additive on currents Suits Damp multiplier
+	// additive on currents Suits Damp Mult.
+	// basically simulates amplification of air friction
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Movement | Air")
-		float nDampeningMultiplier = 0;
+		float nDampeningMult = 0;
 
 	// ChargeDuration of Fuel
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Movement")
 		float nChargeDuration = 0;
 
+
+
 	// Movement Compnent Stats
+
 	/** Additive on Default: 500.0f; Initial velocity (instantaneous vertical acceleration) when jumping. */
-	UPROPERTY(Category = "Character Movement: Jumping / Falling", EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Jump Z Velocity", ClampMin = "0", UIMin = "0"))
+	UPROPERTY(Category = "EquipmentModule | MovementComponent", EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Jump Z Velocity", ClampMin = "0", UIMin = "0"))
 		float JumpZVelocity = 0;
-
 	/** Additive on Default: 0.5f; Fraction of JumpZVelocity to use when automatically "jumping off" of a base actor that's not allowed to be a base for a character. (For example, if you're not allowed to stand on other players.) */
-	UPROPERTY(Category = "Character Movement: Jumping / Falling", EditAnywhere, BlueprintReadWrite, AdvancedDisplay, meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(Category = "EquipmentModule | MovementComponent", EditAnywhere, BlueprintReadWrite, AdvancedDisplay, meta = (ClampMin = "0", UIMin = "0"))
 		float JumpOffJumpZFactor = 0;
-	
-	
-	/* Additive on Default :  1.5.f Multiplier for boost jump for Z velocity */
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
-		float mBoostJumpZMultiplier;
+	/* Additive on Default :  1.5.f Mult for boost jump for Z velocity */
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | MovementComponent")
+		float mBoostJumpZMult;
 
-	/* Additive on Default : 1.29999995231628f Multiplier for velocity in 2D when boost jumping */
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
-		float mBoostJumpVelocityMultiplier;
-	
+	/* Additive on Default : 1.29999995231628f Mult for velocity in 2D when boost jumping */
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | MovementComponent")
+		float mBoostJumpVelocityMult;
 	/**
 	* Additive on Default: 8.0f;
 	* Setting that affects movement control. Higher values allow faster changes in direction.
@@ -274,30 +338,23 @@ public:
 	* This can be used to simulate slippery surfaces such as ice or oil by changing the value (possibly based on the material pawn is standing on).
 	* @see BrakingDecelerationWalking, BrakingFriction, bUseSeparateBrakingFriction, BrakingFrictionFactor
 	*/
-	UPROPERTY(Category = "Character Movement: Walking", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(Category = "EquipmentModule | MovementComponent", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
 		float GroundFriction = 0;
-	
 	/** Additive on Default: 500.0f; -> 5m/s The maximum ground speed when walking. Also determines maximum lateral speed when falling. */
-	UPROPERTY(Category = "Character Movement: Walking", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(Category = "EquipmentModule | MovementComponent", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
 		float MaxWalkSpeed = 0;
-
 	/** Additive on Default: 240.0f; -> 2,4m/s The maximum ground speed when walking and crouched. */
-	UPROPERTY(Category = "Character Movement: Walking", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(Category = "EquipmentModule | MovementComponent", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
 		float MaxWalkSpeedCrouched = 0;
-
 	/**  Additive on Default: 300.0f; -> 3m/s The maximum swimming speed. */
-	UPROPERTY(Category = "Character Movement: Swimming", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(Category = "EquipmentModule | MovementComponent", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
 		float MaxSwimSpeed = 0;
-
 	/**  Additive on Default : 500.f; -> 5m/s The speed at which a character climbs ladders */
-	UPROPERTY(EditDefaultsOnly, Category = "Sprint")
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | MovementComponent")
 		float mClimbSpeed;
-
 	/** Additive on Default : 900.f; -> 9m/s The speed at witch a character sprints */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Sprint")//ReadWrite is only to enable blueprint prototoyping of shit.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "EquipmentModule | MovementComponent")//ReadWrite is only to enable blueprint prototoyping of shit.
 		float mMaxSprintSpeed;
-
-
 	/**
 	 * Additive on Default: 2.0f;
 	 * Factor used to multiply actual value of friction used when braking.
@@ -305,9 +362,8 @@ public:
 	 * @note This is 2 by default for historical reasons, a value of 1 gives the true drag equation.
 	 * @see bUseSeparateBrakingFriction, GroundFriction, BrakingFriction
 	 */
-	UPROPERTY(Category = "Character Movement (General Settings)", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(Category = "EquipmentModule | MovementComponent", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
 		float BrakingFrictionFactor = 0;
-
 	/**
 	 * Additive on Default: 0.f;
 	 * Friction (drag) coefficient applied when braking (whenever Acceleration = 0, or if character is exceeding max speed); actual value used is this multiplied by BrakingFrictionFactor.
@@ -317,46 +373,40 @@ public:
 	 * @note Only used if bUseSeparateBrakingFriction setting is true, otherwise current friction such as GroundFriction is used.
 	 * @see bUseSeparateBrakingFriction, BrakingFrictionFactor, GroundFriction, BrakingDecelerationWalking
 	 */
-	UPROPERTY(Category = "Character Movement (General Settings)", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0", EditCondition = "bUseSeparateBrakingFriction"))
+	UPROPERTY(Category = "EquipmentModule | MovementComponent", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0", EditCondition = "bUseSeparateBrakingFriction"))
 		float BrakingFriction = 0;
-
 	/**
 	 * additive on Default: 2048.f
 	 * Deceleration when walking and not applying acceleration. This is a constant opposing force that directly lowers velocity by a constant value.
 	 * @see GroundFriction, MaxAcceleration
 	 */
-	UPROPERTY(Category = "Character Movement: Walking", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(Category = "EquipmentModule | MovementComponent", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
 		float BrakingDecelerationWalking = 0;
-
 	/**
 	 * Additive on Default : 0.f;
 	 * Lateral deceleration when falling and not applying acceleration.
 	 * @see MaxAcceleration
 	 */
-	UPROPERTY(Category = "Character Movement: Jumping / Falling", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(Category = "EquipmentModule | MovementComponent", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
 		float BrakingDecelerationFalling = 0;
-
 	/**
 	 * Additive on Default : 100.f;
 	 * Deceleration when swimming and not applying acceleration.
 	 * @see MaxAcceleration
 	 */
-	UPROPERTY(Category = "Character Movement: Swimming", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(Category = "EquipmentModule | MovementComponent", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
 		float BrakingDecelerationSwimming = 0;
-
-
 	/**
 	 * Additive on Default : 0.0f; 
 	 * Friction to apply to lateral air movement when falling.
 	 * If bUseSeparateBrakingFriction is false, also affects the ability to stop more quickly when braking (whenever Acceleration is zero).
 	 * @see BrakingFriction, bUseSeparateBrakingFriction
 	 */
-	UPROPERTY(Category = "Character Movement: Jumping / Falling", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(Category = "EquipmentModule | MovementComponent", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
 		float FallingLateralFriction = 0;
-
-
+	
 	/** Max angle ( in radians ) for allowing to slide */
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | MovementComponent")
 		float mMaxSlideAngle;
 
 

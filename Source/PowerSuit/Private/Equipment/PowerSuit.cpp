@@ -94,6 +94,8 @@ void APowerSuit::CheckFuel()
 				// item Removed -> Reset Fuel and Power of our Component
 				FuelAmount = 1;
 				Module->CurrentPower = 1;
+				Module->Producing = true;
+				
 				// Trigger event setting the Icon and inventory Slot we now take from
 				if (pawn->GetInventory()->HasItems(mCostToUse[i].ItemClass, mCostToUse[i].Amount))
 				{
@@ -109,6 +111,7 @@ void APowerSuit::CheckFuel()
 				{
 					OnFuelConsumption.Broadcast(mCostToUse[i].ItemClass, 0, 1);
 				}
+				nCurrentFuelItem = mCostToUse[i].ItemClass;
 				break;
 			}
 		}
@@ -175,19 +178,28 @@ void APowerSuit::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME(APowerSuit, FuelAmount);
 }
 
-float APowerSuit::CalculateZVelocity(FVector VelInput,FVector PlayerVelocity, float dt)
+float APowerSuit::CalculateZVelocity(FVector VelInput,FVector PlayerVelocity, float dt, UCurveFloat * FloatTable)
 {
 	float out = 0;
 	if (HotKeyUpAccelration)
 	{
+		float absvelocity = (FMath::Abs(PlayerVelocity.Z));
+		float dampval = (1 / Module->Stats.nDampeningMult) * FMath::Abs(FloatTable->GetFloatValue(absvelocity));
 		// Not really clamping dt here, why im not sure
 		double prec = (1/((1.f / 60.f) / FMath::Clamp(dt, 0.000001f, 1.f)));
-		out = Module->Stats.nAirSpeedModifierUp*prec;
+		
+		float result = FMath::Lerp(Module->Stats.nAirSpeedModUp,15.f,((FMath::Clamp(PlayerVelocity.Z, 2000.f, Module->Stats.nAirSpeedModUp * 100)-2000.f)/1500.f));
+		//FString outstring = "PlayerVelocity " + FString::SanitizeFloat(PlayerVelocity.Z) + "Result " + FString::SanitizeFloat(result) + " with DampVal : " + FString::SanitizeFloat(dampval);
+		//SML::Logging::log(SML::Logging::Error, *outstring);
+
+		out = FMath::Clamp(result,2.f, 35.f);
+		
+		
 	}
 	else
 	{
 		if (HotKeyDownAccelration)
-			 out = Module->Stats.nAirSpeedModifierDown;
+			 out = Module->Stats.nAirSpeedModDown;
 		else
 		{
 			if (PlayerVelocity.Z > 0)
@@ -207,7 +219,7 @@ FVector APowerSuit::CalculateDampening(FVector PlayerVelocity, UCurveFloat * Flo
 {
 	FVector out = FVector();
 	float absvelocity = (FMath::Abs(PlayerVelocity.X) + FMath::Abs(PlayerVelocity.Y)) / 2;
-	float dampval = (1/ Module->Stats.nDampeningMultiplier) * FMath::Abs(FloatTable->GetFloatValue(absvelocity));
+	float dampval = (1/ Module->Stats.nDampeningMult) * FMath::Abs(FloatTable->GetFloatValue(absvelocity));
 	float mult = 1.0f;
 
 	// urgh .. works tho...
@@ -304,24 +316,37 @@ void APowerSuit::HandlePowerConsumption(float dt)
 	if (nCustomMovementMode == ECustomMovementMode::CMM_PipeHyper)
 	{
 		if (Module->Stats.nHasPipeAccel && Module->CurrentPower > 0.05f)
-		{
-			
 			if (HotKeyDirectionalAccelration)
 			{
 				if (Module->AddedDeltaPower != BasePowerUsage)
+				{
 					OnPowerConsumption.Broadcast(dt, BasePowerUsage);
-			}
+					Module->AddDeltaPower( BasePowerUsage);
+				}
+			}	
 			else
 			{
-				if (Module->AddedDeltaPower != BasePowerUsage*0.2f)
+				if (Module->AddedDeltaPower != BasePowerUsage * 0.2f)
+				{
 					OnPowerConsumption.Broadcast(dt, BasePowerUsage*0.2f);
+					Module->AddDeltaPower( BasePowerUsage*0.2f);
+				}
+				else if (Module->AddedDeltaPower != 0)
+				{
+					OnPowerConsumption.Broadcast(dt, 0);
+					Module->AddDeltaPower( 0);
+
+				}
+
 			}
-			
-		}
-		else
+				
+		float fuel =
+			Module->Stats.nBaseFuelConsumption
+			* (1 + Module->Stats.nFuelConsumptionMult);
+
+		if (Module->AddedDeltaFuel != fuel)
 		{
-			if (Module->AddedDeltaPower != 0)
-				OnPowerConsumption.Broadcast(dt, 0);
+			Module->AddedDeltaFuel = fuel;
 		}
 	}
 	else if (nCustomMovementMode == ECustomMovementMode::CMM_Ladder)
@@ -329,40 +354,166 @@ void APowerSuit::HandlePowerConsumption(float dt)
 		if (Module->AddedDeltaPower != 0)
 		{
 			OnPowerConsumption.Broadcast(dt, 0);
+
+			Module->AddDeltaPower( 0);
+
+		}
+
+		float fuel =
+			Module->Stats.nBaseFuelConsumption
+			* (1 + Module->Stats.nFuelConsumptionMult);
+
+		if (Module->AddedDeltaFuel != fuel)
+		{
+			Module->AddedDeltaFuel = fuel;
 		}
 	}
 	else
 	{
 		if (nMovementMode == EMovementMode::MOVE_Walking)
 		{
-			if (Module->CurrentPower > 0.05f)
+
+			if (HotKeyDirectionalAccelration)
 			{
-				if (HotKeyDirectionalAccelration)
+				float power =(
+					(BasePowerUsage * 0.7f)
+					+ Module->Stats.nExternalPowerMod
+					+ Module->Stats.nExternalPowerModGroundOnly)
+					* (1 + Module->Stats.nExternalPowerMultGroundOnly)
+					* (1 + Module->Stats.nExternalPowerMult)
+					;
+				if (Module->AddedDeltaPower != power)
 				{
-					if (Module->AddedDeltaPower != BasePowerUsage*0.7f)
-						OnPowerConsumption.Broadcast(dt, BasePowerUsage*0.7f);
+					OnPowerConsumption.Broadcast(dt, power);
+					Module->AddDeltaPower(power);
 				}
-				else
+				float fuel =
+					(
+					Module->Stats.nBaseFuelConsumption
+					+ Module->Stats.nGroundSprintFuelConsumption
+					)
+					* (1 + Module->Stats.nFuelConsumptionMult);
+
+				if (Module->AddedDeltaFuel != fuel)
 				{
-					if (Module->AddedDeltaPower != BasePowerUsage*0.1f)
-						OnPowerConsumption.Broadcast(dt, BasePowerUsage*0.1f);
+					Module->AddedDeltaFuel = fuel;
 				}
 			}
+			else
+			{
+				float power =(
+					(BasePowerUsage * 0.1f)
+					+ Module->Stats.nExternalPowerMod 
+					+ Module->Stats.nExternalPowerModGroundOnly)
+					* (1 + Module->Stats.nExternalPowerMultGroundOnly)
+					* (1 + Module->Stats.nExternalPowerMult)
+					;
+				if (Module->AddedDeltaPower != power)
+				{
+					OnPowerConsumption.Broadcast(dt, power);
+					Module->AddDeltaPower( power);
+				}
+				float fuel =
+					Module->Stats.nBaseFuelConsumption
+					* (1 + Module->Stats.nFuelConsumptionMult);
+
+				if (Module->AddedDeltaFuel != fuel)
+				{
+					Module->AddedDeltaFuel = fuel;
+				}
+			}
+			
 		}
 		else if (nMovementMode == EMovementMode::MOVE_Falling)
 		{
-			if (Hovering && Module->CurrentPower > 0.01f)
+			if (Hovering)
 			{
+				if(!Module->Active)
+					Module->ActiveTimer = FDateTime::Now();
 
+				// Sprinting
 				if (GetCurrentFuel() > 0.0f && HotKeyDirectionalAccelration)
 				{
-					if (Module->AddedDeltaPower != BasePowerUsage* 1.f)
-						OnPowerConsumption.Broadcast(dt, BasePowerUsage*1.f);
-				}
-				else
+					float power =
+						(
+						BasePowerUsage
+						+ Module->Stats.nExternalPowerMod
+						+ Module->Stats.nExternalPowerModAirOnly
+						)
+						* (1 + Module->Stats.nExternalPowerMultAirOnly)
+						* (1 + Module->Stats.nExternalPowerMult);
+					if (Module->AddedDeltaPower != power)
+					{
+						OnPowerConsumption.Broadcast(dt, power);
+						Module->AddDeltaPower( power);
+					}
+
+					float fuel = 
+						(
+						Module->Stats.nBaseFuelConsumption 
+						+ Module->Stats.nHoverFuelConsumption 
+						+ Module->Stats.nHoverMoveFuelConsumption 
+						+ Module->Stats.nSprintHoverFuelConsumption
+						)
+						* ( 1 + Module->Stats.nFuelConsumptionMult);
+
+					if (Module->AddedDeltaFuel != fuel)
+					{
+						Module->AddedDeltaFuel = fuel;
+					}
+				} 
+				else // not sprinting
 				{
-					if (Module->AddedDeltaPower != BasePowerUsage* 0.25f)
-						OnPowerConsumption.Broadcast(dt, BasePowerUsage*0.25f);
+					float power =
+						(
+						BasePowerUsage
+						+ Module->Stats.nExternalPowerMod
+						+ Module->Stats.nExternalPowerModAirOnly
+						)
+						* (1 + Module->Stats.nExternalPowerMultAirOnly)
+						* (1 + Module->Stats.nExternalPowerMult);
+
+
+					if (FMath::Abs(Yaxis) > 0 || FMath::Abs(Xaxis) > 0)
+					{
+						if (Module->AddedDeltaPower != power * 0.75f)
+						{
+							OnPowerConsumption.Broadcast(dt, power*0.75f);
+							Module->AddDeltaPower( power*0.75f);
+						}
+
+						float fuel =
+							(
+							Module->Stats.nBaseFuelConsumption
+							+ Module->Stats.nHoverFuelConsumption
+							+ Module->Stats.nHoverMoveFuelConsumption
+							)
+							* (1 + Module->Stats.nFuelConsumptionMult);
+
+						if (Module->AddedDeltaFuel != fuel)
+						{
+							Module->AddedDeltaFuel = fuel;
+						}
+					}
+					else
+					{
+						if (Module->AddedDeltaPower != power * 0.5f)
+						{
+							OnPowerConsumption.Broadcast(dt, power*0.5f);
+							Module->AddDeltaPower( power*0.5f);
+						}
+						float fuel =
+							(
+							Module->Stats.nBaseFuelConsumption
+							+ Module->Stats.nHoverFuelConsumption
+							)
+							* (1 + Module->Stats.nFuelConsumptionMult);
+
+						if (Module->AddedDeltaFuel != fuel)
+						{
+							Module->AddedDeltaFuel = fuel;
+						}
+					}
 				}
 			}
 		}
@@ -371,6 +522,12 @@ void APowerSuit::HandlePowerConsumption(float dt)
 			if (Module->AddedDeltaPower != 0)
 			{
 				OnPowerConsumption.Broadcast(dt, 0);
+				Module->AddDeltaPower( 0);
+			}
+
+			if (Module->AddedDeltaFuel != 0)
+			{
+				Module->AddedDeltaFuel = 0;
 			}
 		}
 		else if (nMovementMode == EMovementMode::MOVE_Flying)
@@ -378,6 +535,11 @@ void APowerSuit::HandlePowerConsumption(float dt)
 			if (Module->AddedDeltaPower != 0)
 			{
 				OnPowerConsumption.Broadcast(dt, 0);
+				Module->AddDeltaPower( 0);
+			}
+			if (Module->AddedDeltaFuel != 0)
+			{
+				Module->AddedDeltaFuel = 0;
 			}
 		}
 		else if (nMovementMode == EMovementMode::MOVE_Custom)
@@ -385,6 +547,11 @@ void APowerSuit::HandlePowerConsumption(float dt)
 			if (Module->AddedDeltaPower != 0)
 			{
 				OnPowerConsumption.Broadcast(dt, 0);
+				Module->AddDeltaPower( 0);
+			}
+			if (Module->AddedDeltaFuel != 0)
+			{
+				Module->AddedDeltaFuel = 0;
 			}
 		}
 		else if (nMovementMode == EMovementMode::MOVE_None)
@@ -392,6 +559,11 @@ void APowerSuit::HandlePowerConsumption(float dt)
 			if (Module->AddedDeltaPower != 0)
 			{
 				OnPowerConsumption.Broadcast(dt, 0);
+				Module->AddDeltaPower( 0);
+			}
+			if (Module->AddedDeltaFuel != 0)
+			{
+				Module->AddedDeltaFuel = 0;
 			}
 		}
 	}
@@ -415,15 +587,15 @@ FVector APowerSuit::ApplyMultipleir(FVector Vel1, FVector PlayerVelocity, FVecto
 	{
 		if (nMovementMode == EMovementMode::MOVE_Walking)
 		{
-			if (Module->CurrentPower > 0.05f)
+			if (Module->Producing)
 			{
 				if (HotKeyDirectionalAccelration)
 				{
-					AddedVelocity = Forward * 2 * ((Module->Stats.nSpeedModifier + 1)*(Module->Stats.nGroundSpeedModifierSprint + 1))*prec;
+					AddedVelocity = Forward * 2 * ((Module->Stats.nSpeedMod + 1)*(Module->Stats.nGroundSpeedModSprint + 1))*prec;
 				}
 				else
 				{
-					AddedVelocity = Forward * (Module->Stats.nSpeedModifier + 1)*(Module->Stats.nGroundSpeedModifierNormal + 1) *prec;
+					AddedVelocity = Forward * (Module->Stats.nSpeedMod + 1)*(Module->Stats.nGroundSpeedModNormal + 1) *prec;
 				}
 				// Add stuff up
 				out.Z = 0;
@@ -444,9 +616,9 @@ FVector APowerSuit::ApplyMultipleir(FVector Vel1, FVector PlayerVelocity, FVecto
 				}
 			}
 		}
-		if (nMovementMode == EMovementMode::MOVE_Falling)
+		if (nMovementMode == EMovementMode::MOVE_Falling )
 		{
-			if (Hovering && Module->CurrentPower > 0.01f)
+			if (Hovering && Module->Producing  && Module->Stats.nHasFlightUnlock)
 			{
 				Forward.Z = 0;
 				prec = (1 / ((1.f / 60.f) / FMath::Clamp(dt, 0.000001f, 0.016667f)));
@@ -457,8 +629,8 @@ FVector APowerSuit::ApplyMultipleir(FVector Vel1, FVector PlayerVelocity, FVecto
 					AddedVelocity = Forward * 
 						prec
 							*(1 + Module->Stats.nAirGlobalSpeed)
-							*(1 + Module->Stats.nSpeedModifier)
-							*(1 + Module->Stats.nAirSpeedModifierSprint);
+							*(1 + Module->Stats.nSpeedMod)
+							*(1 + Module->Stats.nAirSpeedModSprint);
 					if(HasAuthority())
 						FuelAmount = GetCurrentFuel() - ((dt) * (1 / Module->Stats.nChargeDuration));
 				}
@@ -467,11 +639,11 @@ FVector APowerSuit::ApplyMultipleir(FVector Vel1, FVector PlayerVelocity, FVecto
 					AddedVelocity = Forward 
 						* prec
 						* (1 + Module->Stats.nAirGlobalSpeed) 
-						* (1 + Module->Stats.nSpeedModifier) 
-						* (1 + Module->Stats.nAirSpeedModifierNormal);
+						* (1 + Module->Stats.nSpeedMod) 
+						* (1 + Module->Stats.nAirSpeedModNormal);
 				}
 
-				out.Z = CalculateZVelocity(Vel1, PlayerVelocity, dt);
+				out.Z = CalculateZVelocity(Vel1, PlayerVelocity, dt, FloatTable);
 				out.Z = out.Z + AddedVelocity.Z;
 				out.X = Vel1.X - CalculateDampening(PlayerVelocity, FloatTable).X;
 				out.X = out.X + AddedVelocity.X;

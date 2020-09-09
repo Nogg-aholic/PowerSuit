@@ -1,8 +1,8 @@
 {
 	"mod_reference": "PowerSuit",
 	"name": "PowerSuit",
-	"description": "PowerSuit & Modules",
-	"version": "0.1.0",
+	"description": "PowerSuit",
+	"version": "0.2.0",
 	"sml_version": "2.1.0",
 	"authors": [
 		"Nog"

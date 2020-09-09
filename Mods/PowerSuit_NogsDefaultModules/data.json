@@ -1,0 +1,19 @@
+{
+	"mod_reference": "PowerSuit_NogsDefaultModules",
+	"name": "PowerSuit_NogsDefaultModules",
+	"description": "Example Modules for the Power Suit including 3 Flight Modules, HyperTube Module and a Power Module.",
+	"version": "0.2.0",
+	"sml_version": "2.1.0",
+	"authors": [
+		"Nog"
+	],
+	"objects": [
+		{
+			"type": "pak",
+			"path": "PowerSuit_NogsDefaultModules.pak"
+		}
+	],
+	"dependencies": {
+   	 "SML": "^2.0.0"
+  	}
+}

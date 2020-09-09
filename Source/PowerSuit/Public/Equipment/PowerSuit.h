@@ -30,8 +30,8 @@ public:
 	void ReplicateStates();
 	void CheckFuel();
 
-	UFUNCTION(BlueprintCallable)
-		float CalculateZVelocity(FVector VelInput, FVector PlayerVelocity, float dt);
+	float CalculateZVelocity(FVector VelInput, FVector PlayerVelocity, float dt, UCurveFloat * FloatTable);
+	
 	UFUNCTION(BlueprintCallable)
 		FVector CalculateDampening(FVector PlayerVelocity, UCurveFloat * FloatTable);
 	UFUNCTION(BlueprintCallable)
@@ -50,6 +50,23 @@ public:
 		if(manager)
 			manager->ToggleCameraMode();
 	}
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnIsSprintingChanged(bool mIsSprinting);
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnIsSlidingChanged(bool mIsSliding);
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnCheckHotkeys();
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnHoverChanged(bool Hover);
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnPipeVelocityChanged(float newVel);
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnMoveRep(uint8 MovementMode);
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnCustomMovementMode(uint8 CustomMovementMode);
+
 	UPROPERTY(BlueprintAssignable, Category = "Equipment", DisplayName = "OnConsumePower")
 		FOnConsumePower OnPowerConsumption;
 
@@ -74,24 +91,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, Replicated, Category = "Equipment")
 		float FuelAmount = 1.f;
 
-	UFUNCTION(BlueprintImplementableEvent)
-		void OnIsSprintingChanged(bool mIsSprinting);
-	UFUNCTION(BlueprintImplementableEvent)
-		void OnIsSlidingChanged(bool mIsSliding);
-	UFUNCTION(BlueprintImplementableEvent)
-		void OnCheckHotkeys();
-	UFUNCTION(BlueprintImplementableEvent)
-		void OnHoverChanged(bool Hover);
-
-	UFUNCTION(BlueprintImplementableEvent)
-		void OnPipeVelocityChanged(float newVel);
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
 		float nPipeVelocity;
-
-	UFUNCTION(BlueprintImplementableEvent)
-		void OnMoveRep(uint8 MovementMode);
-	UFUNCTION(BlueprintImplementableEvent)
-		void OnCustomMovementMode(uint8 CustomMovementMode);
 
 	/** Keeps is the player sprinting this update or not? */
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
@@ -105,6 +106,10 @@ public:
 	/** is Controlled by a Remote Connection  */
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
 		bool nRemoteControlled;
+
+	/** is Controlled by a Remote Connection  */
+	UPROPERTY(BlueprintReadWrite, SaveGame, Category = "Movement")
+		TSubclassOf<class UFGItemDescriptor> nCurrentFuelItem;
 
 	/**
 	* Actor's current movement mode (walking, falling, etc).
