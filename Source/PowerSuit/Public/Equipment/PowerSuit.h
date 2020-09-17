@@ -42,6 +42,8 @@ public:
 
 	void HandlePowerConsumption(float dt);
 
+	void HandleFuelConsumption(float dt);
+
 	UFUNCTION(BlueprintCallable)
 		FVector ApplyMultipleir(FVector Vel1, FVector PlayerVelocity, FVector Forward, UCurveFloat * FloatTable, float dt);
 	
@@ -133,6 +135,9 @@ public:
 	UPROPERTY(Category = "Character Movement: MovementMode", BlueprintReadWrite)
 		uint8 nCustomMovementMode;
 
+	UPROPERTY(Category = "Character Movement: MovementMode", BlueprintReadWrite)
+		TEnumAsByte<EPowerSuitState> SuitState;
+
 	/** Input X  */
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
 		float Xaxis;
@@ -140,11 +145,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
 		float Yaxis;
 
+
+
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
 	UEquipmentModuleComponent * Module;
 
 	float lastPipeVelocity = 0.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
-	float BasePowerUsage = 0.f;
+		TMap<TEnumAsByte< EPowerSuitState>, float> nBasePowerUsage;
 };

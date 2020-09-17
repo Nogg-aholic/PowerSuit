@@ -37,6 +37,8 @@ void UEquipmentModuleComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(UEquipmentModuleComponent, ShieldDmg);
 	DOREPLIFETIME(UEquipmentModuleComponent, ActiveTimer);
 	DOREPLIFETIME(UEquipmentModuleComponent, FuseBreak);
+	DOREPLIFETIME(UEquipmentModuleComponent, FuseBreakOverDraw);
+
 }
 
 // Called every frame
@@ -70,15 +72,20 @@ void UEquipmentModuleComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	else
 		Active = true;
 
-
+	APowerSuit * Parent = Cast<APowerSuit>(EquipmentParent);
+	Parent->HandlePowerConsumption(DeltaTime);
+	Parent->HandleFuelConsumption(DeltaTime);
 	if (!Producing)
 	{
 		if (timesinceFuseBreak.GetTotalSeconds() > GetFuseTimerDuration())
 		{
-			if (Stats.nPowerProduction > 0)
+			if (Stats.nSuitProperties[ESuitProperty::nPowerProduction].result() > 0)
 			{
-				CurrentPower = FMath::Clamp((Stats.nPowerProduction* GetFuseTimerDuration() / Stats.nPowerCapacity),0.01f,.5f);
+				//CurrentPower = FMath::Clamp((Stats.nSuitProperties[ESuitProperty::nPowerProduction].result()* GetFuseTimerDuration() / Stats.nSuitProperties[ESuitProperty::nPowerCapacity].result()),0.01f,.5f);
+				CurrentPower = 0.01f;
 				Producing = true;
+				UFGCharacterMovementComponent  * MovementComponent = Cast< AFGCharacterPlayer>(EquipmentParent->Instigator)->GetFGMovementComponent();
+				MovementComponent->Velocity  = FVector(MovementComponent->Velocity.X, MovementComponent->Velocity.Y, 0);
 				if (Active)
 				{
 					// this will reactivate itself on next frame if we dont offset the Timer
@@ -86,13 +93,16 @@ void UEquipmentModuleComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 					// maybe should solve this better
 					ActiveTimer = ActiveTimer - FTimespan(0, 0, GetActiveTimerDuration());
 					Active = false;
+					
 				}
+				UpdateStats(nInventory);
 			}
 		}
 	}
 
 	if (Producing)
 	{
+		
 		if (ShouldRegenShield(timesinceShieldDmg))
 			RegenShield(DeltaTime);
 		else if (CurrentShield == GetMaxShield())
@@ -163,7 +173,7 @@ void UEquipmentModuleComponent::Init(UFGInventoryComponent * Inventory, AFGEquip
 }
 
 void UEquipmentModuleComponent::RegenShield(float DeltaTime) {
-	CurrentShield = CurrentShield + (GetShieldRechargeRate() * DeltaTime);
+	CurrentShield = FMath::Clamp(CurrentShield + (GetShieldRechargeRate() * DeltaTime),0.f,GetMaxShield());
 	if (!Active)
 		ActiveTimer = FDateTime::Now();
 	ShieldBroke = false;
@@ -171,8 +181,11 @@ void UEquipmentModuleComponent::RegenShield(float DeltaTime) {
 
 void UEquipmentModuleComponent::RegenPower(float DeltaTime) {
 	
-	CurrentPower = FMath::Clamp(CurrentPower + ((GetPowerDraw() / Stats.nPowerCapacity)*DeltaTime), 0.f, 1.f);
-	
+	CurrentPower = FMath::Clamp(CurrentPower + ((GetPowerDraw() / FMath::Clamp(Stats.nSuitProperties[ESuitProperty::nPowerCapacity].result(),1.f,100000000.f))*DeltaTime), 0.f, 1.f);
+	if(CurrentPower == 0.f)
+		if (FTimespan(FDateTime::Now() - FuseBreakOverDraw).GetTotalSeconds() > Stats.nSuitProperties[ESuitProperty::nFuseTimeOverDraw].result() +1)
+			FuseBreakOverDraw = FDateTime::Now();
+		
 }
 
 void UEquipmentModuleComponent::RegenHealth(float DeltaTime) {
@@ -188,7 +201,7 @@ void UEquipmentModuleComponent::RegenHealth(float DeltaTime) {
 			}
 			else
 			{
-				HealthBuffer = HealthBuffer + ((Stats.nHealthRegen * (1 + Stats.nHealthRegenMult)) * DeltaTime);
+				HealthBuffer = HealthBuffer + (Stats.nSuitProperties[ESuitProperty::nHealthRegen].result() * DeltaTime);
 			}
 
 		}
@@ -206,35 +219,42 @@ void UEquipmentModuleComponent::ConsumeFuel(float DeltaTime) {
 	FuelAmount = FMath::Clamp(Parent->FuelAmount,0.f,1.f);
 	MJ = FMath::Clamp(Parent->nCurrentFuelItem.GetDefaultObject()->GetEnergyValue(Parent->nCurrentFuelItem),600.f,100000000.f);
 	MJcurrent = MJ * FuelAmount;
-	if (!Producing || CurrentPower <= 0)
-		pen = Stats.nEmtpyPowerFuelPenalty;
 	if (MJcurrent > 0)
-		Cast<APowerSuit>(EquipmentParent)->FuelAmount = FMath::Clamp(((MJcurrent - ((Stats.nBaseFuelConsumption +pen+ AddedDeltaFuel)*DeltaTime)) / MJ), 0.f, 1.f);
+		Cast<APowerSuit>(EquipmentParent)->FuelAmount = FMath::Clamp(((MJcurrent - (Stats.nSuitProperties[ESuitProperty::nBaseFuelConsumption].result() + AddedDeltaFuel) *DeltaTime) / MJ), 0.f, 1.f);
 }
 
 bool UEquipmentModuleComponent::IsProducing() {
 	if (CurrentPower <= 0.f )
 	{
-
 		if (Cast<APowerSuit>(EquipmentParent)->FuelAmount > 0)
-			Producing = true;
+		{
+			if (!Stats.nFuseNeverBreaksWhenFueled)
+			{
+				if (FTimespan(FDateTime::Now() - FuseBreakOverDraw).GetTotalSeconds() > Stats.nSuitProperties[ESuitProperty::nFuseTimeOverDraw].result())
+					Producing = false;
+				else
+					Producing = true;
+			}
+			else
+				Producing = true;
+		}	
 		else
 			Producing = false;
-
-		if (FTimespan(FDateTime::Now() - FuseBreak).GetTotalSeconds() > GetFuseTimerDuration())
+		if (!Producing)
 		{
-			FuseBreak = FDateTime::Now();
-			FuseTriggered(this, Producing, FuseBreak);
-			OnFuseTriggered.Broadcast(Producing, FuseBreak);
-			ShieldDmg = FDateTime::Now();
+			if (FTimespan(FDateTime::Now() - FuseBreak).GetTotalSeconds() > GetFuseTimerDuration())
+			{
+				Cast<APowerSuit>(EquipmentParent)->SuitState = EPowerSuitState::STANDING;
+				UFGCharacterMovementComponent  * MovementComponent = Cast< AFGCharacterPlayer>(EquipmentParent->Instigator)->GetFGMovementComponent();
+				Cast<APowerSuit>(EquipmentParent)->ResetMovementComponent(MovementComponent);
+				FuseBreak = FDateTime::Now();
+				FuseTriggered(this, Producing, FuseBreak);
+				OnFuseTriggered.Broadcast(Producing, FuseBreak);
+				ShieldDmg = FDateTime::Now();
+			}
 		}
-
-		
-		
-		return false;
 	}
-	else
-		return true;
+	return Producing;
 }
 
 bool UEquipmentModuleComponent::ShouldRegenShield(FTimespan timesinceShieldDmg)
@@ -269,11 +289,17 @@ void UEquipmentModuleComponent::OnInventoryItemRemove(TSubclassOf< UFGItemDescri
 void UEquipmentModuleComponent::UpdateStats(UFGInventoryComponent * Inventory)
 {
 
-	Stats = DefaultStats;
+	Stats = DefaultStats + FEquipmentStats();
 	UniquesActive = {};
 	CurrentShield = 0.f;
 	Stats.nHasPipeAccel = false;
 
+	for (int32 i = 0; i< Attachments.Num(); i++)
+	{
+		if(Attachments[i])
+			Attachments[i]->Destroy();
+	}
+	Attachments.Empty();
 
 	if (Inventory)
 	{
@@ -289,8 +315,11 @@ void UEquipmentModuleComponent::UpdateStats(UFGInventoryComponent * Inventory)
 						continue;
 					else
 						UniquesActive.Add(item);
+				
+				// Add Stas up 
 				Stats = Stats + item.GetDefaultObject()->EquipmentStats;
 
+				// Curve 
 				if (EquipmentParent && item.GetDefaultObject()->EquipmentStats.nDampeningCurve)
 				{
 					if (EquipmentParent)
@@ -299,6 +328,20 @@ void UEquipmentModuleComponent::UpdateStats(UFGInventoryComponent * Inventory)
 					}
 					Stats.nDampeningCurve = item.GetDefaultObject()->EquipmentStats.nDampeningCurve;
 
+				}
+
+				// Attachment
+				UClass* classref = item.GetDefaultObject()->GetnAttachment(item);
+				if (EquipmentParent && classref && EquipmentParent->HasAuthority())
+				{
+					FVector  Loc = FVector();
+					FRotator Rot = FRotator();
+					AActor * spawned = GetWorld()->SpawnActor(classref, &Loc, &Rot);
+					if (spawned)
+					{
+						spawned->AttachToActor(EquipmentParent, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true));
+						Attachments.Add(spawned);
+					}
 				}
 			}
 		}
@@ -314,26 +357,26 @@ void UEquipmentModuleComponent::UpdateStats(UFGInventoryComponent * Inventory)
 		UFGCharacterMovementComponent  * MovementComponent = Cast< AFGCharacterPlayer>(EquipmentParent->Instigator)->GetFGMovementComponent();
 
 
-		MovementComponent->JumpZVelocity = Stats.JumpZVelocity + 500.f;
-		MovementComponent->JumpOffJumpZFactor = Stats.JumpOffJumpZFactor + 0.5f;
-		MovementComponent->GroundFriction = Stats.GroundFriction + 8.0f;
-		MovementComponent->MaxWalkSpeed = Stats.MaxWalkSpeed + 500.0f;
-		MovementComponent->MaxWalkSpeedCrouched = Stats.MaxWalkSpeedCrouched + 240.0f;
-		MovementComponent->MaxSwimSpeed = Stats.MaxSwimSpeed + 300.0f;
-		MovementComponent->BrakingFrictionFactor = Stats.BrakingFrictionFactor + 2.f;
-		MovementComponent->BrakingFriction = Stats.BrakingFriction;
-		MovementComponent->BrakingDecelerationWalking = Stats.BrakingDecelerationWalking + 2048.0;
-		MovementComponent->BrakingDecelerationSwimming = Stats.BrakingDecelerationSwimming + 100.0;
-		MovementComponent->BrakingDecelerationFalling = Stats.BrakingDecelerationFalling;
-		MovementComponent->FallingLateralFriction = Stats.FallingLateralFriction;
+		MovementComponent->JumpZVelocity = Stats.nMovementComponentStats.JumpZVelocity + 500.f;
+		MovementComponent->JumpOffJumpZFactor = Stats.nMovementComponentStats.JumpOffJumpZFactor + 0.5f;
+		MovementComponent->GroundFriction = Stats.nMovementComponentStats.GroundFriction + 8.0f;
+		MovementComponent->MaxWalkSpeed = (Stats.nMovementComponentStats.MaxWalkSpeed + 500.0f +Stats.nSuitProperties[ESuitProperty::nSpeed].Modifier)*(1 + Stats.nSuitProperties[ESuitProperty::nSpeed].Multiplier);
+		MovementComponent->MaxWalkSpeedCrouched = (Stats.nMovementComponentStats.MaxWalkSpeedCrouched + 240.0f + Stats.nSuitProperties[ESuitProperty::nSpeed].Modifier)*(1 + Stats.nSuitProperties[ESuitProperty::nSpeed].Multiplier);
+		MovementComponent->MaxSwimSpeed = (Stats.nMovementComponentStats.MaxSwimSpeed + 300.0f + Stats.nSuitProperties[ESuitProperty::nSpeed].Modifier)*(1 + Stats.nSuitProperties[ESuitProperty::nSpeed].Multiplier);
+		MovementComponent->BrakingFrictionFactor = Stats.nMovementComponentStats.BrakingFrictionFactor + 2.f;
+		MovementComponent->BrakingFriction = Stats.nMovementComponentStats.BrakingFriction;
+		MovementComponent->BrakingDecelerationWalking = Stats.nMovementComponentStats.BrakingDecelerationWalking + 2048.0;
+		MovementComponent->BrakingDecelerationSwimming = Stats.nMovementComponentStats.BrakingDecelerationSwimming + 100.0;
+		MovementComponent->BrakingDecelerationFalling = Stats.nMovementComponentStats.BrakingDecelerationFalling;
+		MovementComponent->FallingLateralFriction = Stats.nMovementComponentStats.FallingLateralFriction;
 
-		MovementComponent->GravityScale = Stats.nGravityMod + 1.2f;
+		MovementComponent->GravityScale = Stats.nSuitProperties[ESuitProperty::nGravity].result() + 1.2f;
 
-		MovementComponent->mClimbSpeed = Stats.mClimbSpeed + 500.f;
-		MovementComponent->mMaxSprintSpeed = Stats.mMaxSprintSpeed + 900.f;
+		MovementComponent->mClimbSpeed = (Stats.nMovementComponentStats.mClimbSpeed + 500.f + Stats.nSuitProperties[ESuitProperty::nSpeed].Modifier)*(1 + Stats.nSuitProperties[ESuitProperty::nSpeed].Multiplier);
+		MovementComponent->mMaxSprintSpeed = (Stats.nMovementComponentStats.mMaxSprintSpeed + 900.f + Stats.nSuitProperties[ESuitProperty::nSpeed].Modifier)*(1 + Stats.nSuitProperties[ESuitProperty::nSpeed].Multiplier);
 		//  Tick overrides ref->mMaxSlideAngle = Stats.mMaxSlideAngle + 1.64999997615814f;
-		MovementComponent->mBoostJumpZMultiplier = Stats.mBoostJumpZMult + 1.5f;
-		MovementComponent->mBoostJumpVelocityMultiplier = Stats.mBoostJumpVelocityMult + 1.29999995231628f;
+		MovementComponent->mBoostJumpZMultiplier = Stats.nMovementComponentStats.mBoostJumpZMult + 1.5f;
+		MovementComponent->mBoostJumpVelocityMultiplier = Stats.nMovementComponentStats.mBoostJumpVelocityMult + 1.29999995231628f;
 
 	}
 }
@@ -342,6 +385,8 @@ void UEquipmentModuleComponent::UpdateStats(UFGInventoryComponent * Inventory)
 float UEquipmentModuleComponent::ApplyShieldDamage(float DmgIn)
 {
 	
+	if (DmgIn <= 0.f)
+		return 0.f;
 
 	ShieldDmg = FDateTime::Now();
 	ActiveTimer = FDateTime::Now();
@@ -376,71 +421,21 @@ float UEquipmentModuleComponent::CalculateDamage( UFGInventoryComponent * Invent
 		{
 			if (Stats.nDamageResistance.Contains(*BpType))
 			{
-				Dmg = FMath::Clamp(Dmg - (Dmg * (*Stats.nDamageResistance.Find(*BpType))), 0.f, 1000.f);
+				Dmg = FMath::Clamp((Dmg - Stats.nDamageResistance[*BpType].Modifier) - (FMath::Clamp(Dmg - Stats.nDamageResistance[*BpType].Modifier, 0.f, 1000.f)* Stats.nDamageResistance[*BpType].Multiplier), 0.f, 1000.f);
+
 			}
 		}
 		
-
-		switch (Type)
+		float AdjustedDmg = FMath::Clamp((Dmg - Stats.nDamageTypeResistance[Type].Modifier) - ( FMath::Clamp(Dmg - Stats.nDamageTypeResistance[Type].Modifier, 0.f, 1000.f)* Stats.nDamageTypeResistance[Type].Multiplier ), 0.f, 1000.f);
+		if (CurrentShield > 0 && (Type != ENDamageType::DamageTypeGas || Type != ENDamageType::DamageTypeRadioActivity))
 		{
-			case ENDamageType::DamageTypeFallDamage :
-			{
-				float AdjustedDmg = FMath::Clamp((Dmg - Stats.nFallDamageMod) - (FMath::Clamp(Dmg - Stats.nFallDamageMod, 0.f, 1000.f) * Stats.nFallDamageResistance), 0.f, 1000.f);
-				if (CurrentShield > 0)
-				{
-					SML::Logging::log(SML::Logging::Error, "DamageTypeFallDamage");
-					SML::Logging::log(SML::Logging::Error, AdjustedDmg);
+			SML::Logging::log(SML::Logging::Error, Type);
+			SML::Logging::log(SML::Logging::Error, AdjustedDmg);
 
-					return ApplyShieldDamage(AdjustedDmg);
-				}
-				else
-					return AdjustedDmg;
-			}
-			case ENDamageType::DamageTypeGas :
-			{
-				if (CurrentShield > 0)
-				{
-					float AdjustedDmg = FMath::Clamp(Dmg - (Dmg * Stats.nGasResistance), 0.f, 1000.f);
-					SML::Logging::log(SML::Logging::Error, "DamageTypeGas");
-					SML::Logging::log(SML::Logging::Error, AdjustedDmg);
-					return ApplyShieldDamage(AdjustedDmg);
-				}
-				else
-					return FMath::Clamp(Dmg - (Dmg * Stats.nGasResistance), 0.f, 1000.f);
-			}
-			case ENDamageType::DamageTypePhysical :
-			{
-				if (CurrentShield > 0)
-				{
-
-					float AdjustedDmg = FMath::Clamp(Dmg - (Dmg * Stats.nPhysicalResistance), 0.f, 1000.f);
-					SML::Logging::log(SML::Logging::Error, "DamageTypePhysical");
-					SML::Logging::log(SML::Logging::Error, AdjustedDmg);
-					return ApplyShieldDamage(AdjustedDmg);
-				}
-				else
-					return FMath::Clamp(Dmg - (Dmg * Stats.nPhysicalResistance), 0.f, 1000.f);
-			}
-			case ENDamageType::DamageTypeNULL:
-			{
-				if (CurrentShield > 0)
-				{
-					float AdjustedDmg = FMath::Clamp(Dmg - (Dmg * Stats.nPhysicalResistance), 0.f, 1000.f);
-					SML::Logging::log(SML::Logging::Error, "DamageTypeNULL");
-					SML::Logging::log(SML::Logging::Error, AdjustedDmg);
-					return ApplyShieldDamage(AdjustedDmg);
-				}
-				else
-					return FMath::Clamp(Dmg - (Dmg * Stats.nPhysicalResistance), 0.f, 1000.f);
-			}
-			case ENDamageType::DamageTypeRadioActivity:
-			{
-				SML::Logging::log(SML::Logging::Error, "DamageTypeRadioActivity");
-				SML::Logging::log(SML::Logging::Error, FMath::Clamp(Dmg - (Dmg * Stats.nRadioactiveRestistance), 0.f, 1000.f));
-				return FMath::Clamp(Dmg - (Dmg * Stats.nRadioactiveRestistance), 0.f, 1000.f);
-			}
-
+			return ApplyShieldDamage(AdjustedDmg);
 		}
+		else
+			return AdjustedDmg;
 
 	}
 	return Dmg;
@@ -457,14 +452,24 @@ float UEquipmentModuleComponent::GetPowerDraw()
 	if (!EquipmentParent)
 		return 0;
 
-	float PowerUsage = Stats.nPowerProduction;
+	float PowerUsage = Stats.nSuitProperties[ESuitProperty::nPowerProduction].result();
 
 	if (Active)
-		PowerUsage += Stats.nPowerProductionActive;
+		PowerUsage += Stats.nSuitProperties[ESuitProperty::nPowerProductionActive].result();
 
-	if (Cast<APowerSuit>(EquipmentParent)->FuelAmount == 0)
-		PowerUsage -= Stats.nEmtpyFuelPowerPenalty;
 
 	return PowerUsage - AddedDeltaPower;
 }
+
+FString UEquipmentModuleComponent::GetStatsAsString()
+{
+	
+	UScriptStruct* Struct = Stats.StaticStruct();
+	FString Output = TEXT("");
+	Struct->ExportText(Output, &Stats, nullptr, this, (PPF_ExportsNotFullyQualified | PPF_Copy | PPF_Delimited | PPF_IncludeTransient || PPF_ParsingDefaultProperties), nullptr);
+
+	
+	return Output;
+}
+
 

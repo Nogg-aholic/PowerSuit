@@ -10,15 +10,6 @@
 #include "FGEquipment.h"
 #include "FGHealthComponent.h"
 #include "EquipmentModuleComponent.generated.h"
-UENUM(Blueprinttype)
-enum ENDamageType
-{
-	DamageTypeNULL,
-	DamageTypePhysical,
-	DamageTypeGas,
-	DamageTypeRadioActivity,
-	DamageTypeFallDamage
-};
 
 
 
@@ -31,7 +22,7 @@ class POWERSUIT_API UEquipmentModuleComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	// Sets default values for this component's properties
 	UEquipmentModuleComponent();
 
@@ -39,13 +30,13 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	
-public:	
+
+public:
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	
+
 	UFUNCTION(BlueprintCallable, Category = "EquipmentModule")
 		void Init(UFGInventoryComponent * Inventory, AFGEquipment  *Parent);
 
@@ -62,9 +53,9 @@ private:
 	bool ShouldRegenShield(FTimespan timesinceShieldDmg);
 public:
 	UFUNCTION(BlueprintCallable, Category = "EquipmentModule")
-	void OnInventoryItemAdd(TSubclassOf<UFGItemDescriptor> itemClass, int32 numAdded);
+		void OnInventoryItemAdd(TSubclassOf<UFGItemDescriptor> itemClass, int32 numAdded);
 	UFUNCTION(BlueprintCallable, Category = "EquipmentModule")
-	void OnInventoryItemRemove(TSubclassOf<UFGItemDescriptor> itemClass, int32 numAdded);
+		void OnInventoryItemRemove(TSubclassOf<UFGItemDescriptor> itemClass, int32 numAdded);
 private:
 	void UpdateStats(UFGInventoryComponent * Inventory);
 
@@ -74,7 +65,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "EquipmentModule")
 		float CalculateDamage(UFGInventoryComponent * Inventory, float DmgIn, ENDamageType Type, TSubclassOf<class UFGDamageType> BpType);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "EquipmentModule")
 		void AddDeltaPower(float PowerConsumption);
 
@@ -88,9 +79,9 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void FuseTriggered(UEquipmentModuleComponent* selfref, bool FuseState, FDateTime Date);
-	
-	
-	
+
+
+
 	/*
 			** UProps **
 	*/
@@ -101,59 +92,59 @@ public:
 
 	// Reference of the Component we are Attached to"
 	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule | Components")
-	AFGEquipment * EquipmentParent;
+		AFGEquipment * EquipmentParent;
 	//  Internal Inventory Ref"
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "EquipmentModule | Components")
-	UFGInventoryComponent * nInventory;
+		UFGInventoryComponent * nInventory;
 
 	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | Stats")
-	FEquipmentStats DefaultStats;
+		FEquipmentStats DefaultStats;
 	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule | Stats")
-	FEquipmentStats Stats;
-	
+		FEquipmentStats Stats;
+
 	/*
-			STATE 
+			STATE
 	*/
 
 	// Are we producing power ? -> !IsFuseTriggered"
 	UPROPERTY(BlueprintReadonly, Replicated, Category = "EquipmentModule")
-	bool Producing;
+		bool Producing;
 	// Are we consuming extra power?"
 	UPROPERTY(BlueprintReadonly, Replicated, Category = "EquipmentModule")
-	bool Active;
+		bool Active;
 	// Took ShieldDamage within the DelayTimer ran out"
 	UPROPERTY(BlueprintReadonly, Replicated, Category = "EquipmentModule")
-	bool ShieldBroke;
+		bool ShieldBroke;
 
 	/*
-			POWER 
+			POWER
 	*/
 
 	//  Power in Percent 
-	UPROPERTY(BlueprintReadOnly, Replicated, Category = "EquipmentModule" )
-	float CurrentPower;
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "EquipmentModule")
+		float CurrentPower;
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
 		float GetPowerDraw();
 	//  External Power Draw in MWs
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "EquipmentModule")
-	float AddedDeltaPower;
+		float AddedDeltaPower;
 	//	External Fuel Draw in MWs	( Power overdraw is negativly reducing ChargeDuration on which we base the amount to remove per frame)
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "EquipmentModule")
-	float AddedDeltaFuel;
+		float AddedDeltaFuel;
 
 	/*
-			SHIELD 
+			SHIELD
 	*/
 
 	// Amount of Shield Total"
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "EquipmentModule")
-	float CurrentShield;
-	
+		float CurrentShield;
+
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-	float GetShieldRechargeRate() { return FMath::Clamp(((Stats.nShieldRegen) * (1 + Stats.nShieldRegenMult)), 0.f, 10000.f);}
+		float GetShieldRechargeRate() { return FMath::Clamp(Stats.nSuitProperties[ESuitProperty::nShieldRegen].result(), 0.f, 10000.f); };
 	// Max Shield is Mod *Mult 
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-	float GetMaxShield() { if (Producing)return (DefaultStats.nShieldMod +Stats.nShieldMod)*(1+Stats.nShieldMult); else return 0; };
+		float GetMaxShield() { if (Producing)return (Stats.nSuitProperties[ESuitProperty::nShield].result()); else return 0; };
 
 
 	/*
@@ -161,36 +152,46 @@ public:
 	*/
 	// We use this to subtract Delta from
 	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule | Stats")
-	float HealthBuffer;
+		float HealthBuffer;
 
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-	float GetNewMaxHealth() { return FMath::Clamp((100.f + Stats.nHealthMod)*(1 + Stats.nHealthMult), 1.f, 1000000.f); }
+		float GetNewMaxHealth() { return FMath::Clamp(100.f + Stats.nSuitProperties[ESuitProperty::nHealth].result(), 1.f, 1000000.f); };
 
 	/*
-			TIMER 
+			TIMER
 	*/
 
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-	float GetActiveTimerDuration() { return  FMath::Clamp(Stats.nActiveTimerMod*(1 + Stats.nActiveTimerMult), 0.f, 10000.f);}
+		float GetActiveTimerDuration() { return  FMath::Clamp(Stats.nSuitProperties[ESuitProperty::nActiveTime].result(), 0.f, 10000.f); };
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-	float GetFuseTimerDuration() { return FMath::Clamp(Stats.nFuseTimeMod * (1 + Stats.nFuseTimeMult), 0.f, 10000.f);}
+		float GetFuseTimerDuration() { return FMath::Clamp(Stats.nSuitProperties[ESuitProperty::nFuseTime].result(), 0.f, 10000.f); };
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-	float GetShieldRechargeDelayDuration(){ return FMath::Clamp(Stats.nShieldRegarcheDelayMod*(1 + Stats.nShieldRegarcheDelayMult), 0.f, 10000.f);}
-	
+		float GetShieldRechargeDelayDuration() { return FMath::Clamp(Stats.nSuitProperties[ESuitProperty::nShieldRechargeDelay].result(), 0.f, 10000.f); };
+	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
+		float GetOverDrawDuration() { return FMath::Clamp(Stats.nSuitProperties[ESuitProperty::nFuseTimeOverDraw].result(), 0.f, 10000.f); };
+
 	// Timer for when Fuse was Triggered"
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "EquipmentModule | Components")
-	FDateTime FuseBreak;
+		FDateTime FuseBreak;
+	// Timer for when Fuse was Triggered"
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "EquipmentModule | Components")
+		FDateTime FuseBreakOverDraw;
 	// Timer for when Active was Triggered"
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "EquipmentModule | Components")
-	FDateTime ActiveTimer;
+		FDateTime ActiveTimer;
 	// Timer for when we took Shield Damage"
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "EquipmentModule | Components")
-	FDateTime ShieldDmg;
+		FDateTime ShieldDmg;
 
 	UPROPERTY(BlueprintAssignable, Category = "EquipmentModule")
-	FOnFuseTriggered OnFuseTriggered;
+		FOnFuseTriggered OnFuseTriggered;
 	UPROPERTY(BlueprintAssignable, Category = "EquipmentModule")
-	FOnShieldDamageTaken OnShieldDamageTaken;
+		FOnShieldDamageTaken OnShieldDamageTaken;
+
+
+	UFUNCTION(BlueprintPure)
+		float GetPropertyResult(FModMultProperty prop) { return prop.result(); };
+
 
 	/*
 			MISC STUFF
@@ -198,6 +199,9 @@ public:
 
 	TArray<TSubclassOf<class UEquipmentModuleDescriptor>> UniquesActive;
 
+	UFUNCTION(BlueprintCallable)
+		FString GetStatsAsString();
 
-
+	TArray<AActor *> Attachments;
+	
 };
