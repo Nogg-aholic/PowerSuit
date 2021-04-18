@@ -1,475 +1,344 @@
-// ILikeBanas
+
 
 
 #include "EquipmentModuleComponent.h"
-#include "PowerSuit.h"
+#include "Equipment/Equipment_PowerSuit.h"
+#include "FGHealthComponent.h"
+#include "FGPlayerController.h"
+#include "FGCharacterPlayer.h"
+#include "PowerSuitBPLibrary.h"
+#include "SubModules/EMC_PowerModule.h"
+#include "SubModules/EMC_FuelModule.h"
+#include "SubModules/EMC_ShieldModule.h"
+#include "SubModules/EMC_HealthModule.h"
+#include "SubModules/EMC_HyperTubeModule.h"
+#include "SubModules/EMC_InventoryModule.h"
+#include "SubModules/EMC_AttachmentModule.h"
+#include "SubModules/EMC_StateModule.h"
+#include "SubModules/EMC_ZiplineModule.h"
+
+#include "Replication/PowerSuitRCO.h"
+#include "Attachment/PowerSuitModuleAttachment.h"
+#include "Buildables/FGBuildablePipeHyper.h"
+
+
 #include "FGCharacterMovementComponent.h"
-#include "util/Logging.h"
+
+
+
 
 // Sets default values for this component's properties
 UEquipmentModuleComponent::UEquipmentModuleComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
-
-// Called when the game starts
-void UEquipmentModuleComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// ...
-	
-}
 
 void UEquipmentModuleComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(UEquipmentModuleComponent, CurrentPower);
-	DOREPLIFETIME(UEquipmentModuleComponent, Active);
-	DOREPLIFETIME(UEquipmentModuleComponent, Producing);
-	DOREPLIFETIME(UEquipmentModuleComponent, CurrentShield);
-	DOREPLIFETIME(UEquipmentModuleComponent, AddedDeltaPower);
-	DOREPLIFETIME(UEquipmentModuleComponent, ShieldDmg);
-	DOREPLIFETIME(UEquipmentModuleComponent, ActiveTimer);
-	DOREPLIFETIME(UEquipmentModuleComponent, FuseBreak);
-	DOREPLIFETIME(UEquipmentModuleComponent, FuseBreakOverDraw);
-
+	DOREPLIFETIME(UEquipmentModuleComponent, nInventory);
+	DOREPLIFETIME(UEquipmentModuleComponent, SuitState);
 }
+
+
+
+
+void UEquipmentModuleComponent::RemoteInventoryRefresh_Implementation(bool IsAdd, TSubclassOf<UFGItemDescriptor> Class, int32 Amount)
+{
+	if (!EquipmentParent)
+	{
+		return;
+	}
+	if (!EquipmentParent->GetInstigator())
+	{
+		return;
+	}
+	if (EquipmentParent->GetInstigator()->HasAuthority())
+	{
+		return;
+	}
+	FTimerDelegate TimerDel;
+	FTimerHandle TimerHandle;
+	if (IsAdd)
+	{
+		TimerDel.BindUFunction(InventoryModule, FName("RefreshInventoryAdd"), Class, Amount);
+
+		UE_LOG(LogTemp, Error, TEXT("Remote with Refresh Add : true"));
+	}
+	else
+	{
+		TimerDel.BindUFunction(InventoryModule, FName("RefreshInventoryRemove"), Class, Amount);
+		UE_LOG(LogTemp, Error, TEXT("Remote with Refresh Add : false"));
+
+
+	}
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 1.f, false);
+	
+}
+
+
+
 
 // Called every frame
-void UEquipmentModuleComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+// Handle suit Fuse and Active timers, power and fuel consumption, shields, health regen, etc.
+void UEquipmentModuleComponent::EquippedTick(float DeltaTime)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
 	if (!EquipmentParent)
 		return;
-	if (!EquipmentParent->IsEquipped())
+	if (!EquipmentParent->IsEquipped()|| !PowerModule || !FuelModule || !HyperTubeModule || !HealthModule || !ShieldModule || !RCO)
 		return;
 
-	if (!EquipmentParent->HasAuthority())
-		return;
+	Delta = DeltaTime;
+
+	// Important order ! 
+	StateModule->PreTick();  // 1
+	AttachmentModule->PreTick(); // 2 
+	PowerModule->PreTick(); // 3 
+	FuelModule->PreTick(); // 4 <- we only reload when we produce
+	HyperTubeModule->PreTick(); // 5
+	InventoryModule->PreTick(); // 6 
+	ShieldModule->PreTick();  // 7 
+	ZiplineModule->PreTick(); // 8
+	HealthModule->PreTick(); // 9
+
+	// Update the State depending on our Power and Fuel access
+	StateModule->Tick(); // 1
+	AttachmentModule->Tick(); // 2 
+	FuelModule->Tick(); // 4 <- order swapped 
+	PowerModule->Tick(); // 3  we may dont have fuel
+	HyperTubeModule->Tick(); // 5
+	InventoryModule->Tick(); // 6 
+	ShieldModule->Tick();  // 7 
+	ZiplineModule->Tick(); // 8
+	HealthModule->Tick(); // 9
 
 
-
-	FTimespan timesinceFuseBreak = FDateTime::Now() - FuseBreak;
-	FTimespan timesinceActiveTimer = FDateTime::Now() - ActiveTimer;
-	FTimespan timesinceShieldDmg = FDateTime::Now() - ShieldDmg;
-
-	/*
-	 Order is important here 
-	 first we check if the Active Timer Should be Triggered
-	 then we check if the FuseTimer has run out so we can restart Power Production 
-	*/
-
-
-	if (timesinceActiveTimer.GetTotalSeconds() > GetActiveTimerDuration())
-		Active = false;
-	else
-		Active = true;
-
-	APowerSuit * Parent = Cast<APowerSuit>(EquipmentParent);
-	Parent->HandlePowerConsumption(DeltaTime);
-	Parent->HandleFuelConsumption(DeltaTime);
-	if (!Producing)
-	{
-		if (timesinceFuseBreak.GetTotalSeconds() > GetFuseTimerDuration())
-		{
-			if (Stats.nSuitProperties[ESuitProperty::nPowerProduction].result() > 0)
-			{
-				//CurrentPower = FMath::Clamp((Stats.nSuitProperties[ESuitProperty::nPowerProduction].result()* GetFuseTimerDuration() / Stats.nSuitProperties[ESuitProperty::nPowerCapacity].result()),0.01f,.5f);
-				CurrentPower = 0.01f;
-				Producing = true;
-				UFGCharacterMovementComponent  * MovementComponent = Cast< AFGCharacterPlayer>(EquipmentParent->Instigator)->GetFGMovementComponent();
-				MovementComponent->Velocity  = FVector(MovementComponent->Velocity.X, MovementComponent->Velocity.Y, 0);
-				if (Active)
-				{
-					// this will reactivate itself on next frame if we dont offset the Timer
-					// we do this to prevent to trigger the Fuse instantly again 
-					// maybe should solve this better
-					ActiveTimer = ActiveTimer - FTimespan(0, 0, GetActiveTimerDuration());
-					Active = false;
-					
-				}
-				UpdateStats(nInventory);
-			}
-		}
-	}
-
-	if (Producing)
-	{
-		
-		if (ShouldRegenShield(timesinceShieldDmg))
-			RegenShield(DeltaTime);
-		else if (CurrentShield == GetMaxShield())
-			ShieldBroke = false;
-		else if(GetMaxShield() != 0)
-			ShieldBroke = true;
-		else 
-			ShieldBroke = false;
-
-
-		if (CurrentPower <= 1.f)
-			RegenPower(DeltaTime);
-		
-
-		ConsumeFuel(DeltaTime);
-			
-		
-		IsProducing();
-
-		RegenHealth(DeltaTime);
-	}
+	// Fuel & Power was used items were consumed  
+	StateModule->PostTick();  // 1
+	AttachmentModule->PostTick(); // 2 
+	PowerModule->PostTick(); // 3 
+	FuelModule->PostTick(); // 4
+	HyperTubeModule->PostTick(); // 5
+	InventoryModule->PostTick(); // 6 
+	ShieldModule->PostTick();  // 7 
+	ZiplineModule->PostTick(); // 8
+	HealthModule->PostTick(); // 9
 
 	
 }
 
-void UEquipmentModuleComponent::Init(UFGInventoryComponent * Inventory, AFGEquipment * Parent)
+
+
+
+
+
+
+void UEquipmentModuleComponent::SetupSubModules()
 {
-	if (!Parent || !Inventory)
+
+	AFGPlayerController* Controller = Cast< AFGPlayerController>(EquipmentParent->GetInstigatorController());
+	if (!Controller)
 	{
+		UE_LOG(LogTemp, Error, TEXT("No Controller cast! fix shit "));
 		return;
 	}
-	if (Parent->HasAuthority())
+
+	if (!PowerModule)
 	{
-		EquipmentParent = Parent;
-		nInventory = Inventory;
-		UpdateStats(Inventory);
-		if (Stats.InventorySlots == 0)
+
+		StateModule = NewObject<UEMC_StateModule>(); // 1
+		AttachmentModule = NewObject<UEMC_AttachmentModule>(); // 2
+		PowerModule = NewObject<UEMC_PowerModule>(); // 3 
+		FuelModule = NewObject<UEMC_FuelModule>(); // 4
+		HyperTubeModule = NewObject<UEMC_HyperTubeModule>(); // 5
+		InventoryModule = NewObject<UEMC_InventoryModule>(); // 6
+		ShieldModule = NewObject<UEMC_ShieldModule>(); // 7 
+		ZiplineModule = NewObject<UEMC_ZiplineModule>(); // 8
+		HealthModule = NewObject<UEMC_HealthModule>(); // 9
+	}
+
+	StateModule->Parent = this; // 1
+	AttachmentModule->Parent = this; // 2 
+	PowerModule->Parent = this; // 3 
+	FuelModule->Parent = this; // 4
+	HyperTubeModule->Parent = this; // 5
+	InventoryModule->Parent = this; // 6 
+	ShieldModule->Parent = this;  // 7 
+	ZiplineModule->Parent = this; // 8
+	HealthModule->Parent = this; // 9
+
+	RCO = Cast< UPowerSuitRCO>(Controller->GetRemoteCallObjectOfClass(UPowerSuitRCO::StaticClass()));
+
+	if (!RCO)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Registered RCO"));
+		RCO = Cast< UPowerSuitRCO>(Controller->RegisterRemoteCallObjectClass(UPowerSuitRCO::StaticClass()));
+		if (!RCO)
+		{
+			UE_LOG(LogTemp, Error, TEXT("No RCO ! Fix shit "));
 			return;
-
-		if (Inventory->GetSizeLinear() != Stats.InventorySlots)
-			Inventory->Resize(Stats.InventorySlots);
-		if (!Inventory->GetIsReplicated())
-			Inventory->SetIsReplicated(true);
-
-		for (int32 i = 0; i < Stats.InventorySlots; i++)
-		{
-			Inventory->AddArbitrarySlotSize(i, 1);
-			// ? this does not work .why?
-			Inventory->SetAllowedItemOnIndex(i, TSubclassOf<class UEquipmentModuleDescriptor>());
 		}
 	}
-	else
-	{
-		nInventory = Inventory;
-		EquipmentParent = Parent;
-		UpdateStats(Inventory);
-
-	}
-
-	Inventory->OnItemAddedDelegate.AddDynamic(this, &UEquipmentModuleComponent::OnInventoryItemAdd);
-	Inventory->OnItemRemovedDelegate.AddDynamic(this, &UEquipmentModuleComponent::OnInventoryItemRemove);
-
-	if (Parent->IsEquipped())
-		SetComponentTickEnabled(true);
-	else
-		SetComponentTickEnabled(false);
-
-}
-
-void UEquipmentModuleComponent::RegenShield(float DeltaTime) {
-	CurrentShield = FMath::Clamp(CurrentShield + (GetShieldRechargeRate() * DeltaTime),0.f,GetMaxShield());
-	if (!Active)
-		ActiveTimer = FDateTime::Now();
-	ShieldBroke = false;
-}
-
-void UEquipmentModuleComponent::RegenPower(float DeltaTime) {
 	
-	CurrentPower = FMath::Clamp(CurrentPower + ((GetPowerDraw() / FMath::Clamp(Stats.nSuitProperties[ESuitProperty::nPowerCapacity].result(),1.f,100000000.f))*DeltaTime), 0.f, 1.f);
-	if(CurrentPower == 0.f)
-		if (FTimespan(FDateTime::Now() - FuseBreakOverDraw).GetTotalSeconds() > Stats.nSuitProperties[ESuitProperty::nFuseTimeOverDraw].result() +1)
-			FuseBreakOverDraw = FDateTime::Now();
-		
-}
+};
 
-void UEquipmentModuleComponent::RegenHealth(float DeltaTime) {
-	class UFGHealthComponent* heatlhcomp = Cast< AFGCharacterPlayer>(EquipmentParent->Instigator)->GetHealthComponent();
-	if (heatlhcomp)
-	{
-		if (heatlhcomp->GetCurrentHealth() < heatlhcomp->GetMaxHealth())
-		{
-			if (HealthBuffer > 1.f)
-			{
-				heatlhcomp->Heal(HealthBuffer);
-				HealthBuffer = 0.f;
-			}
-			else
-			{
-				HealthBuffer = HealthBuffer + (Stats.nSuitProperties[ESuitProperty::nHealthRegen].result() * DeltaTime);
-			}
-
-		}
-	}
-}
-
-void UEquipmentModuleComponent::ConsumeFuel(float DeltaTime) {
-
-	if (!EquipmentParent)
-		return;
-	APowerSuit * Parent = Cast<APowerSuit>(EquipmentParent);
+void UEquipmentModuleComponent::Init( APowerSuit * Parent)
+{
 	if (!Parent)
 		return;
-	float MJ = 0.f; float MJcurrent = 0.f; float pen = 0.f; float FuelAmount = 0.f;
-	FuelAmount = FMath::Clamp(Parent->FuelAmount,0.f,1.f);
-	MJ = FMath::Clamp(Parent->nCurrentFuelItem.GetDefaultObject()->GetEnergyValue(Parent->nCurrentFuelItem),600.f,100000000.f);
-	MJcurrent = MJ * FuelAmount;
-	if (MJcurrent > 0)
-		Cast<APowerSuit>(EquipmentParent)->FuelAmount = FMath::Clamp(((MJcurrent - (Stats.nSuitProperties[ESuitProperty::nBaseFuelConsumption].result() + AddedDeltaFuel) *DeltaTime) / MJ), 0.f, 1.f);
+
+
+	if(!Parent->GetInstigator())
+		return;
+
+	EquipmentParent = Parent;
+
+	SetupSubModules();
+
+	AFGCharacterPlayer*  Character = InventoryModule->InitInventory();
+	MoveC = Character->GetFGMovementComponent();
+
+	StateModule->UpdateHotkeys();
 }
-
-bool UEquipmentModuleComponent::IsProducing() {
-	if (CurrentPower <= 0.f )
-	{
-		if (Cast<APowerSuit>(EquipmentParent)->FuelAmount > 0)
-		{
-			if (!Stats.nFuseNeverBreaksWhenFueled)
-			{
-				if (FTimespan(FDateTime::Now() - FuseBreakOverDraw).GetTotalSeconds() > Stats.nSuitProperties[ESuitProperty::nFuseTimeOverDraw].result())
-					Producing = false;
-				else
-					Producing = true;
-			}
-			else
-				Producing = true;
-		}	
-		else
-			Producing = false;
-		if (!Producing)
-		{
-			if (FTimespan(FDateTime::Now() - FuseBreak).GetTotalSeconds() > GetFuseTimerDuration())
-			{
-				Cast<APowerSuit>(EquipmentParent)->SuitState = EPowerSuitState::STANDING;
-				UFGCharacterMovementComponent  * MovementComponent = Cast< AFGCharacterPlayer>(EquipmentParent->Instigator)->GetFGMovementComponent();
-				Cast<APowerSuit>(EquipmentParent)->ResetMovementComponent(MovementComponent);
-				FuseBreak = FDateTime::Now();
-				FuseTriggered(this, Producing, FuseBreak);
-				OnFuseTriggered.Broadcast(Producing, FuseBreak);
-				ShieldDmg = FDateTime::Now();
-			}
-		}
-	}
-	return Producing;
-}
-
-bool UEquipmentModuleComponent::ShouldRegenShield(FTimespan timesinceShieldDmg)
-{
-	if (!EquipmentParent)
-		return false;
-	if (timesinceShieldDmg.GetTotalSeconds() > GetShieldRechargeDelayDuration())
-	{
-		if (CurrentShield < GetMaxShield())
-			if (Active || CurrentPower > 0.2f)
-				if (CurrentPower != 0)
-					return true;
-				else if (Cast<APowerSuit>(EquipmentParent)->FuelAmount > 0)
-					return true;
-	}
-	return false;
-}
-
-
-void UEquipmentModuleComponent::OnInventoryItemAdd(TSubclassOf< UFGItemDescriptor > itemClass, int32 numAdded)
-{
-	if (EquipmentParent && nInventory)
-		UpdateStats(nInventory);
-}
-
-void UEquipmentModuleComponent::OnInventoryItemRemove(TSubclassOf< UFGItemDescriptor > itemClass, int32 numAdded)
-{
-	if (EquipmentParent && nInventory)
-		UpdateStats(nInventory);
-}
-
-void UEquipmentModuleComponent::UpdateStats(UFGInventoryComponent * Inventory)
-{
-
-	Stats = DefaultStats + FEquipmentStats();
-	UniquesActive = {};
-	CurrentShield = 0.f;
-	Stats.nHasPipeAccel = false;
-
-	for (int32 i = 0; i< Attachments.Num(); i++)
-	{
-		if(Attachments[i])
-			Attachments[i]->Destroy();
-	}
-	Attachments.Empty();
-
-	if (Inventory)
-	{
-		TArray< FInventoryStack > out_stacks;
-		Inventory->GetInventoryStacks(out_stacks);
-		for (int32 i = 0; i < out_stacks.Num(); i++)
-		{
-			TSubclassOf< class UEquipmentModuleDescriptor> item = out_stacks[i].Item.ItemClass;
-			if (item)
-			{
-				if (item.GetDefaultObject()->GetnUniqueUsage(item))
-					if (UniquesActive.Contains(item))
-						continue;
-					else
-						UniquesActive.Add(item);
-				
-				// Add Stas up 
-				Stats = Stats + item.GetDefaultObject()->EquipmentStats;
-
-				// Curve 
-				if (EquipmentParent && item.GetDefaultObject()->EquipmentStats.nDampeningCurve)
-				{
-					if (EquipmentParent)
-					{
-						Cast<APowerSuit>(EquipmentParent)->OnChangeDampCurve.Broadcast(item.GetDefaultObject()->EquipmentStats.nDampeningCurve);
-					}
-					Stats.nDampeningCurve = item.GetDefaultObject()->EquipmentStats.nDampeningCurve;
-
-				}
-
-				// Attachment
-				UClass* classref = item.GetDefaultObject()->GetnAttachment(item);
-				if (EquipmentParent && classref && EquipmentParent->HasAuthority())
-				{
-					FVector  Loc = FVector();
-					FRotator Rot = FRotator();
-					AActor * spawned = GetWorld()->SpawnActor(classref, &Loc, &Rot);
-					if (spawned)
-					{
-						spawned->AttachToActor(EquipmentParent, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true));
-						Attachments.Add(spawned);
-					}
-				}
-			}
-		}
-	}
-	if (EquipmentParent->HasAuthority() && EquipmentParent->Instigator)
-	{
-		class UFGHealthComponent* heatlhcomp = Cast< AFGCharacterPlayer>(EquipmentParent->Instigator)->GetHealthComponent();
-		if (heatlhcomp)
-		{
-			// fine?
-			heatlhcomp->mMaxHealth = GetNewMaxHealth();
-		}
-		UFGCharacterMovementComponent  * MovementComponent = Cast< AFGCharacterPlayer>(EquipmentParent->Instigator)->GetFGMovementComponent();
-
-
-		MovementComponent->JumpZVelocity = Stats.nMovementComponentStats.JumpZVelocity + 500.f;
-		MovementComponent->JumpOffJumpZFactor = Stats.nMovementComponentStats.JumpOffJumpZFactor + 0.5f;
-		MovementComponent->GroundFriction = Stats.nMovementComponentStats.GroundFriction + 8.0f;
-		MovementComponent->MaxWalkSpeed = (Stats.nMovementComponentStats.MaxWalkSpeed + 500.0f +Stats.nSuitProperties[ESuitProperty::nSpeed].Modifier)*(1 + Stats.nSuitProperties[ESuitProperty::nSpeed].Multiplier);
-		MovementComponent->MaxWalkSpeedCrouched = (Stats.nMovementComponentStats.MaxWalkSpeedCrouched + 240.0f + Stats.nSuitProperties[ESuitProperty::nSpeed].Modifier)*(1 + Stats.nSuitProperties[ESuitProperty::nSpeed].Multiplier);
-		MovementComponent->MaxSwimSpeed = (Stats.nMovementComponentStats.MaxSwimSpeed + 300.0f + Stats.nSuitProperties[ESuitProperty::nSpeed].Modifier)*(1 + Stats.nSuitProperties[ESuitProperty::nSpeed].Multiplier);
-		MovementComponent->BrakingFrictionFactor = Stats.nMovementComponentStats.BrakingFrictionFactor + 2.f;
-		MovementComponent->BrakingFriction = Stats.nMovementComponentStats.BrakingFriction;
-		MovementComponent->BrakingDecelerationWalking = Stats.nMovementComponentStats.BrakingDecelerationWalking + 2048.0;
-		MovementComponent->BrakingDecelerationSwimming = Stats.nMovementComponentStats.BrakingDecelerationSwimming + 100.0;
-		MovementComponent->BrakingDecelerationFalling = Stats.nMovementComponentStats.BrakingDecelerationFalling;
-		MovementComponent->FallingLateralFriction = Stats.nMovementComponentStats.FallingLateralFriction;
-
-		MovementComponent->GravityScale = Stats.nSuitProperties[ESuitProperty::nGravity].result() + 1.2f;
-
-		MovementComponent->mClimbSpeed = (Stats.nMovementComponentStats.mClimbSpeed + 500.f + Stats.nSuitProperties[ESuitProperty::nSpeed].Modifier)*(1 + Stats.nSuitProperties[ESuitProperty::nSpeed].Multiplier);
-		MovementComponent->mMaxSprintSpeed = (Stats.nMovementComponentStats.mMaxSprintSpeed + 900.f + Stats.nSuitProperties[ESuitProperty::nSpeed].Modifier)*(1 + Stats.nSuitProperties[ESuitProperty::nSpeed].Multiplier);
-		//  Tick overrides ref->mMaxSlideAngle = Stats.mMaxSlideAngle + 1.64999997615814f;
-		MovementComponent->mBoostJumpZMultiplier = Stats.nMovementComponentStats.mBoostJumpZMult + 1.5f;
-		MovementComponent->mBoostJumpVelocityMultiplier = Stats.nMovementComponentStats.mBoostJumpVelocityMult + 1.29999995231628f;
-
-	}
-}
-
-
-float UEquipmentModuleComponent::ApplyShieldDamage(float DmgIn)
-{
-	
-	if (DmgIn <= 0.f)
-		return 0.f;
-
-	ShieldDmg = FDateTime::Now();
-	ActiveTimer = FDateTime::Now();
-	if (CurrentShield - DmgIn > 0)
-	{
-		SML::Logging::log(SML::Logging::Error, CurrentShield);
-		OnShieldDamageTaken.Broadcast(DmgIn-CurrentShield, ShieldDmg, true);
-		CurrentShield = CurrentShield - DmgIn;
-		SML::Logging::log(SML::Logging::Error, CurrentShield);
-		SML::Logging::log(SML::Logging::Error, "Damage Absorbed fully");
-		return 0;
-	}
-	else
-	{
-		float dmgout = DmgIn - CurrentShield;
-		OnShieldDamageTaken.Broadcast(CurrentShield, ShieldDmg, true);
-		CurrentShield = 0;
-		SML::Logging::log(SML::Logging::Error, dmgout);
-		return dmgout;
-	}
-
-}
-
-float UEquipmentModuleComponent::CalculateDamage( UFGInventoryComponent * Inventory, float DmgIn, ENDamageType Type, TSubclassOf<class UFGDamageType>  BpType)
+// Calculate damage while factoring in damage resistances
+float UEquipmentModuleComponent::CalculateDamage(float DmgIn, int32 Type, TSubclassOf<class UFGDamageType>  BpType)
 {
 	float Dmg = DmgIn;
-	if (Inventory)
+	if (nInventory)
 	{
-		//UpdateStats(selfref,Inventory);
-		SML::Logging::log(SML::Logging::Error, Dmg);
+
+		int32 Hits = 0;
+		int32 Reduction = 0; 
+		int32 ReductionPercent = 0; 
+
+		for (uint8 flag = ENDamageType::DamageTypeNULL; flag != ENDamageType::DamageTypeMAX; flag++)
+		{
+			
+			if (flag & Type)
+			{
+				if(Stats.nDamageTypeResistance.Contains(ENDamageType(flag)))
+				{
+					Reduction =+ Stats.nDamageTypeResistance[ENDamageType(flag)].Modifier;
+					ReductionPercent =+ Stats.nDamageTypeResistance[ENDamageType(flag)].Multiplier;
+					Hits++;
+				}
+			}
+		}
+
+
 		if (BpType)
 		{
 			if (Stats.nDamageResistance.Contains(*BpType))
 			{
 				Dmg = FMath::Clamp((Dmg - Stats.nDamageResistance[*BpType].Modifier) - (FMath::Clamp(Dmg - Stats.nDamageResistance[*BpType].Modifier, 0.f, 1000.f)* Stats.nDamageResistance[*BpType].Multiplier), 0.f, 1000.f);
-
 			}
 		}
-		
-		float AdjustedDmg = FMath::Clamp((Dmg - Stats.nDamageTypeResistance[Type].Modifier) - ( FMath::Clamp(Dmg - Stats.nDamageTypeResistance[Type].Modifier, 0.f, 1000.f)* Stats.nDamageTypeResistance[Type].Multiplier ), 0.f, 1000.f);
-		if (CurrentShield > 0 && (Type != ENDamageType::DamageTypeGas || Type != ENDamageType::DamageTypeRadioActivity))
+		float AdjustedDmg = Dmg;
+
+		if (Hits > 0)
 		{
-			SML::Logging::log(SML::Logging::Error, Type);
-			SML::Logging::log(SML::Logging::Error, AdjustedDmg);
-
-			return ApplyShieldDamage(AdjustedDmg);
+			Reduction = FMath::Clamp(Reduction / Hits, 0, 1000000);
+			ReductionPercent = FMath::Clamp(ReductionPercent / Hits, 0, 10000000);
+			AdjustedDmg = FMath::Clamp((Dmg - Reduction) - (FMath::Clamp(Dmg - Reduction, 0.f, 1000.f)* ReductionPercent), 0.f, 1000.f);
 		}
-		else
-			return AdjustedDmg;
-
+		
+		if (ShieldModule->CurrentShield > 0)
+		{
+			if (Stats.HasDamageMask(Type))
+			{
+				return ShieldModule->ApplyShieldDamage(AdjustedDmg);
+			}
+		}
+		return AdjustedDmg;
 	}
 	return Dmg;
 }
 
-void UEquipmentModuleComponent::AddDeltaPower(float PowerConsumption)
+
+
+
+
+FModMultProperty UEquipmentModuleComponent::GetSuitPropertySafe(ESuitProperty prop) const
 {
-	if (AddedDeltaPower != PowerConsumption)
-		AddedDeltaPower = PowerConsumption;
-}
-
-float UEquipmentModuleComponent::GetPowerDraw()
-{
-	if (!EquipmentParent)
-		return 0;
-
-	float PowerUsage = Stats.nSuitProperties[ESuitProperty::nPowerProduction].result();
-
-	if (Active)
-		PowerUsage += Stats.nSuitProperties[ESuitProperty::nPowerProductionActive].result();
-
-
-	return PowerUsage - AddedDeltaPower;
-}
-
-FString UEquipmentModuleComponent::GetStatsAsString()
-{
+	if(!Stats.nSuitProperties.Contains(prop))
+		return FModMultProperty();
+	else
+		return Stats.nSuitProperties[prop];
 	
-	UScriptStruct* Struct = Stats.StaticStruct();
-	FString Output = TEXT("");
-	Struct->ExportText(Output, &Stats, nullptr, this, (PPF_ExportsNotFullyQualified | PPF_Copy | PPF_Delimited | PPF_IncludeTransient || PPF_ParsingDefaultProperties), nullptr);
+}
 
-	
-	return Output;
+FModMultProperty UEquipmentModuleComponent::GetMovementPropertySafe(ESuitMovementProperty prop) const
+{
+	if (!Stats.nMovementProperties.Contains(prop))
+	{
+		return FModMultProperty();
+	}
+	return *Stats.nMovementProperties.Find(prop);
+}
+
+FModMultProperty UEquipmentModuleComponent::GetFlightPropertySafe(ESuitFlightProperty prop) const
+{
+	if (!Stats.nFlightProperties.Contains(prop))
+		return FModMultProperty();
+
+	return *Stats.nFlightProperties.Find(prop);
+
+}
+
+FModMultProperty UEquipmentModuleComponent::GetStatePropertySafe(TMap<TEnumAsByte<EPowerSuitState>, FModMultProperty> Map, EPowerSuitState prop) const
+{
+	if (Map.Contains(prop))
+		return *Map.Find(prop);
+	else
+		return FModMultProperty();
 }
 
 
+void UEquipmentModuleComponent::ResetStats()
+{
+	// Reset everything
+	FEquipmentStats Fill = FEquipmentStats();
+	Fill.SetupDefaults();
+	Stats = DefaultStats + Fill;
+	ShieldModule->CurrentShield = 0.f;
+
+	AttachmentModule->ResetAttachments();
+	InventoryModule->ResetInventoryStats();
+
+	UPowerSuitBPLibrary::UpdateAllNoRefresh(EquipmentParent);
+}
+
+void UEquipmentModuleComponent::PreSaveGame_Implementation(int32 saveVersion, int32 gameVersion)
+{
+}
+
+void UEquipmentModuleComponent::PostSaveGame_Implementation(int32 saveVersion, int32 gameVersion)
+{
+
+}
+
+void UEquipmentModuleComponent::PreLoadGame_Implementation(int32 saveVersion, int32 gameVersion)
+{
+
+}
+
+void UEquipmentModuleComponent::PostLoadGame_Implementation(int32 saveVersion, int32 gameVersion)
+{
+}
+
+void UEquipmentModuleComponent::GatherDependencies_Implementation(TArray<UObject*>& out_dependentObjects)
+{
+}
+
+bool UEquipmentModuleComponent::ShouldSave_Implementation() const
+{
+	return true;
+}
+
+bool UEquipmentModuleComponent::NeedTransform_Implementation()
+{
+	return false;
+}
