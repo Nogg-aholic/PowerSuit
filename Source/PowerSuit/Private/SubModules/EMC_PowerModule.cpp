@@ -97,10 +97,18 @@ void UEMC_PowerModule::RegenPower() {
 
 	const float PowerBalance = PowerConsumption;
 	const float DeltaPower = PowerBalance* Parent->Delta;
+
+#ifdef MODDING_SHIPPING
+	float & mCurrentPowerLevel_ = Parent->EquipmentParent->mCurrentPowerLevel;
+	float & mPowerCapacity_ = Parent->EquipmentParent->mPowerCapacity;
+#else
+	float & mCurrentPowerLevel_ = Parent->EquipmentParent->*get(steal_mCurrentPowerLevel());
+	float & mPowerCapacity_ = Parent->EquipmentParent->*get(steal_mPowerCapacity());
+#endif
 	// reading value from hover pack since it modified power last frame after we did 
-	CurrentPower = FMath::Clamp(Parent->EquipmentParent->mCurrentPowerLevel - DeltaPower, 0.f, Parent->EquipmentParent->mPowerCapacity);
+	CurrentPower = FMath::Clamp(mCurrentPowerLevel_ - DeltaPower, 0.f, mPowerCapacity_);
 	// now set value to it so it uses our  modifications as well
-	Parent->EquipmentParent->mCurrentPowerLevel = CurrentPower;
+	mCurrentPowerLevel_ = CurrentPower;
 	// If out of power and the suit has been overdrawn for more than the suit's max overdraw time, set the fusebreak overdraw time to now
 	if (CurrentPower == 0.f)
 		if (FTimespan(FDateTime::Now() - FuseBreakOverDraw).GetTotalSeconds() > Parent->GetSuitPropertySafe(ESuitProperty::nFuseTimeOverDraw).value() + 1)
@@ -116,8 +124,12 @@ void UEMC_PowerModule::TryRestart()
 	// ... and the FuseTimer has ran out ...
 	if (timeSinceFuseBreak.GetTotalSeconds() > GetFuseTimerDuration())
 	{
-		
-		Parent->EquipmentParent->mCurrentPowerLevel = 0.01f;
+#ifdef MODDING_SHIPPING
+		float & mCurrentPowerLevel_ = Parent->EquipmentParent->mCurrentPowerLevel;
+#else
+		float & mCurrentPowerLevel_ = Parent->EquipmentParent->*get(steal_mCurrentPowerLevel());
+#endif
+		mCurrentPowerLevel_ = 0.01f;
 		CurrentPower = 0.01f;
 
 		Producing = true; // restart power production

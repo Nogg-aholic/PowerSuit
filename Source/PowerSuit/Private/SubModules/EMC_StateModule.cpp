@@ -26,18 +26,25 @@ void UEMC_StateModule::PreTick()
 		Parent->MoveC->*get(steal_mMaxSlideAngle()) = 1.64999997615814f + Parent->GetMovementPropertySafe(ESMC_mMaxSlideAngle).value();
 #endif
 	}
+#ifdef MODDING_SHIPPING
+	EHoverPackMode MM = Component->EquipmentParent->mCurrentHoverMode;
+	float & Friction = Parent->EquipmentParent->mHoverFriction;
 
-	if (Parent->EquipmentParent->mCurrentHoverMode == EHoverPackMode::HPM_Hover || Parent->EquipmentParent->mCurrentHoverMode == EHoverPackMode::HPM_HoverSlowFall)
+#else
+	EHoverPackMode MM = Parent->EquipmentParent->*get(steal_mCurrentHoverMode());
+	float & Friction = Parent->EquipmentParent->*get(steal_mHoverFriction());
+#endif
+	if (MM == EHoverPackMode::HPM_Hover || MM == EHoverPackMode::HPM_HoverSlowFall)
 	{
-		if (Parent->TKey_NoFriction && Parent->EquipmentParent->mHoverFriction != 0.0f)
+		if (Parent->TKey_NoFriction && Friction != 0.0f)
 		{
-			Parent->EquipmentParent->mHoverFriction = 0.0f;
+			Friction = 0.0f;
 		}
 		else if (!Parent->TKey_NoFriction)
 		{
-			Parent->EquipmentParent->mHoverFriction = Parent->GetFlightPropertySafe(ESuitFlightProperty::EFP_mHoverFriction).value();
+			Friction = Parent->GetFlightPropertySafe(ESuitFlightProperty::EFP_mHoverFriction).value();
 		}
-		if(Parent->EquipmentParent->mHoverFriction == 0.0f)
+		if(Friction == 0.0f)
 		{
 			Parent->MoveC->GravityScale = 1.f;
 			Parent->MoveC->Velocity.Z += Parent->MoveC->GetGravityZ() * Parent->Delta;
@@ -359,11 +366,19 @@ void UEMC_StateModule::HoverModeChange()
 	}
 	// when ever this changed The last FGHoverpack::Tick() did Reset PowerLevel to 1 or 0 
 	// we dont want that so we overwrite it whenever we have this scenario 
-	Parent->EquipmentParent->mCurrentPowerLevel = FMath::Clamp(Parent->PowerModule->CurrentPower, 0.f, Parent->EquipmentParent->mPowerCapacity);
+#ifdef MODDING_SHIPPING
+	EHoverPackMode & mCurrentHoverMode = Parent->EquipmentParent->mCurrentHoverMode;
+	float & mCurrentPowerLevel_ = Parent->EquipmentParent->mCurrentPowerLevel;
+	float & mPowerCapacity_ = Parent->EquipmentParent->mPowerCapacity;
+#else
+	EHoverPackMode & mCurrentHoverMode = Parent->EquipmentParent->*get(steal_mCurrentHoverMode());
+	float & mCurrentPowerLevel_ = Parent->EquipmentParent->*get(steal_mCurrentPowerLevel());
+	float & mPowerCapacity_ = Parent->EquipmentParent->*get(steal_mPowerCapacity());
+#endif
+	mCurrentPowerLevel_ = FMath::Clamp(Parent->PowerModule->CurrentPower, 0.f, mPowerCapacity_);
 	if (!Parent->EquipmentParent->HasAuthority())
 	{
-		int32 Value = int32(Parent->EquipmentParent->mCurrentHoverMode);
-		UE_LOG(LogTemp, Error, TEXT("Remote ! Hover modo changu ? %i"), Value);
-		Parent->RCO->ServerUpdateCurrentHoverMode(Parent,Parent->EquipmentParent->mCurrentHoverMode);
+		UE_LOG(LogTemp, Error, TEXT("Remote ! Hover modo changu ? %i"), int32(mCurrentHoverMode));
+		Parent->RCO->ServerUpdateCurrentHoverMode(Parent,mCurrentHoverMode);
 	}
 }

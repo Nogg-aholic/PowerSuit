@@ -69,8 +69,16 @@ void APowerSuit::Tick(float DeltaSeconds)
 	if (!HasAuthority())
 		return;
 
-	if((mCurrentPowerLevel/mPowerCapacity) - (Module->PowerModule->CurrentPower/mPowerCapacity) > 0.7f)
-		mCurrentPowerLevel = FMath::Clamp(Module->PowerModule->CurrentPower, 0.f, mPowerCapacity);
+#ifdef MODDING_SHIPPING
+	float & mCurrentPowerLevel_ = mCurrentPowerLevel;
+	float & mPowerCapacity_ =mPowerCapacity;
+#else
+	float & mCurrentPowerLevel_ = this->*get(steal_mCurrentPowerLevel());
+	float & mPowerCapacity_ = this->*get(steal_mPowerCapacity());
+#endif
+
+	if((mCurrentPowerLevel_ / mPowerCapacity_) - (Module->PowerModule->CurrentPower/ mPowerCapacity_) > 0.7f)
+		mCurrentPowerLevel_ = FMath::Clamp(Module->PowerModule->CurrentPower, 0.f, mPowerCapacity_);
 
 
 }

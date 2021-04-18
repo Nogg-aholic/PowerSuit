@@ -191,7 +191,13 @@ void UPowerSuitRCO::ServerUpdateCurrentHoverMode_Implementation(UEquipmentModule
 		return;
 	if (!Component->EquipmentParent)
 		return;
+#ifdef MODDING_SHIPPING
 	int32 Value = int32(Component->EquipmentParent->mCurrentHoverMode);
+
+#else
+	int32 Value = int32(Component->EquipmentParent->*get(steal_mCurrentHoverMode()));
+
+#endif
 	int32 ValueNew = int32(Index);
 
 

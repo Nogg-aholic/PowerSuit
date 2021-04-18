@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "FactoryGame.h"
 #include "Equipment/FGEquipment.h"
+#include "Equipment/FGHoverPack.h"
 #include "FGInventoryComponent.h"
 #include "FGCharacterMovementComponent.h"
 #include "FGHealthComponent.h"
@@ -75,6 +76,84 @@
 		friend type get(steal_mPipeData);
 	};
 
+	struct steal_mHoverSpeed {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mHoverSpeed);
+	};
+	struct steal_mHoverAccelerationSpeed {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mHoverAccelerationSpeed);
+	};
+	struct steal_mHoverSprintMultiplier {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mHoverSprintMultiplier);
+	};
+	struct steal_mRailRoadSurfSpeed {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mRailRoadSurfSpeed);
+	};
+	struct steal_mRailroadSurfSensitivity {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mRailroadSurfSensitivity);
+	};
+	struct steal_mHoverFriction {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mHoverFriction);
+	};
+
+	struct steal_mJumpKeyHoldActivationTime {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mJumpKeyHoldActivationTime);
+	};
+
+	struct steal_mFallSpeedLimitWhenPowered {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mFallSpeedLimitWhenPowered);
+	};
+
+	struct steal_mPowerConnectionSearchRadius {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mPowerConnectionSearchRadius);
+	};
+	struct steal_mPowerConnectionSearchTickRate {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mPowerConnectionSearchTickRate);
+	};
+	struct steal_mPowerConnectionDisconnectionTime {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mPowerConnectionDisconnectionTime);
+	};
+	struct steal_mCrouchHoverCancelTime {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mCrouchHoverCancelTime);
+	};
+	struct steal_mCharacterUseDistanceWhenActive {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mCharacterUseDistanceWhenActive);
+	};
+
+	struct steal_mPowerDrainRate {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mPowerDrainRate);
+	};
+	struct steal_mPowerConsumption {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mPowerConsumption);
+	};
+	struct steal_mPowerCapacity {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mPowerCapacity);
+	};
+
+	struct steal_mCurrentHoverMode {
+		typedef EHoverPackMode AFGHoverPack::* type;
+		friend type get(steal_mCurrentHoverMode);
+	};
+
+	struct steal_mCurrentPowerLevel {
+		typedef float AFGHoverPack::* type;
+		friend type get(steal_mCurrentPowerLevel);
+	};
 
 	template struct Steal<steal_mSlideTime, &UFGCharacterMovementComponent::mSlideTime>;
 	template struct Steal<steal_mMaxSlideAngle, &UFGCharacterMovementComponent::mMaxSlideAngle>;
@@ -87,6 +166,31 @@
 	template struct Steal<steal_mZiplineSpeedMultiplierUp, &UFGCharacterMovementComponent::mZiplineSpeedMultiplierUp>;
 	template struct Steal<steal_mZiplineSpeedMultiplierDown, &UFGCharacterMovementComponent::mZiplineSpeedMultiplierDown>;
 	template struct Steal<steal_mPipeData, &UFGCharacterMovementComponent::mPipeData>;
+
+
+	template struct Steal<steal_mHoverSpeed, &AFGHoverPack::mHoverSpeed>;
+	template struct Steal<steal_mHoverAccelerationSpeed, &AFGHoverPack::mHoverAccelerationSpeed>;
+	template struct Steal<steal_mHoverSprintMultiplier, &AFGHoverPack::mHoverSprintMultiplier>;
+	template struct Steal<steal_mRailRoadSurfSpeed, &AFGHoverPack::mRailRoadSurfSpeed>;
+	template struct Steal<steal_mRailroadSurfSensitivity, &AFGHoverPack::mRailroadSurfSensitivity>;
+	template struct Steal<steal_mHoverFriction, &AFGHoverPack::mHoverFriction>;
+	template struct Steal<steal_mJumpKeyHoldActivationTime, &AFGHoverPack::mJumpKeyHoldActivationTime>;
+	template struct Steal<steal_mFallSpeedLimitWhenPowered, &AFGHoverPack::mFallSpeedLimitWhenPowered>;
+	template struct Steal<steal_mPowerConnectionSearchRadius, &AFGHoverPack::mPowerConnectionSearchRadius>;
+	template struct Steal<steal_mPowerConnectionSearchTickRate, &AFGHoverPack::mPowerConnectionSearchTickRate>;
+	template struct Steal<steal_mPowerConnectionDisconnectionTime, &AFGHoverPack::mPowerConnectionDisconnectionTime>;
+	template struct Steal<steal_mCrouchHoverCancelTime, &AFGHoverPack::mCrouchHoverCancelTime>;
+	template struct Steal<steal_mCharacterUseDistanceWhenActive, &AFGHoverPack::mCharacterUseDistanceWhenActive>;
+	template struct Steal<steal_mPowerDrainRate, &AFGHoverPack::mPowerDrainRate>;
+	template struct Steal<steal_mPowerConsumption, &AFGHoverPack::mPowerConsumption>;
+	template struct Steal<steal_mPowerCapacity, &AFGHoverPack::mPowerCapacity>;
+	template struct Steal<steal_mCurrentHoverMode, &AFGHoverPack::mCurrentHoverMode>;
+	template struct Steal<steal_mCurrentPowerLevel, &AFGHoverPack::mCurrentPowerLevel>;
+
+
+	
+
+	
 
 #endif
 
