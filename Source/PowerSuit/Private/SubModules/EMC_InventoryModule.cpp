@@ -504,7 +504,7 @@ FEquipmentStats UEMC_InventoryModule::GetModuleStats(FInventoryStack Stack, int3
 					UE_LOG(LogTemp, Error, TEXT("Remote has not ItemState, Debug me"));
 				}
 			}
-			StatObject = FEquipmentStats();
+			StatObject = ItemObj->EquipmentStats;
 		}
 		StatObject.mCachedInventorySlot = ind;
 		return StatObject;
