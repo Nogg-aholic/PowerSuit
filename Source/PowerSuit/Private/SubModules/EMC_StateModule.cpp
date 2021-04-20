@@ -36,7 +36,7 @@ void UEMC_StateModule::PreTick()
 #endif
 	if (MM == EHoverPackMode::HPM_Hover || MM == EHoverPackMode::HPM_HoverSlowFall)
 	{
-		if (Parent->TKey_NoFriction && Friction != 0.0f)
+		if (Parent->TKey_NoFriction && Friction != 0.0f || Parent.Stats.HasFlag(ESuitFlag::SuitFlag_ForceNoFrictionMode))
 		{
 			Friction = 0.0f;
 		}
