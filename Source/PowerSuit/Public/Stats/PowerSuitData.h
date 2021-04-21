@@ -389,7 +389,7 @@ enum ESuitProperty
 	/**
 	* In Delta MW
 	*/
-	nPowerTransferSpeed UMETA(Displayname = "FuelTankSize"),
+	nPowerTransferSpeed UMETA(Displayname = "PowerTransferSpeed"),
 
 	/**
 	* Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change.

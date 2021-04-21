@@ -526,6 +526,7 @@ void UEMC_InventoryModule::CreateAttachmentStateIfNeeded(FInventoryStack Stack, 
 			SpawnSettings.bNoFail = true;
 			APowerSuitModuleAttachment* Equipment = Cast< APowerSuitModuleAttachment>(Parent->EquipmentParent->GetWorld()->SpawnActor(ItemObj->GetnAttachment(item), &Loc, &Rot, SpawnSettings));
 			check(Equipment);
+			Equipment->Parent = Parent;
 			Equipment->SetReplicates(true);
 			Equipment->AttachToSuit(Parent->EquipmentParent);
 			FSharedInventoryStatePtr ptr = FSharedInventoryStatePtr::MakeShared(Equipment);

@@ -73,13 +73,66 @@ void UEMC_StateModule::UpdateHotkeys()
 
 	if (Parent->EquipmentParent->GetInstigator()->IsLocallyControlled())
 	{
-		UE_LOG(LogTemp,Error,TEXT("KeyBinds Bound !"))
+		UE_LOG(LogTemp, Error, TEXT("Rebomdomg KeyBinds!"))
+
+		UInputSettings* InputSettings = UInputSettings::GetInputSettings();
+
+		if (!InputSettings->DoesActionExist("PowerSuit_Acceleration"))
+		{
+			FInputActionKeyMapping KB = FInputActionKeyMapping();
+			KB.ActionName = "PowerSuit_Acceleration";
+			KB.Key = EKeys::LeftShift;
+			InputSettings->AddActionMapping(KB);
+		}
+
+		if (!InputSettings->DoesActionExist("PowerSuit_DeAcceleration"))
+		{
+			FInputActionKeyMapping KB = FInputActionKeyMapping();
+			KB.ActionName = "PowerSuit_DeAcceleration";
+			KB.Key = EKeys::LeftControl;
+			InputSettings->AddActionMapping(KB);
+		}
+
+		if (!InputSettings->DoesActionExist("PowerSuit_UIToggle"))
+		{
+			FInputActionKeyMapping KB = FInputActionKeyMapping();
+			KB.ActionName = "PowerSuit_UIToggle";
+			KB.Key = EKeys::RightAlt;
+			InputSettings->AddActionMapping(KB);
+		}
+
+		if (!InputSettings->DoesActionExist("PowerSuit_FrictionToggle"))
+		{
+			FInputActionKeyMapping KB = FInputActionKeyMapping();
+			KB.ActionName = "PowerSuit_UIToggle";
+			KB.Key = EKeys::RightAlt;
+			
+			InputSettings->AddActionMapping(KB);
+		}
+
 		FInputActionKeyMapping JumpKey = UFGInputLibrary::GetKeyMappingForAction(Cast<AFGPlayerController>(Parent->EquipmentParent->GetInstigator()->GetController()), "Jump_Drift", false);
-		FInputActionKeyMapping AccelKey = UFGInputLibrary::GetKeyMappingForAction(Cast<AFGPlayerController>(Parent->EquipmentParent->GetInstigator()->GetController()), "ToggleSprint", false);
 		FInputActionKeyMapping crouchKey = UFGInputLibrary::GetKeyMappingForAction(Cast<AFGPlayerController>(Parent->EquipmentParent->GetInstigator()->GetController()), "Crouch", false);
+
+		FInputActionKeyMapping AccelKey = UFGInputLibrary::GetKeyMappingForAction(Cast<AFGPlayerController>(Parent->EquipmentParent->GetInstigator()->GetController()), "PowerSuit_Acceleration", false);
+		FInputActionKeyMapping DeAccelKey = UFGInputLibrary::GetKeyMappingForAction(Cast<AFGPlayerController>(Parent->EquipmentParent->GetInstigator()->GetController()), "PowerSuit_DeAcceleration", false);
+		FInputActionKeyMapping TogKey = UFGInputLibrary::GetKeyMappingForAction(Cast<AFGPlayerController>(Parent->EquipmentParent->GetInstigator()->GetController()), "PowerSuit_FrictionToggle", false);
+
+		FInputActionBinding NewBinding("PowerSuit_FrictionToggle", EInputEvent::IE_Pressed);
+		NewBinding.bConsumeInput = false;
+		NewBinding.ActionDelegate.BindDelegate(this, "OnPowerSuitFrictionToggle");
+
+		FInputActionBinding NewBinding2("PowerSuit_UIToggle", EInputEvent::IE_Pressed);
+		NewBinding2.bConsumeInput = false;
+		NewBinding2.ActionDelegate.BindDelegate(this, "OnPowerSuitUIToggle");
+
 		KB_Up = JumpKey.Key;
 		KB_Accel = AccelKey.Key;
 		KB_Down = crouchKey.Key;
+		KB_Breaks = DeAccelKey.Key;
+		KB_Toggle = TogKey.Key;
+
+
+
 	}
 };
 

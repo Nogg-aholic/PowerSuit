@@ -64,4 +64,11 @@ public:
 		bool nIsSliding;
 
 
+	DECLARE_DELEGATE_OneParam(FPowerSuitFrictionToggle, FKey);
+	FPowerSuitFrictionToggle OnPowerSuitFrictionToggle;
+
+	DECLARE_DELEGATE_OneParam(FPowerSuitUIToggle, FKey);
+	FPowerSuitUIToggle OnPowerSuitUIToggle;
+
+
 };
