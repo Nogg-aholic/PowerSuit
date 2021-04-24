@@ -15,8 +15,6 @@ class POWERSUIT_API APowerSuitModuleAttachment : public AActor, public IFGSaveIn
 public:	
 	APowerSuitModuleAttachment();
 
-
-
 	void PreSaveGame_Implementation(int32 saveVersion, int32 gameVersion);
 
 
@@ -66,10 +64,6 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	float GetDeltaPowerConsumption(float DeltaTime) const;
 
-	// Should this Module trigger the Suits Active State ? ( Additional Power Consumption/Production ) 
-	UFUNCTION(BlueprintNativeEvent)
-	bool GetShouldTriggerActive()const;
-
 	// Are all Requirements met for this to be still Accounted for ?
 	// If this is false and the Module is currently installed, a Refresh is triggered and this module
 	// will become Inactive untill the Condition changes to True
@@ -106,13 +100,14 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 		int32 InventorySlot = -1;
+
+	
 	// Cached Stat values
 	// Changes here wont have any direct Effect
 	// Refresh needs to be Triggered and RecieveModuleStats needs to be overwritten for this to be changed at Runtime
 	// dont do this frequently since Refreshing causes alot of overhead
 	UPROPERTY(BlueprintReadWrite)
 	FEquipmentStats AttachmentStats;
-
 
 	/** Custom Widget - placed at the Bottom of the Suit Widget*/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)

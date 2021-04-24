@@ -34,7 +34,7 @@ void UEMC_HyperTubeModule::ModifyPipeSpeed()
 // Hypertube velocity calculation
 void UEMC_HyperTubeModule::HandlePipeVelocity()
 {
-	if (Parent->PowerModule->CurrentPower > 0.05f)
+	if (Parent->nCurrentPower > 0.05f)
 	{
 #ifdef FOR_MODSHIPPING
 		FPlayerPipeHyperData & Data = Parent->MoveC->mPipeData;

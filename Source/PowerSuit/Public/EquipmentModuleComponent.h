@@ -132,24 +132,24 @@ public:
 
 
 	// Defaults
-	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule | Stats")
+	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule")
 		FEquipmentStats DefaultStats;
 
-	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule | Stats")
+	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule")
 		FEquipmentStats Stats;
 
 	//  Internal Inventory Ref"
-	UPROPERTY(BlueprintReadOnly, Replicated, SaveGame, Category = "EquipmentModule | Components")
+	UPROPERTY(BlueprintReadOnly, Replicated, SaveGame, Category = "EquipmentModule")
 		UFGInventoryComponent * nInventory;
 
 	// Cached Stats
 	
 	// Reference of the Component we are Attached to"
-	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule | Components")
+	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule")
 	APowerSuit* EquipmentParent;
 
 	/** A cached instance of the instigators movementcomponent */
-	UPROPERTY(BlueprintReadWrite, Category = "Equipment")
+	UPROPERTY(BlueprintReadWrite, Category = "EquipmentModule")
 	class UFGCharacterMovementComponent* MoveC;
 
 
@@ -167,43 +167,85 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	UEMC_HyperTubeModule* HyperTubeModule;
 	UPROPERTY(BlueprintReadOnly)
-		UEMC_InventoryModule* InventoryModule;
+	UEMC_InventoryModule* InventoryModule;
 	UPROPERTY(BlueprintReadOnly)
 	UEMC_AttachmentModule* AttachmentModule;
 	UPROPERTY(BlueprintReadOnly)
-		UEMC_StateModule* StateModule;
+	UEMC_StateModule* StateModule;
 	UPROPERTY(BlueprintReadOnly)
-		UEMC_ZiplineModule* ZiplineModule;
+	UEMC_ZiplineModule* ZiplineModule;
 
 	// TODO: remove this
-	UPROPERTY(BlueprintReadWrite, Category = "Equipment")
+	UPROPERTY(BlueprintReadWrite, Category = "EquipmentModule")
 		bool PlayedRechargeSound = false;
 
 	// Replicated Stuff
 	
-	UPROPERTY(BlueprintReadWrite, Category = "Movement")
+	UPROPERTY(BlueprintReadWrite, Category = "EquipmentModule")
 	UPowerSuitRCO* RCO;
 
 
-	UPROPERTY(Category = "Character Movement: MovementMode", BlueprintReadWrite)
+	UPROPERTY(Category = "EquipmentModule", BlueprintReadWrite)
 		TEnumAsByte<enum EMovementMode> nMovementMode;
 	// "
-	UPROPERTY(Category = "Character Movement: MovementMode", BlueprintReadWrite)
+	UPROPERTY(Category = "EquipmentModule", BlueprintReadWrite)
 		uint8 nCustomMovementMode;
 	// "
-	UPROPERTY(Category = "Character Movement: MovementMode", BlueprintReadWrite, Replicated)
+	UPROPERTY(Category = "EquipmentModule", BlueprintReadWrite, Replicated)
 		TEnumAsByte<EPowerSuitState> SuitState;
 
 
 
-	UPROPERTY(BlueprintReadWrite, SaveGame, Category = "Equipment")
+	UPROPERTY(BlueprintReadWrite, SaveGame, Category = "EquipmentModule")
 		float TKey_Fly_Pressed;
-	UPROPERTY(BlueprintReadWrite, SaveGame, Category = "Equipment")
+	UPROPERTY(BlueprintReadWrite, SaveGame, Category = "EquipmentModule")
 		bool TKey_Fly;
 	// key is also KB_Up but with delay Timer
-	UPROPERTY(BlueprintReadWrite, SaveGame, Category = "Equipment")
+	UPROPERTY(BlueprintReadWrite, SaveGame, Category = "EquipmentModule")
 		bool TKey_NoFriction;
 
 	
+
+
+	//  External Power Draw in MWs
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "EquipmentModule")
+		float PowerConsumption;
+
+	// Are we producing power ? -> !IsFuseTriggered"
+	UPROPERTY(BlueprintReadonly, Replicated, SaveGame, Category = "EquipmentModule")
+		bool nProducing;
+
+	// Timer for when Fuse was Triggered"
+	UPROPERTY(BlueprintReadOnly, Replicated, SaveGame, Category = "EquipmentModule")
+		FDateTime nFuseBreak;
+	// Timer for when Fuse was Triggered"
+	UPROPERTY(BlueprintReadOnly, Replicated, SaveGame, Category = "EquipmentModule")
+		FDateTime nFuseBreakOverDraw;
+	// Timer for when we took Shield Damage"
+	UPROPERTY(BlueprintReadOnly, Replicated, SaveGame, Category = "EquipmentModule")
+		FDateTime nShieldDmg;
+
+
+	// Took ShieldDamage within the DelayTimer ran out"
+	UPROPERTY(BlueprintReadonly, Replicated, Category = "EquipmentModule")
+		bool nShieldRegenCooldown;
+
+	// Amount of Shield Total
+	UPROPERTY(BlueprintReadOnly, Replicated, SaveGame, Category = "EquipmentModule")
+		float nCurrentShield;
+
+
+	UPROPERTY(replicated, SaveGame)
+		float nCurrentPower;
+
+
+	//	External Fuel Draw in MWs	( Power overdraw is negativly reducing ChargeDuration on which we base the amount to remove per frame)
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "EquipmentModule")
+		float nFuelConsumption;
+
+	/** Energy value for this Buffer In megawatt seconds (MWs), a.k.a. mega joule (MJ) */
+	UPROPERTY(BlueprintReadWrite, Replicated, SaveGame, Category = "EquipmentModule")
+		float nFuelAmount;
+
 	float Delta;
 };

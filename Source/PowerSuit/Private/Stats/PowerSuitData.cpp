@@ -2,6 +2,9 @@
 #include "SubModules/EMC_FuelModule.h"
 #include "Attachment/PowerSuitModuleAttachment.h"
 
+DEFINE_LOG_CATEGORY(PowerSuit_Log);
+
+
 FEquipmentStats::FEquipmentStats()
 {
 	nMovementProperties = {};
@@ -21,11 +24,6 @@ FEquipmentStats::FEquipmentStats()
 FModMultProperty::FModMultProperty() {
 	Multiplier = 0;
 	Modifier = 0;
-}
-
-FText UEquipmentModuleDescriptor::GetItemDescriptionInternal() const {
-	FText sText = mDescription;
-	return sText;
 }
 
 void FEquipmentStats::SetupDefaults()

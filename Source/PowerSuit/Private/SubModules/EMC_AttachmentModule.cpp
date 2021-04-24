@@ -30,11 +30,6 @@ void UEMC_AttachmentModule::PreTick()
 			{
 				i->AttachmentPreTick(Parent->Delta);
 			}
-			if(i->GetShouldTriggerActive())
-			{
-				Parent->PowerModule->GoActive();
-				break;
-			}
 		}
 	}
 }

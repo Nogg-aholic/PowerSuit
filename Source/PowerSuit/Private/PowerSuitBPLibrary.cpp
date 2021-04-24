@@ -21,7 +21,7 @@ bool UPowerSuitBPLibrary::EnableHover(UEquipmentModuleComponent* Component)
 	if (!Component)
 		return false;
 
-	if (Component->TKey_Fly && Component->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked) && Component->PowerModule->Producing)
+	if (Component->TKey_Fly && Component->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked) && Component->nProducing)
 	{
 		Component->MoveC->CustomMovementMode = uint8(ECustomMovementMode::CMM_Hover);
 		Component->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Hover);
@@ -249,7 +249,7 @@ void UPowerSuitBPLibrary::UpdateFlags(APowerSuit* EquipmentParent)
 }
 
 
-void UPowerSuitBPLibrary::UpdateInentorySize(APowerSuit* EquipmentParent)
+void UPowerSuitBPLibrary::UpdateInventorySize(APowerSuit* EquipmentParent)
 {
 	if (!EquipmentParent->HasAuthority())
 		return;
@@ -270,7 +270,7 @@ void UPowerSuitBPLibrary::UpdateInentorySize(APowerSuit* EquipmentParent)
 
 void UPowerSuitBPLibrary::UpdateAllNoRefresh(APowerSuit* EquipmentParent)
 {
-	UpdateInentorySize(EquipmentParent);
+	UpdateInventorySize(EquipmentParent);
 	UpdateFlags(EquipmentParent);
 	UpdateFlightStats(EquipmentParent);
 	UpdateMovementComponent(EquipmentParent);

@@ -73,7 +73,7 @@ void UEMC_StateModule::UpdateHotkeys()
 
 	if (Parent->EquipmentParent->GetInstigator()->IsLocallyControlled())
 	{
-		UE_LOG(LogTemp, Error, TEXT("Rebomdomg KeyBinds!"))
+		UE_LOG(PowerSuit_Log, Display, TEXT("Rebinding KeyBinds!"))
 
 		UInputSettings* InputSettings = UInputSettings::GetInputSettings();
 
@@ -246,7 +246,7 @@ void UEMC_StateModule::UpdateSuitState()
 		return;
 	}
 
-	if (!Parent->PowerModule->Producing)
+	if (!Parent->nProducing)
 	{
 		Parent->SuitState = EPowerSuitState::PS_REBOOTING;
 	}
@@ -309,7 +309,7 @@ void UEMC_StateModule::UpdateSuitState()
 			// this controls which speeds we will Pick 
 			if (nIsSliding)
 			{
-				if (HKey_Down && Parent->PowerModule->CurrentPower > 0.2f)
+				if (HKey_Down && Parent->nCurrentPower > 0.2f)
 					Parent->SuitState = EPowerSuitState::PS_POWERSLIDE;
 				else
 					Parent->SuitState = EPowerSuitState::PS_SLIDING;
@@ -326,7 +326,7 @@ void UEMC_StateModule::UpdateSuitState()
 	else if (Parent->nMovementMode == EMovementMode::MOVE_Falling || Parent->nMovementMode == EMovementMode::MOVE_Flying)
 	{
 		// if we want to fly and are in the Air we allow if Unlocked
-		if (Parent->TKey_Fly && Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked) && Parent->PowerModule->CurrentPower > 0.1f)
+		if (Parent->TKey_Fly && Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked) && Parent->nCurrentPower > 0.1f)
 		{
 			Parent->MoveC->CustomMovementMode = uint8(ECustomMovementMode::CMM_Hover);
 			Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Hover);
@@ -343,7 +343,7 @@ void UEMC_StateModule::UpdateSuitState()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Verbose, TEXT("What State is this ? %s"), *FString::FromInt(int32(Parent->nMovementMode)));
+		UE_LOG(PowerSuit_Log, Error, TEXT("What State is this ? %s"), *FString::FromInt(int32(Parent->nMovementMode)));
 	}
 }
 
@@ -428,10 +428,10 @@ void UEMC_StateModule::HoverModeChange()
 	float & mCurrentPowerLevel_ = Parent->EquipmentParent->*get(steal_mCurrentPowerLevel());
 	float & mPowerCapacity_ = Parent->EquipmentParent->*get(steal_mPowerCapacity());
 #endif
-	mCurrentPowerLevel_ = FMath::Clamp(Parent->PowerModule->CurrentPower, 0.f, mPowerCapacity_);
+	mCurrentPowerLevel_ = FMath::Clamp(Parent->nCurrentPower, 0.f, mPowerCapacity_);
 	if (!Parent->EquipmentParent->HasAuthority())
 	{
-		UE_LOG(LogTemp, Error, TEXT("Remote ! Hover modo changu ? %i"), int32(mCurrentHoverMode));
+		UE_LOG(PowerSuit_Log, Display, TEXT("Remote ! Hover modo changed  %i"), int32(mCurrentHoverMode));
 		Parent->RCO->ServerUpdateCurrentHoverMode(Parent,mCurrentHoverMode);
 	}
 }

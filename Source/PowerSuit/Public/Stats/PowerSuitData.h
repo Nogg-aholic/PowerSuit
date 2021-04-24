@@ -7,8 +7,13 @@
 #include "FGInventoryComponent.h"
 #include "FGCharacterMovementComponent.h"
 #include "FGHealthComponent.h"
+#include "Misc/AssertionMacros.h"
 #include "DamageTypes/FGDamageType.h"
 #include "PowerSuitData.generated.h"
+
+
+
+DECLARE_LOG_CATEGORY_EXTERN(PowerSuit_Log, Log, Log);
 
 #ifdef FOR_MODSHIPPING
 // Header Edits 
@@ -283,28 +288,12 @@ enum ESuitProperty
 	nPowerProduction UMETA(Displayname = "nPowerProduction"),
 
 	/**
-	* Additional Power in MW the Suit produces/consumes when Active (currently only when Shields are recharging).
-	* Applied IN ADDITION TO nPowerProduction
-	*	Additive
-	*	Negative for power consumption
-	*/
-	nPowerProductionActive UMETA(Displayname = "nPowerProductionActive"),
-
-	/**
 	* Additional Power in MW that the suit produces/consumed. It is intended for Attachments to draw power through this category.
 	* Applied IN ADDITION TO nPowerProduction
 	*	Additive
 	*	Positive for power consumption (verify?)
 	*/
 	nPowerConsumption UMETA(Displayname = "nPowerConsumption"),
-
-	/**
-	* Additional Power in MW that the suit produces/consumed. It is intended for Attachments to draw power through this category.
-	* Applied IN ADDITION TO nPowerProduction
-	*	Additive
-	*	Positive for power consumption (verify?)
-	*/
-	nPowerConsumptionActive UMETA(Displayname = "nPowerConsumptionActive"),
 
 	/**
 	* Additional max health. Default max health is 100.0f.
@@ -347,13 +336,6 @@ enum ESuitProperty
 	nFuseTimeOverDraw UMETA(Displayname = "nFuseTimeOverDraw"),
 
 	/**
-	* The minimum time the Suit stays Active for after taking damage (currently only triggered by Shield Regen)
-	*	Additive
-	*	Positive for increased time
-	*/
-	nActiveTime UMETA(Displayname = "nActiveTime"),
-
-	/**
 	* The minimum time the Suit needs after taking damage before the shield starts regenerating.
 	*	Additive
 	*	Positive for increased time
@@ -385,11 +367,6 @@ enum ESuitProperty
 	* How much Fuel can we Load from the Buffer to the Tank?
 	*/
 	nFuelTankSize  UMETA(Displayname = "FuelTankSize"),
-
-	/**
-	* In Delta MW
-	*/
-	nPowerTransferSpeed UMETA(Displayname = "PowerTransferSpeed"),
 
 	/**
 	* Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change.
@@ -894,8 +871,11 @@ public:
 
 
 	int32 mCachedInventorySlot = -1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Inventory")
 	APowerSuitModuleAttachment* mCachedAttachment;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Inventory")
 	TArray<TSubclassOf<class UFGItemDescriptor>> nUnlockedAllowedFuels;
 	~FEquipmentStats() = default;
 

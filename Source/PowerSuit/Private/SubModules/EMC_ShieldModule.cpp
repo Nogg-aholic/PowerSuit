@@ -8,8 +8,7 @@
 void UEMC_ShieldModule::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(UEMC_ShieldModule, ShieldRegenCooldown);
-	DOREPLIFETIME(UEMC_ShieldModule, CurrentShield);
+
 	
 }
 
@@ -20,22 +19,21 @@ float UEMC_ShieldModule::ApplyShieldDamage(float DmgIn)
 	if (DmgIn <= 0.f)
 		return 0.f;
 
-	ShieldDmg = FDateTime::Now();
-	Parent->PowerModule->GoActive();
+	Parent->nShieldDmg = FDateTime::Now();
 	// If the shield would still has HP left after taking this hit ...
-	if (CurrentShield - DmgIn > 0)
+	if (Parent->nCurrentShield - DmgIn > 0)
 	{
 		// ... take the damage.
-		Parent->OnShieldDamageTaken.Broadcast(DmgIn - CurrentShield, ShieldDmg, true);
-		CurrentShield = CurrentShield - DmgIn;
+		Parent->OnShieldDamageTaken.Broadcast(DmgIn - Parent->nCurrentShield, Parent->nShieldDmg, true);
+		Parent->nCurrentShield = Parent->nCurrentShield - DmgIn;
 		return 0;
 	}
 	else
 	{
 		// ... take the damage and break the shield, returning the unabsorbed damage amount
-		float dmgout = DmgIn - CurrentShield;
-		Parent->OnShieldDamageTaken.Broadcast(CurrentShield, ShieldDmg, true);
-		CurrentShield = 0;
+		float dmgout = DmgIn - Parent->nCurrentShield;
+		Parent->OnShieldDamageTaken.Broadcast(Parent->nCurrentShield, Parent->nShieldDmg, true);
+		Parent->nCurrentShield = 0;
 		return dmgout;
 	}
 }
@@ -46,13 +44,13 @@ bool UEMC_ShieldModule::ShouldRegenShield()
 	if (!Parent->EquipmentParent)
 		return false;
 
-	if (!Parent->PowerModule->Producing)
+	if (!Parent->nProducing)
 		return false;
 
-	const FTimespan timeSinceShieldDmg = FDateTime::Now() - ShieldDmg;
+	const FTimespan timeSinceShieldDmg = FDateTime::Now() - Parent->nShieldDmg;
 
 	if (timeSinceShieldDmg.GetTotalSeconds() > GetShieldRechargeDelayDuration())
-		if (CurrentShield < GetMaxShield())
+		if (Parent->nCurrentShield < GetMaxShield())
 			return true;
 
 	return false;
@@ -60,9 +58,8 @@ bool UEMC_ShieldModule::ShouldRegenShield()
 
 // Handle shield regeneration per tick and mark shield active timer if needed
 void UEMC_ShieldModule::RegenShield() {
-	CurrentShield = FMath::Clamp(CurrentShield + (GetShieldRechargeRate() * Parent->Delta), 0.f, GetMaxShield());
+	Parent->nCurrentShield = FMath::Clamp(Parent->nCurrentShield + (GetShieldRechargeRate() * Parent->Delta), 0.f, GetMaxShield());
 	// Regenerating Shield causes the Suit to Go Active ( Consume additional Power )
-	Parent->PowerModule->GoActive();
 }
 
 
@@ -76,7 +73,7 @@ void UEMC_ShieldModule::Tick()
 
 void  UEMC_ShieldModule::PostTick()
 {
-	if (Parent->PowerModule->Producing)
+	if (Parent->nProducing)
 	{
 
 		// Shield handling
@@ -86,13 +83,13 @@ void  UEMC_ShieldModule::PostTick()
 			// regenerating shield
 			RegenShield();
 			// when the shield is  being regenerated , its not fully broken anymore 
-			ShieldRegenCooldown = false;
+			Parent->nShieldRegenCooldown = false;
 		}
-		else if (CurrentShield == GetMaxShield()) // if not activley regenerating, check if done regenerating shield
-			ShieldRegenCooldown = false;
+		else if (Parent->nCurrentShield == GetMaxShield()) // if not activley regenerating, check if done regenerating shield
+			Parent->nShieldRegenCooldown = false;
 		else if (GetMaxShield() != 0) // if not done regenerating and not actively regenerating, mark the shield as broken
-			ShieldRegenCooldown = true;
+			Parent->nShieldRegenCooldown = true;
 		else  // otherwise shield is fine
-			ShieldRegenCooldown = false;
+			Parent->nShieldRegenCooldown = false;
 	}
 }

@@ -9,7 +9,6 @@ APowerSuitModuleAttachment::APowerSuitModuleAttachment()
 }
 
 
-
 void APowerSuitModuleAttachment::PreSaveGame_Implementation(int32 saveVersion, int32 gameVersion)
 {
 }
@@ -61,8 +60,6 @@ void APowerSuitModuleAttachment::AttachmentUnInstalled_Implementation() {  };
 float APowerSuitModuleAttachment::GetDeltaPowerConsumption_Implementation(float DeltaTime)const  { return 0.0f;};
 
 float APowerSuitModuleAttachment::GetDeltaFuelConsumption_Implementation(float DeltaTime)const { return 0.0f;};
-
-bool APowerSuitModuleAttachment::GetShouldTriggerActive_Implementation()const { return false;};
 
 bool APowerSuitModuleAttachment::GetIsConditionMet_Implementation()const {return true;};
 
@@ -167,3 +164,4 @@ void APowerSuitModuleAttachment::SetSuitFlag(ESuitFlag Flag, bool Enabled)
 		AttachmentStats.SuitFlags -= Flag;
 	}
 }
+

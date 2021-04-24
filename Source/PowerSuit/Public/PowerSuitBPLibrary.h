@@ -75,7 +75,7 @@ public:
 	// this is used by the Inventory Component
 	// Only use this if you know what you are doing
 	UFUNCTION(BlueprintCallable)
-		static void UpdateInentorySize(APowerSuit * EquipmentParent);
+		static void UpdateInventorySize(APowerSuit * EquipmentParent);
 	
 	// NOT REPLICATED ! and rarely should be used manually!
 	// this is used by the Inventory Component

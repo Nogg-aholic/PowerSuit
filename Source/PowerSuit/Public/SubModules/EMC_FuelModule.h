@@ -25,13 +25,7 @@ private:
 
 public:
 
-	//	External Fuel Draw in MWs	( Power overdraw is negativly reducing ChargeDuration on which we base the amount to remove per frame)
-	UPROPERTY(BlueprintReadOnly, Replicated, Category = "EquipmentModule")
-		float DeltaFuelConsumption;
 
-	/** Energy value for this Buffer In megawatt seconds (MWs), a.k.a. mega joule (MJ) */
-	UPROPERTY(BlueprintReadWrite, Replicated, Category = "Equipment")
-		float FuelAmountBuffer = 0.f;
 
 	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule")
 		TArray<TSubclassOf<class UFGItemDescriptor>> nAllowedFuels;

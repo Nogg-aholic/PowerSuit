@@ -33,6 +33,17 @@ UEquipmentModuleComponent::UEquipmentModuleComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
+	nInventory = nullptr;
+	SuitState = EPowerSuitState::PS_REBOOTING;
+	PowerConsumption = 0;
+	nProducing = false;
+	nCurrentPower = 0;
+	nFuseBreak = FDateTime();
+	nFuseBreakOverDraw = FDateTime();
+	nShieldRegenCooldown = false;
+	nCurrentShield = 0;
+	nFuelConsumption = 0;
+	nFuelAmount = 0;
 }
 
 
@@ -41,6 +52,18 @@ void UEquipmentModuleComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UEquipmentModuleComponent, nInventory);
 	DOREPLIFETIME(UEquipmentModuleComponent, SuitState);
+	DOREPLIFETIME(UEquipmentModuleComponent, PowerConsumption);
+	DOREPLIFETIME(UEquipmentModuleComponent, nProducing);
+	DOREPLIFETIME(UEquipmentModuleComponent, nCurrentPower);
+
+	DOREPLIFETIME(UEquipmentModuleComponent, nFuseBreak);
+	DOREPLIFETIME(UEquipmentModuleComponent, nFuseBreakOverDraw);
+
+	DOREPLIFETIME(UEquipmentModuleComponent, nShieldRegenCooldown);
+	DOREPLIFETIME(UEquipmentModuleComponent, nCurrentShield);
+
+	DOREPLIFETIME(UEquipmentModuleComponent, nFuelConsumption);
+	DOREPLIFETIME(UEquipmentModuleComponent, nFuelAmount);
 }
 
 
@@ -66,12 +89,12 @@ void UEquipmentModuleComponent::RemoteInventoryRefresh_Implementation(bool IsAdd
 	{
 		TimerDel.BindUFunction(InventoryModule, FName("RefreshInventoryAdd"), Class, Amount);
 
-		UE_LOG(LogTemp, Error, TEXT("Remote with Refresh Add : true"));
+		UE_LOG(PowerSuit_Log, Display, TEXT("Remote with Refresh Add : true"));
 	}
 	else
 	{
 		TimerDel.BindUFunction(InventoryModule, FName("RefreshInventoryRemove"), Class, Amount);
-		UE_LOG(LogTemp, Error, TEXT("Remote with Refresh Add : false"));
+		UE_LOG(PowerSuit_Log, Display, TEXT("Remote with Refresh Add : false"));
 
 
 	}
@@ -142,7 +165,7 @@ void UEquipmentModuleComponent::SetupSubModules()
 	AFGPlayerController* Controller = Cast< AFGPlayerController>(EquipmentParent->GetInstigatorController());
 	if (!Controller)
 	{
-		UE_LOG(LogTemp, Error, TEXT("No Controller cast! fix shit "));
+		UE_LOG(PowerSuit_Log, Error, TEXT("No Controller cast! fix shit "));
 		return;
 	}
 
@@ -174,11 +197,11 @@ void UEquipmentModuleComponent::SetupSubModules()
 
 	if (!RCO)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Registered RCO"));
+		UE_LOG(PowerSuit_Log, Display, TEXT("Registered RCO"));
 		RCO = Cast< UPowerSuitRCO>(Controller->RegisterRemoteCallObjectClass(UPowerSuitRCO::StaticClass()));
 		if (!RCO)
 		{
-			UE_LOG(LogTemp, Error, TEXT("No RCO ! Fix shit "));
+			UE_LOG(PowerSuit_Log, Error, TEXT("No RCO ! Fix shit "));
 			return;
 		}
 	}
@@ -187,6 +210,8 @@ void UEquipmentModuleComponent::SetupSubModules()
 
 void UEquipmentModuleComponent::Init( APowerSuit * Parent)
 {
+
+	UE_LOG(PowerSuit_Log, Display, TEXT("InitCall"));
 	if (!Parent)
 		return;
 
@@ -195,11 +220,12 @@ void UEquipmentModuleComponent::Init( APowerSuit * Parent)
 		return;
 
 	EquipmentParent = Parent;
+	AFGCharacterPlayer* Character = Cast< AFGCharacterPlayer>(EquipmentParent->GetInstigator());
+	MoveC = Character->GetFGMovementComponent();
 
 	SetupSubModules();
 
-	AFGCharacterPlayer*  Character = InventoryModule->InitInventory();
-	MoveC = Character->GetFGMovementComponent();
+	InventoryModule->InitInventory();
 
 	StateModule->UpdateHotkeys();
 }
@@ -245,7 +271,7 @@ float UEquipmentModuleComponent::CalculateDamage(float DmgIn, int32 Type, TSubcl
 			AdjustedDmg = FMath::Clamp((Dmg - Reduction) - (FMath::Clamp(Dmg - Reduction, 0.f, 1000.f)* ReductionPercent), 0.f, 1000.f);
 		}
 		
-		if (ShieldModule->CurrentShield > 0)
+		if (nCurrentShield > 0)
 		{
 			if (Stats.HasDamageMask(Type))
 			{
@@ -299,11 +325,14 @@ FModMultProperty UEquipmentModuleComponent::GetStatePropertySafe(TMap<TEnumAsByt
 
 void UEquipmentModuleComponent::ResetStats()
 {
+	UE_LOG(PowerSuit_Log, Display, TEXT("Resetting Stats"));
+
 	// Reset everything
 	FEquipmentStats Fill = FEquipmentStats();
 	Fill.SetupDefaults();
 	Stats = DefaultStats + Fill;
-	ShieldModule->CurrentShield = 0.f;
+	nCurrentShield = 0.f;
+
 
 	AttachmentModule->ResetAttachments();
 	InventoryModule->ResetInventoryStats();

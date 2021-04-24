@@ -28,11 +28,14 @@ class POWERSUIT_API APowerSuit : public AFGHoverPack
 	GENERATED_BODY()
 		APowerSuit();
 
+	virtual void BeginPlay() override;
+	virtual void Destroyed() override;
+
 	virtual void Equip(class AFGCharacterPlayer* character) override;
 	virtual void UnEquip() override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
-
+	virtual bool ShouldSaveState() const;
 public:
 
 	UFUNCTION(BlueprintImplementableEvent)

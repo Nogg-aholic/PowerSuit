@@ -15,9 +15,6 @@ class POWERSUIT_API UEquipmentModuleDescriptor : public UFGItemDescriptor
 	GENERATED_BODY()
 
 
-protected:
-	/** Internal function to get the display description. */
-	virtual FText GetItemDescriptionInternal() const override;
 
 public:
 	UFUNCTION(BlueprintPure, Category = "FactoryGame|Descriptor|Item")

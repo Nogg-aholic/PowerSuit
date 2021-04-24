@@ -42,7 +42,7 @@ private:
 
 	AFGCharacterPlayer* InitInventory();
 
-	void UpdateInentorySize();
+	void UpdateInventorySize();
 
 	void ResetInventoryStats();
 
