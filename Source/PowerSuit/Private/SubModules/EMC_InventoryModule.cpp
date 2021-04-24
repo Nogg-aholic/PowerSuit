@@ -277,6 +277,7 @@ void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & S
 				Equipment->AttachToSuit(Parent->EquipmentParent);
 				Equipment->AttachmentInstalled(Stack.Item);
 				Equipment->InventorySlot = StatsRef.mCachedInventorySlot;
+				StatsRef.mCachedAttachment = Equipment;
 				Parent->Stats + StatsRef;
 				const TSubclassOf< class UEquipmentModuleDescriptor> item = Stack.Item.ItemClass;
 				StatsRef.UnlockFuels(Parent, item.GetDefaultObject()->nAllowedFuels);
