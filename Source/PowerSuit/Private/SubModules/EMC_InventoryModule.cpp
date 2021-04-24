@@ -447,8 +447,17 @@ void  UEMC_InventoryModule::SubtractModuleStats(TSubclassOf< class UEquipmentMod
 				i.ForgetUnlockedFuels(Parent);
 				Equipment = i.mCachedAttachment;
 				Arr.RemoveAt(indexToRemove);
-				FString nameout = Equipment->GetName();
-				UE_LOG(PowerSuit_Log, Display, TEXT("Subtracted Stats from : %s Remebered Stats Left: %s ; Keys Total %s "), *nameout,*FString::FromInt(Arr.Num()), *FString::FromInt(ItemsRemembered.Num()));
+				FString Out = "";
+				if (Equipment)
+				{
+					Out = Equipment->GetName();
+				}
+				else
+				{
+					Out = item->GetName();
+				}
+				UE_LOG(PowerSuit_Log, Display, TEXT("Subtracted Stats from : %s Remebered Stats Left: %s ; Keys Total %s "), *Out, *FString::FromInt(Arr.Num()), *FString::FromInt(ItemsRemembered.Num()));
+
 				break;
 			}
 			indexToRemove++;
