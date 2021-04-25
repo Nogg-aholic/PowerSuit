@@ -40,7 +40,9 @@ void APowerSuit::Destroyed()
 
 void  APowerSuit::Equip(class AFGCharacterPlayer* character){
 	UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit Equip ****************\n %s"), *GetName());
+	SetInstigator(nullptr);
 	Super::Equip(character);
+	SetInstigator(character);
 	if (character)
 	{
 		if (character->HasAuthority())
@@ -48,7 +50,7 @@ void  APowerSuit::Equip(class AFGCharacterPlayer* character){
 			if (Module)
 			{
 				Module->Init(this);
-				WasEquipped();
+				//WasEquipped();
 			}
 		}
 	}
