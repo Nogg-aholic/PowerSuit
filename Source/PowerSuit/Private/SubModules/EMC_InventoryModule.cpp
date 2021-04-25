@@ -31,7 +31,7 @@ AFGCharacterPlayer* UEMC_InventoryModule::InitInventory()
 			UE_LOG(PowerSuit_Log, Display,TEXT("Created Inventory; Calling Owning Client for Replication"))
 			Parent->EquipmentParent->Server_WaitAndInitRemote();
 			Parent->ResetStats();
-			Parent->nProducing = true;
+			Parent->nProducing = false;
 		}
 
 	}
@@ -142,7 +142,9 @@ void UEMC_InventoryModule::RefreshInventoryRemove(TSubclassOf<UFGItemDescriptor>
 				Parent->nInventory->GetStackFromIndex(i.mCachedInventorySlot, Stack);
 				if (Stack.Item.ItemClass != itemClass)
 				{
-					// this Slot was replaced directly ? 
+					UE_LOG(PowerSuit_Log, Error, TEXT("this Slot was replaced directly ? "));
+
+					// 
 					// fuck this .. lets just update all 
 					RefreshInventory();
 					return;
@@ -261,9 +263,9 @@ void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & S
 	{
 		return;
 	}
-	if (Stack.Item.HasState())
+	if (Stack.Item.HasState() || StatsRef.mCachedAttachment)
 	{
-		APowerSuitModuleAttachment* Equipment = Cast< APowerSuitModuleAttachment>(Stack.Item.ItemState.Get());
+		APowerSuitModuleAttachment* Equipment = StatsRef.mCachedAttachment ? StatsRef.mCachedAttachment : Cast< APowerSuitModuleAttachment>(Stack.Item.ItemState.Get());
 		if (Equipment)
 		{
 			if (Equipment->GetIsConditionMet())
@@ -517,12 +519,12 @@ FEquipmentStats UEMC_InventoryModule::GetModuleStats(FInventoryStack Stack, int3
 			else
 				UniquesActive.Add(item);
 
-		CreateAttachmentStateIfNeeded(Stack, ItemObj, item, ind);
+		APowerSuitModuleAttachment* Equipment = CreateAttachmentStateIfNeeded(Stack, ItemObj, item, ind);
 
 		
 		if (Stack.Item.HasState())
 		{
-			APowerSuitModuleAttachment* Equipment = Cast< APowerSuitModuleAttachment>(Stack.Item.ItemState.Get());
+			Equipment = Cast< APowerSuitModuleAttachment>(Stack.Item.ItemState.Get());
 			if (Equipment)
 			{
 				if (Equipment->GetIsConditionMet())
@@ -543,14 +545,42 @@ FEquipmentStats UEMC_InventoryModule::GetModuleStats(FInventoryStack Stack, int3
 		}
 		else
 		{
-			if (!Parent->EquipmentParent->HasAuthority())
+			if (ItemObj->GetnAttachment(item))
 			{
-				if (ItemObj->GetnAttachment(item))
+				if (!Parent->EquipmentParent->HasAuthority())
 				{
+
 					UE_LOG(PowerSuit_Log, Error, TEXT("Remote has not ItemState, Debug me"));
 				}
+				else
+				{
+					// ItemState isnt directly aviable even on Server apparantly
+					if (Equipment)
+					{
+						if (Equipment->GetIsConditionMet())
+						{
+							Equipment->Parent = Parent;
+							StatObject = Equipment->RecieveModuleStats(ItemObj->EquipmentStats);
+						}
+						else
+						{
+							StatObject = FEquipmentStats();
+						}
+						StatObject.mCachedAttachment = Equipment;
+					}
+					else
+					{
+						StatObject = ItemObj->EquipmentStats;
+					}
+
+				}
 			}
-			StatObject = ItemObj->EquipmentStats;
+			else
+			{
+				
+				StatObject = ItemObj->EquipmentStats;
+
+			}
 		}
 		StatObject.mCachedInventorySlot = ind;
 		return StatObject;
@@ -560,7 +590,7 @@ FEquipmentStats UEMC_InventoryModule::GetModuleStats(FInventoryStack Stack, int3
 	return StatObject;
 }
 
-void UEMC_InventoryModule::CreateAttachmentStateIfNeeded(FInventoryStack Stack, const UEquipmentModuleDescriptor* ItemObj, const TSubclassOf< class UEquipmentModuleDescriptor> item, const int32 index)
+APowerSuitModuleAttachment* UEMC_InventoryModule::CreateAttachmentStateIfNeeded(FInventoryStack Stack, const UEquipmentModuleDescriptor* ItemObj, const TSubclassOf< class UEquipmentModuleDescriptor> item, const int32 index)
 {
 	if (ItemObj->GetnAttachment(item) && !Stack.Item.HasState())
 	{
@@ -578,6 +608,8 @@ void UEMC_InventoryModule::CreateAttachmentStateIfNeeded(FInventoryStack Stack, 
 			Equipment->Parent = Parent;
 			Parent->nInventory->SetStateOnIndex(index, FSharedInventoryStatePtr::MakeShared(Equipment));
 			UE_LOG(PowerSuit_Log, Display, TEXT("Created Module Descriptor Attachment Actor %s"), *Equipment->GetName());
+			return Equipment;
 		}
 	}
+	return nullptr;
 }

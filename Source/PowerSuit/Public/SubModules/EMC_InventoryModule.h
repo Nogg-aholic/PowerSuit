@@ -48,7 +48,7 @@ private:
 
 	void BulkUpdateStats(UFGInventoryComponent * Inventory);
 
-	void CreateAttachmentStateIfNeeded(FInventoryStack Stack, const UEquipmentModuleDescriptor* ItemObj, const TSubclassOf<class UEquipmentModuleDescriptor> item, const int32 index);
+	APowerSuitModuleAttachment* CreateAttachmentStateIfNeeded(FInventoryStack Stack, const UEquipmentModuleDescriptor* ItemObj, const TSubclassOf<class UEquipmentModuleDescriptor> item, const int32 index);
 
 	bool MergeOnIndex(int32 ind, bool Safe = true);
 
