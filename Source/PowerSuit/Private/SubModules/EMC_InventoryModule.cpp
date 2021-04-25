@@ -277,6 +277,7 @@ void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & S
 					Parent->AttachmentModule->Attachments.Add(Equipment);
 
 				Equipment->AttachToSuit(Parent->EquipmentParent);
+				Equipment->SetOwner(Parent->EquipmentParent->GetOwner());
 				Equipment->AttachmentInstalled(Stack.Item);
 				Equipment->InventorySlot = StatsRef.mCachedInventorySlot;
 				StatsRef.mCachedAttachment = Equipment;
@@ -479,8 +480,10 @@ void  UEMC_InventoryModule::SubtractModuleStats(TSubclassOf< class UEquipmentMod
 				Parent->AttachmentModule->InactiveAttachments.Remove(Equipment);
 			else if (Parent->AttachmentModule->Attachments.Contains(Equipment))
 				Parent->AttachmentModule->Attachments.Remove(Equipment);
+
+			Equipment->DetachFromSuit();
+			Equipment->AttachmentUnInstalled();
 		}
-		
 	}
 }
 
