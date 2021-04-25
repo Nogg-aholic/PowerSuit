@@ -82,9 +82,14 @@ void UEMC_InventoryModule::UpdateInventorySize()
 		return;
 
 	// Size is loaded so skip setting it if Size is the same  
-	if (Parent->nInventory->GetSizeLinear() != Parent->Stats.InventorySlots)
+	if (Parent->nInventory->GetSizeLinear() < Parent->Stats.InventorySlots)
+		Parent->nInventory->Resize(Parent->Stats.InventorySlots);
+	else if (Parent->nInventory->GetSizeLinear() > Parent->Stats.InventorySlots)
+	{
+		UE_LOG(PowerSuit_Log, Error, TEXT("SuitInventory shrinking, we dont check if slots are filled :I"));
 		Parent->nInventory->Resize(Parent->Stats.InventorySlots);
 
+	}
 	// Limit Slots to SlotSize of 1
 	// Modules may stack but they must be Single when accounted for
 	for (int32 i = 0; i < Parent->Stats.InventorySlots; i++)
@@ -278,6 +283,7 @@ void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & S
 
 				Equipment->AttachToSuit(Parent->EquipmentParent);
 				Equipment->SetOwner(Parent->EquipmentParent->GetOwner());
+				Equipment->SetInstigator(Parent->EquipmentParent->GetInstigator());
 				Equipment->AttachmentInstalled(Stack.Item);
 				Equipment->InventorySlot = StatsRef.mCachedInventorySlot;
 				StatsRef.mCachedAttachment = Equipment;

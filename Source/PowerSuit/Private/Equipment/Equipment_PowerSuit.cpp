@@ -93,6 +93,8 @@ void APowerSuit::Tick(float DeltaSeconds)
 					if (!It->IsPendingKill())
 					{
 						SetInstigator(*It);
+						UE_LOG(PowerSuit_Log, Display, TEXT("**************** Dawn Death ? Set Instigator to  ****************\n %s"), *It->GetName());
+
 						return;
 					}
 				}
