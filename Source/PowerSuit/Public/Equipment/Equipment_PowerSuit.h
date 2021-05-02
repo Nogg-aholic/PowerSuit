@@ -36,6 +36,9 @@ class POWERSUIT_API APowerSuit : public AFGHoverPack
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 	virtual bool ShouldSaveState() const;
+	UFUNCTION()
+	void OnConnectionStatusUpdatedReplacement(bool HasConnection);
+
 public:
 
 	UFUNCTION(BlueprintImplementableEvent)

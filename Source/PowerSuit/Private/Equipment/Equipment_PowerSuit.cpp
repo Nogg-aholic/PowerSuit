@@ -30,8 +30,27 @@ void APowerSuit::BeginPlay()
 {
 	UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit Spawn ****************\n %s"), *GetName());
 	Super::BeginPlay();
+	FScriptDelegate NewDel = FScriptDelegate();
+	NewDel.BindUFunction(this, "OnConnectionStatusUpdatedReplacement");
+	HoverModeChangedDelegate.Add(NewDel);
 }
 
+
+void APowerSuit::OnConnectionStatusUpdatedReplacement(bool HasConnection)
+{
+	if (!HasConnection)
+	{
+		if (Module->nProducing)
+		{
+			if (Module->SuitState == EPowerSuitState::PS_HOVER || Module->SuitState == EPowerSuitState::PS_HOVERSPRINT || Module->SuitState == EPowerSuitState::PS_HOVERMOVE || Module->SuitState == EPowerSuitState::PS_SLOWFALL)
+			{
+				UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit Re-Enabling Hover ****************\n %s"), *GetName());
+				Module->MoveC->CustomMovementMode = uint8(ECustomMovementMode::CMM_Hover);
+				Module->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Hover);
+			}
+		}
+	}
+}
 void APowerSuit::Destroyed()
 {
 	UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit Destroyed ****************\n %s"), *GetName());
@@ -40,9 +59,7 @@ void APowerSuit::Destroyed()
 
 void  APowerSuit::Equip(class AFGCharacterPlayer* character){
 	UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit Equip ****************\n %s"), *GetName());
-	SetInstigator(nullptr);
 	Super::Equip(character);
-	SetInstigator(character);
 	if (character)
 	{
 		if (character->HasAuthority())
@@ -50,7 +67,7 @@ void  APowerSuit::Equip(class AFGCharacterPlayer* character){
 			if (Module)
 			{
 				Module->Init(this);
-				//WasEquipped();
+				WasEquipped();
 			}
 		}
 	}

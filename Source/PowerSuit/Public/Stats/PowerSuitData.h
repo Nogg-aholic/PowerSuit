@@ -869,14 +869,16 @@ public:
 		int32 InventorySlots;
 
 
-
+	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule | Inventory")
 	int32 mCachedInventorySlot = -1;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Inventory")
+	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule | Inventory")
 	APowerSuitModuleAttachment* mCachedAttachment;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Inventory")
+	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule | Inventory")
 	TArray<TSubclassOf<class UFGItemDescriptor>> nUnlockedAllowedFuels;
+
+
 	~FEquipmentStats() = default;
 
 };
