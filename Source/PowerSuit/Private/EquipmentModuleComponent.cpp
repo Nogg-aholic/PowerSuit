@@ -172,6 +172,8 @@ void UEquipmentModuleComponent::SetupSubModules()
 	if (!PowerModule)
 	{
 
+		UE_LOG(PowerSuit_Log, Error, TEXT("Creating SubModules "));
+
 		StateModule = NewObject<UEMC_StateModule>(); // 1
 		AttachmentModule = NewObject<UEMC_AttachmentModule>(); // 2
 		PowerModule = NewObject<UEMC_PowerModule>(); // 3 
@@ -213,11 +215,18 @@ void UEquipmentModuleComponent::Init( APowerSuit * Parent)
 
 	UE_LOG(PowerSuit_Log, Display, TEXT("InitCall"));
 	if (!Parent)
+	{
+		UE_LOG(PowerSuit_Log, Display, TEXT("No Parent on InitCall"));
+
 		return;
+	}
 
 
-	if(!Parent->GetInstigator())
+	if (!Parent->GetInstigator())
+	{
+		UE_LOG(PowerSuit_Log, Display, TEXT("No Instigator on InitCall"));
 		return;
+	}
 
 	EquipmentParent = Parent;
 	AFGCharacterPlayer* Character = Cast< AFGCharacterPlayer>(EquipmentParent->GetInstigator());
@@ -331,7 +340,8 @@ void UEquipmentModuleComponent::ResetStats()
 	FEquipmentStats Fill = FEquipmentStats();
 	Fill.SetupDefaults();
 	Stats = DefaultStats + Fill;
-	nCurrentShield = 0.f;
+	if(EquipmentParent->HasAuthority())
+		nCurrentShield = 0.f;
 
 
 	AttachmentModule->ResetAttachments();

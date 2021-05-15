@@ -65,22 +65,34 @@ void UEMC_AttachmentModule::PostTick()
 // Server and Client
 void UEMC_AttachmentModule::ResetAttachments()
 {
-	// Destroy Attachments
-	for (auto i : Attachments)
-		if (i)
-		{
-			i->AttachmentUnInstalled();
-			i->DetachFromSuit();
-			i->bIsActive = false;
-		}
-	// Destroy Attachments
-	for (auto i : InactiveAttachments)
-		if (i)
-		{
-			i->AttachmentUnInstalled();
-			i->DetachFromSuit();
-			i->bIsActive = false;
-		}
+	if (IsPendingKill())
+		return;
+	if (!Parent->GetOwner())
+		return;
+
+	if (Parent->GetOwner()->HasAuthority())
+	{
+		// Destroy Attachments
+		for (auto i : Attachments)
+			if (i)
+			{
+				i->AttachmentUnInstalled();
+				i->DetachFromSuit();
+				i->bIsActive = false;
+				i->SetInstigator(nullptr);
+				i->SetOwner(nullptr);
+			}
+		// Destroy Attachments
+		for (auto i : InactiveAttachments)
+			if (i)
+			{
+				i->AttachmentUnInstalled();
+				i->DetachFromSuit();
+				i->bIsActive = false;
+				i->SetInstigator(nullptr);
+				i->SetOwner(nullptr);
+			}
+	}
 	Attachments.Empty();
 	InactiveAttachments.Empty();
 }

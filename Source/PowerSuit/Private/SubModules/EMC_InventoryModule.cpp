@@ -27,7 +27,7 @@ AFGCharacterPlayer* UEMC_InventoryModule::InitInventory()
 		
 		if (Parent->EquipmentParent->HasAuthority())
 		{
-			Parent->nInventory = UFGInventoryLibrary::CreateInventoryComponent(Character, FName("nInventory"));
+			Parent->nInventory = UFGInventoryLibrary::CreateInventoryComponent(Character, FName("nInventory" + Parent->EquipmentParent->GetName()));
 			UE_LOG(PowerSuit_Log, Display,TEXT("Created Inventory; Calling Owning Client for Replication"))
 			Parent->EquipmentParent->Server_WaitAndInitRemote();
 			Parent->ResetStats();
@@ -251,7 +251,7 @@ void UEMC_InventoryModule::RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> it
 	}
 
 	UPowerSuitBPLibrary::UpdateAllNoRefresh(Parent->EquipmentParent);
-	if (Parent->EquipmentParent->GetInstigator()->HasAuthority())
+	if (Parent->EquipmentParent->GetInstigator()->HasAuthority() && !Parent->EquipmentParent->GetInstigator()->IsLocallyControlled())
 	{
 		Parent->RemoteInventoryRefresh(true, itemClass, numAdded);
 	}

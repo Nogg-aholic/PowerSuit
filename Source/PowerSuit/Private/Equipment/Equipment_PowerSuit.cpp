@@ -18,7 +18,7 @@
 APowerSuit::APowerSuit()
 {
 	this->Module = CreateDefaultSubobject<UEquipmentModuleComponent>(TEXT("EquipmentModule")); 
-	this->SetRootComponent(this->Module);
+	this->Module->SetupAttachment(this->RootComponent);
 	this->Module->SetNetAddressable(); // Make net addressable
 	this->Module->SetIsReplicated(true);
 
@@ -30,9 +30,9 @@ void APowerSuit::BeginPlay()
 {
 	UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit Spawn ****************\n %s"), *GetName());
 	Super::BeginPlay();
-	FScriptDelegate NewDel = FScriptDelegate();
-	NewDel.BindUFunction(this, "OnConnectionStatusUpdatedReplacement");
-	HoverModeChangedDelegate.Add(NewDel);
+	//FScriptDelegate NewDel = FScriptDelegate();
+	//NewDel.BindUFunction(this, "OnConnectionStatusUpdatedReplacement");
+	//HoverModeChangedDelegate.Add(NewDel);
 }
 
 
@@ -59,15 +59,16 @@ void APowerSuit::Destroyed()
 
 void  APowerSuit::Equip(class AFGCharacterPlayer* character){
 	UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit Equip ****************\n %s"), *GetName());
-	Super::Equip(character);
+	Super::Equip(character);;
 	if (character)
 	{
 		if (character->HasAuthority())
 		{
+			SetInstigator(character);
+			SetOwner(character);
 			if (Module)
 			{
 				Module->Init(this);
-				WasEquipped();
 			}
 		}
 	}
@@ -95,29 +96,6 @@ void APowerSuit::Tick(float DeltaSeconds)
 	
 	if (!GetInstigator())
 		return;
-
-	// incase our instigator died we want to prevent the suit from being deleted even if instigator goes nullptr
-	// the next pickup would overwrite instigator again so temporairly setting it to something valid hopefully will prevent
-	// the suit from being cleaned up on a players Death
-	if (GetInstigator()->IsPendingKill())
-	{
-		if (UWorld* World = GetWorld())
-		{
-			for (TActorIterator<AFGCharacterPlayer> It(World, AFGCharacterPlayer::StaticClass()); It; ++It)
-			{
-				if (It)
-				{
-					if (!It->IsPendingKill())
-					{
-						SetInstigator(*It);
-						UE_LOG(PowerSuit_Log, Display, TEXT("**************** Dawn Death ? Set Instigator to  ****************\n %s"), *It->GetName());
-
-						return;
-					}
-				}
-			}
-		}
-	}
 
 	if (!IsEquipped() || !Module)
 		return;
@@ -151,5 +129,71 @@ void APowerSuit::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 bool APowerSuit::ShouldSaveState() const
 {
 	return true;
+}
+
+void APowerSuit::AddEquipmentActionBindings()
+{
+	Super::AddEquipmentActionBindings();
+	if (!GetInstigator())
+		return;
+	AFGPlayerController * Pc = Cast<AFGPlayerController>(GetInstigator()->GetController());
+	if (!Pc)
+		return;
+	UInputSettings* InputSettings = UInputSettings::GetInputSettings();
+
+	if (!InputSettings->DoesActionExist("PowerSuit_Acceleration"))
+	{
+		FInputActionKeyMapping KB = FInputActionKeyMapping();
+		KB.ActionName = "PowerSuit_Acceleration";
+		KB.Key = EKeys::LeftShift;
+		InputSettings->AddActionMapping(KB);
+	}
+
+	if (!InputSettings->DoesActionExist("PowerSuit_DeAcceleration"))
+	{
+		FInputActionKeyMapping KB = FInputActionKeyMapping();
+		KB.ActionName = "PowerSuit_DeAcceleration";
+		KB.Key = EKeys::LeftControl;
+		InputSettings->AddActionMapping(KB);
+	}
+
+	if (!InputSettings->DoesActionExist("PowerSuit_UIToggle"))
+	{
+		FInputActionKeyMapping KB = FInputActionKeyMapping();
+		KB.ActionName = "PowerSuit_UIToggle";
+		KB.Key = EKeys::RightAlt;
+		InputSettings->AddActionMapping(KB);
+	}
+
+	if (!InputSettings->DoesActionExist("PowerSuit_FrictionToggle"))
+	{
+		FInputActionKeyMapping KB = FInputActionKeyMapping();
+		KB.ActionName = "PowerSuit_FrictionToggle";
+		KB.Key = EKeys::LeftAlt;
+
+		InputSettings->AddActionMapping(KB);
+	}
+	UFGInputLibrary::UpdateInputMappings(Pc);
+	FInputActionKeyMapping JumpKey = UFGInputLibrary::GetKeyMappingForAction(Pc, "Jump_Drift", false);
+	FInputActionKeyMapping crouchKey = UFGInputLibrary::GetKeyMappingForAction(Pc, "Crouch", false);
+
+	FInputActionKeyMapping AccelKey = UFGInputLibrary::GetKeyMappingForAction(Pc, "PowerSuit_Acceleration", false);
+	FInputActionKeyMapping DeAccelKey = UFGInputLibrary::GetKeyMappingForAction(Pc, "PowerSuit_DeAcceleration", false);
+	FInputActionKeyMapping TogKey = UFGInputLibrary::GetKeyMappingForAction(Pc, "PowerSuit_FrictionToggle", false);
+
+	FInputActionBinding NewBinding("PowerSuit_FrictionToggle", EInputEvent::IE_Pressed);
+	NewBinding.bConsumeInput = false;
+	NewBinding.ActionDelegate.BindDelegate(this, "OnPowerSuitFrictionToggle");
+
+	FInputActionBinding NewBinding2("PowerSuit_UIToggle", EInputEvent::IE_Pressed);
+	NewBinding2.bConsumeInput = false;
+	NewBinding2.ActionDelegate.BindDelegate(this, "OnPowerSuitUIToggle");
+
+	Module->KB_Up = JumpKey.Key;
+	Module->KB_Accel = AccelKey.Key;
+	Module->KB_Down = crouchKey.Key;
+	Module->KB_Breaks = DeAccelKey.Key;
+	Module->KB_Toggle = TogKey.Key;
+	
 }
 

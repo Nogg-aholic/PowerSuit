@@ -6,6 +6,7 @@
 #include "FGInputLibrary.h"
 #include "FGCharacterPlayer.h"
 #include "FGPlayerController.h"
+#include "InputCoreTypes.h"
 #include "Equipment/FGHoverPack.h"
 #include "EquipmentModuleComponent.h"
 #include "Equipment_PowerSuit.generated.h"
@@ -14,11 +15,8 @@
 
 
 
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnConsumePower, float, Delta, float, Mod);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnConsumeFuel, TSubclassOf<class UFGItemDescriptor>, item, int32, slotid, int32, amleft);
-
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPowerSuitFrictionToggle, FKey, Key);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPowerSuitUIToggle, FKey, Key);
 /**
  * 
  */
@@ -35,7 +33,9 @@ class POWERSUIT_API APowerSuit : public AFGHoverPack
 	virtual void UnEquip() override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
-	virtual bool ShouldSaveState() const;
+	virtual bool ShouldSaveState() const override;
+	virtual void AddEquipmentActionBindings() override;
+
 	UFUNCTION()
 	void OnConnectionStatusUpdatedReplacement(bool HasConnection);
 
@@ -44,6 +44,13 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 		void Server_WaitAndInitRemote();
 
+
+
+	UPROPERTY(BlueprintAssignable, Category = "Equipment", DisplayName = "Event PowerSuitFrictionToggle")
+		FPowerSuitFrictionToggle OnPowerSuitFrictionToggle;
+
+	UPROPERTY(BlueprintAssignable, Category = "Equipment", DisplayName = "Event PowerSuitUIToggle")
+		FPowerSuitUIToggle OnPowerSuitUIToggle;
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnCheckHotkeys();
@@ -60,15 +67,11 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnCustomMovementMode(uint8 NewValue);
 	UFUNCTION(BlueprintImplementableEvent)
-		void OnPlayBufferSound();
-	UFUNCTION(BlueprintImplementableEvent)
 		void OnPlayAirBreakSound();
-
-	UPROPERTY(BlueprintAssignable, Category = "Equipment", DisplayName = "OnConsumePower")
-		FOnConsumePower OnPowerConsumption;
-	UPROPERTY(BlueprintAssignable, Category = "Equipment", DisplayName = "OnConsumeFuel")
-		FOnConsumeFuel OnFuelConsumption;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 		UEquipmentModuleComponent * Module;
+
+
+	
 };

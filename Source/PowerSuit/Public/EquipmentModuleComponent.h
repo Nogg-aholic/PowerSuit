@@ -247,5 +247,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, Replicated, SaveGame, Category = "EquipmentModule")
 		float nFuelAmount;
 
+
+	UPROPERTY(BlueprintReadWrite, Category = "Movement")
+		FKey KB_Toggle;
+	UPROPERTY(BlueprintReadWrite, Category = "Movement")
+		FKey KB_Up;
+	UPROPERTY(BlueprintReadWrite, Category = "Movement")
+		FKey KB_Down;
+	UPROPERTY(BlueprintReadWrite, Category = "Movement")
+		FKey KB_Accel;
+	UPROPERTY(BlueprintReadWrite, Category = "Movement")
+		FKey KB_Breaks;
+
 	float Delta;
 };

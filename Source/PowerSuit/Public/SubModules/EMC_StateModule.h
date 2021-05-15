@@ -36,24 +36,19 @@ public:
 
 	// State Bools
 
-	UPROPERTY(BlueprintReadWrite, Category = "Movement")
-		FKey KB_Toggle;
+
 	UPROPERTY(BlueprintReadWrite, Category = "Equipment")
 		bool HKey_Up;
-	UPROPERTY(BlueprintReadWrite, Category = "Movement")
-		FKey KB_Up;
+
 	UPROPERTY(BlueprintReadWrite, Category = "Equipment")
 		bool HKey_Down;
-	UPROPERTY(BlueprintReadWrite, Category = "Movement")
-		FKey KB_Down;
+
 	UPROPERTY(BlueprintReadWrite, Category = "Equipment")
 		bool HKey_Accel;
-	UPROPERTY(BlueprintReadWrite, Category = "Movement")
-		FKey KB_Accel;
+
 	UPROPERTY(BlueprintReadWrite, Category = "Equipment")
 		bool HKey_Breaks;
-	UPROPERTY(BlueprintReadWrite, Category = "Movement")
-		FKey KB_Breaks;
+
 
 
 	/** Keeps is the player sprinting this update or not? */
@@ -63,12 +58,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
 		bool nIsSliding;
 
-
-	DECLARE_DELEGATE_OneParam(FPowerSuitFrictionToggle, FKey);
-	FPowerSuitFrictionToggle OnPowerSuitFrictionToggle;
-
-	DECLARE_DELEGATE_OneParam(FPowerSuitUIToggle, FKey);
-	FPowerSuitUIToggle OnPowerSuitUIToggle;
 
 
 };

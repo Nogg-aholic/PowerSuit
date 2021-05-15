@@ -74,63 +74,7 @@ void UEMC_StateModule::UpdateHotkeys()
 	if (Parent->EquipmentParent->GetInstigator()->IsLocallyControlled())
 	{
 		UE_LOG(PowerSuit_Log, Display, TEXT("Rebinding KeyBinds!"))
-
-		UInputSettings* InputSettings = UInputSettings::GetInputSettings();
-
-		if (!InputSettings->DoesActionExist("PowerSuit_Acceleration"))
-		{
-			FInputActionKeyMapping KB = FInputActionKeyMapping();
-			KB.ActionName = "PowerSuit_Acceleration";
-			KB.Key = EKeys::LeftShift;
-			InputSettings->AddActionMapping(KB);
-		}
-
-		if (!InputSettings->DoesActionExist("PowerSuit_DeAcceleration"))
-		{
-			FInputActionKeyMapping KB = FInputActionKeyMapping();
-			KB.ActionName = "PowerSuit_DeAcceleration";
-			KB.Key = EKeys::LeftControl;
-			InputSettings->AddActionMapping(KB);
-		}
-
-		if (!InputSettings->DoesActionExist("PowerSuit_UIToggle"))
-		{
-			FInputActionKeyMapping KB = FInputActionKeyMapping();
-			KB.ActionName = "PowerSuit_UIToggle";
-			KB.Key = EKeys::RightAlt;
-			InputSettings->AddActionMapping(KB);
-		}
-
-		if (!InputSettings->DoesActionExist("PowerSuit_FrictionToggle"))
-		{
-			FInputActionKeyMapping KB = FInputActionKeyMapping();
-			KB.ActionName = "PowerSuit_UIToggle";
-			KB.Key = EKeys::RightAlt;
-			
-			InputSettings->AddActionMapping(KB);
-		}
-
-		FInputActionKeyMapping JumpKey = UFGInputLibrary::GetKeyMappingForAction(Cast<AFGPlayerController>(Parent->EquipmentParent->GetInstigator()->GetController()), "Jump_Drift", false);
-		FInputActionKeyMapping crouchKey = UFGInputLibrary::GetKeyMappingForAction(Cast<AFGPlayerController>(Parent->EquipmentParent->GetInstigator()->GetController()), "Crouch", false);
-
-		FInputActionKeyMapping AccelKey = UFGInputLibrary::GetKeyMappingForAction(Cast<AFGPlayerController>(Parent->EquipmentParent->GetInstigator()->GetController()), "PowerSuit_Acceleration", false);
-		FInputActionKeyMapping DeAccelKey = UFGInputLibrary::GetKeyMappingForAction(Cast<AFGPlayerController>(Parent->EquipmentParent->GetInstigator()->GetController()), "PowerSuit_DeAcceleration", false);
-		FInputActionKeyMapping TogKey = UFGInputLibrary::GetKeyMappingForAction(Cast<AFGPlayerController>(Parent->EquipmentParent->GetInstigator()->GetController()), "PowerSuit_FrictionToggle", false);
-
-		FInputActionBinding NewBinding("PowerSuit_FrictionToggle", EInputEvent::IE_Pressed);
-		NewBinding.bConsumeInput = false;
-		NewBinding.ActionDelegate.BindDelegate(this, "OnPowerSuitFrictionToggle");
-
-		FInputActionBinding NewBinding2("PowerSuit_UIToggle", EInputEvent::IE_Pressed);
-		NewBinding2.bConsumeInput = false;
-		NewBinding2.ActionDelegate.BindDelegate(this, "OnPowerSuitUIToggle");
-
-		KB_Up = JumpKey.Key;
-		KB_Accel = AccelKey.Key;
-		KB_Down = crouchKey.Key;
-		KB_Breaks = DeAccelKey.Key;
-		KB_Toggle = TogKey.Key;
-
+	
 
 
 	}
@@ -152,7 +96,7 @@ void UEMC_StateModule::CheckHotkeys()
 	{
 
 		// Toggle Hotkey, controls Frictionif allowed
-		if (Controller->WasInputKeyJustPressed(KB_Toggle))
+		if (Controller->WasInputKeyJustPressed(Parent->KB_Toggle))
 		{
 			if (Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasNoFrictionMode))
 			{
@@ -163,11 +107,11 @@ void UEMC_StateModule::CheckHotkeys()
 		}
 
 		// Uphotkey mostly mapped to Space
-		if (Controller->IsInputKeyDown(KB_Up) != HKey_Up)
+		if (Controller->IsInputKeyDown(Parent->KB_Up) != HKey_Up)
 		{
 
 
-			HKey_Up = Controller->IsInputKeyDown(KB_Up);
+			HKey_Up = Controller->IsInputKeyDown(Parent->KB_Up);
 			if (!Controller->HasAuthority())
 				Parent->RCO->ServerSetHotKeyUpAccel(Parent, HKey_Up);
 
@@ -178,7 +122,7 @@ void UEMC_StateModule::CheckHotkeys()
 		}
 
 
-		if (Controller->IsInputKeyDown(KB_Up))
+		if (Controller->IsInputKeyDown(Parent->KB_Up))
 		{
 			if (Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked))
 			{
@@ -207,23 +151,23 @@ void UEMC_StateModule::CheckHotkeys()
 		}
 
 		// DownHotkey mostly mapped to C (Crouch)
-		if (Controller->IsInputKeyDown(KB_Down) != HKey_Down)
+		if (Controller->IsInputKeyDown(Parent->KB_Down) != HKey_Down)
 		{
-			HKey_Down = Controller->IsInputKeyDown(KB_Down);
+			HKey_Down = Controller->IsInputKeyDown(Parent->KB_Down);
 			if (!Controller->HasAuthority())
 				Parent->RCO->ServerSetHotKeyDownAccel(Parent, HKey_Down);
 		}
 		// Accel Hotkey , this is Sprinting key mostly shift
-		if (Controller->IsInputKeyDown(KB_Accel) != HKey_Accel)
+		if (Controller->IsInputKeyDown(Parent->KB_Accel) != HKey_Accel)
 		{
-			HKey_Accel = Controller->IsInputKeyDown(KB_Accel);
+			HKey_Accel = Controller->IsInputKeyDown(Parent->KB_Accel);
 			if (!Controller->HasAuthority())
 				Parent->RCO->ServerSetHotKeyDirectionalAccel(Parent, HKey_Accel);
 		}
 		// DeAccel Hotkey
-		if (Controller->IsInputKeyDown(KB_Breaks) != HKey_Breaks)
+		if (Controller->IsInputKeyDown(Parent->KB_Breaks) != HKey_Breaks)
 		{
-			HKey_Breaks = Controller->IsInputKeyDown(KB_Breaks);
+			HKey_Breaks = Controller->IsInputKeyDown(Parent->KB_Breaks);
 			if (!Controller->HasAuthority())
 				Parent->RCO->ServerSetHotKeyDirectionalDeAccel(Parent, HKey_Breaks);
 		}
