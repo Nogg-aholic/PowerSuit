@@ -29,7 +29,7 @@ public:
 	{
 		if (!Component)
 			return false;
-		if (FMath::Clamp(Component->MoveC->Velocity.Size2D(), 0.f, 1.f) > 0 || Component->TKey_NoFriction || Component->StateModule->HKey_Up || Component->StateModule->HKey_Down)
+		if (FMath::Clamp(Component->MoveC->Velocity.Size2D(), 0.f, 1.f) > 0 || Component->TKey_NoGravity || Component->StateModule->HKey_Up || Component->StateModule->HKey_Down)
 			return true;
 		else
 			return false;

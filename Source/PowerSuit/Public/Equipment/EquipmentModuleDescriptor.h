@@ -18,23 +18,20 @@ class POWERSUIT_API UEquipmentModuleDescriptor : public UFGItemDescriptor
 
 public:
 	UFUNCTION(BlueprintPure, Category = "FactoryGame|Descriptor|Item")
-		static bool IsAllowed(TSubclassOf< UEquipmentModuleDescriptor > inClass, AFGEquipment * equipment) { if (inClass && equipment) return inClass.GetDefaultObject()->nAllowedUsage.Contains(equipment->GetClass()); else return false; }
+	static bool IsAllowed(TSubclassOf<UEquipmentModuleDescriptor> InClass, AFGEquipment* Equipment);
 
 	UFUNCTION(BlueprintPure, Category = "FactoryGame|Descriptor|Item")
-		static bool GetnUniqueUsage(TSubclassOf< UEquipmentModuleDescriptor > inClass) { if (inClass) return inClass.GetDefaultObject()->nUniqueUsage; else return bool(); }
-	
+	static bool GetnUniqueUsage(TSubclassOf<UEquipmentModuleDescriptor> InClass);
+
 	UFUNCTION(BlueprintPure, Category = "FactoryGame|Descriptor|Item")
-		static TSubclassOf<class APowerSuitModuleAttachment> GetnAttachment(TSubclassOf< UEquipmentModuleDescriptor > inClass) { if (inClass) {
-		TSubclassOf< class APowerSuitModuleAttachment > C = inClass.GetDefaultObject()->nModuleAttachment;
-	return C;
-	}
-	else return nullptr; }
-	
+	static TSubclassOf<class APowerSuitModuleAttachment>
+	GetnAttachment(TSubclassOf<UEquipmentModuleDescriptor> InClass);
+
 	UFUNCTION(BlueprintPure, Category = "FactoryGame|Descriptor|Item")
-		static TArray<TSubclassOf<class AFGEquipment>> GetnAllowedUsage(TSubclassOf< UEquipmentModuleDescriptor > inClass) { if (inClass) return inClass.GetDefaultObject()->nAllowedUsage; else return TArray<TSubclassOf<class AFGEquipment>>(); }
-	
+	static TArray<TSubclassOf<class AFGEquipment>> GetnAllowedUsage(TSubclassOf<UEquipmentModuleDescriptor> InClass);
+
 	UFUNCTION(BlueprintPure, Category = "FactoryGame|Descriptor|Item")
-		static FEquipmentStats GetEquipmentStats(TSubclassOf< UEquipmentModuleDescriptor > inClass) { if (inClass) return inClass.GetDefaultObject()->EquipmentStats; else return  FEquipmentStats(); }
+	static FEquipmentStats GetEquipmentStats(TSubclassOf<UEquipmentModuleDescriptor> InClass);
 
 	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule")
 		FEquipmentStats EquipmentStats UMETA(Displayname = "Equipment Stats - Hover over things and read tooltip for descriptions!", Tooltip = "Module properties");

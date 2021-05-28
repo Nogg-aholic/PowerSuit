@@ -17,11 +17,11 @@ private:
 
 	friend class UEquipmentModuleComponent;
 	void PreTick();
-	void Tick();
-	void PostTick();
+	void Tick() const;
+	void PostTick() const;
 
 	void TryReload();
-	bool ConsumeFuelItem(UFGInventoryComponent* Inventory, TSubclassOf<class UFGItemDescriptor> inClass, int32 inAmount);
+	bool ConsumeFuelItem(UFGInventoryComponent* Inventory, TSubclassOf<class UFGItemDescriptor> inClass, int32 inAmount) const;
 
 public:
 

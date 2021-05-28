@@ -34,14 +34,14 @@ void UEMC_FuelModule::TryReload()
 	}
 }
 
-bool UEMC_FuelModule::ConsumeFuelItem(UFGInventoryComponent* Inventory, TSubclassOf< class UFGItemDescriptor > inClass, int32 inAmount)
+bool UEMC_FuelModule::ConsumeFuelItem(UFGInventoryComponent* Inventory, TSubclassOf< class UFGItemDescriptor > inClass, int32 inAmount) const
 {
 	if (Inventory && inClass && inAmount != 0)
 	{
 		if (Inventory->HasItems(inClass, inAmount))
 		{
 			Inventory->Remove(inClass, inAmount);
-			Parent->nFuelAmount = FMath::Clamp(inAmount* inClass.GetDefaultObject()->mEnergyValue * Parent->GetSuitPropertySafe(ESuitProperty::nFuelEfficiency).clampAdd(1), 0.f, Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value());
+			Parent->nFuelAmount = FMath::Clamp(inAmount* inClass.GetDefaultObject()->mEnergyValue * Parent->GetSuitPropertySafe(ESuitProperty::nFuelEfficiency).ClampAdd(1), 0.f, Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value());
 			Parent->OnConsumeFuelItem.Broadcast(inClass, 0, 1);
 			return true;
 		}
@@ -67,22 +67,22 @@ void UEMC_FuelModule::PreTick()
 }
 
 // Server and Client
-void UEMC_FuelModule::Tick()
+void UEMC_FuelModule::Tick() const
 {
-	float fuel = 0;
+	float Fuel = 0;
 
 	for (auto * i : Parent->AttachmentModule->Attachments)
 		if (i)
-			fuel += i->GetDeltaFuelConsumption(Parent->Delta);
+			Fuel += i->GetDeltaFuelConsumption(Parent->Delta);
 
-	if (Parent->nFuelConsumption != fuel)
+	if (Parent->nFuelConsumption != Fuel)
 	{
-		Parent->nFuelConsumption = fuel;
+		Parent->nFuelConsumption = Fuel;
 	}
 }
 
 // Server Only
-void UEMC_FuelModule::PostTick()
+void UEMC_FuelModule::PostTick() const
 {
 	if (!Parent->EquipmentParent->HasAuthority())
 	{
@@ -99,8 +99,8 @@ void UEMC_FuelModule::PostTick()
 		// From Percent to Actual MJ Amount
 		// Subtracting the Fuel Consumption Cost in MJ for this frame(Delta)
 		// division by MJ of the Item brings us back to Percent
-		const float MJcurrent = Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value() * FMath::Clamp(Parent->nFuelAmount, 0.f, 1.f);
-		Parent->nFuelAmount = FMath::Clamp(((Parent->nFuelAmount - (Parent->nFuelConsumption * Parent->Delta))), 0.f, 1.f);
+		const float MJCurrent = Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value() * FMath::Clamp(Parent->nFuelAmount, 0.f, 1.f);
+		Parent->nFuelAmount = FMath::Clamp(((MJCurrent - (Parent->nFuelConsumption * Parent->Delta)))/FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value(), 1.f, 99999.f), 0.f, 1.f);
 	}
 }
 

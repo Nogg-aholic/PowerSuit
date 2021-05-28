@@ -13,7 +13,6 @@ class POWERSUIT_API UEMC_StateModule : public UEMC_SubModule
 {
 	GENERATED_BODY()
 
-
 	friend class UEquipmentModuleComponent;
 
 	void PreTick();
@@ -31,33 +30,27 @@ public:
 	void HoverModeChange();
 
 
-	UFUNCTION(BlueprintCallable)
-		void UpdateHotkeys();
-
 	// State Bools
 
 
 	UPROPERTY(BlueprintReadWrite, Category = "Equipment")
-		bool HKey_Up;
+		bool HKey_Up = false;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Equipment")
-		bool HKey_Down;
+		bool HKey_Down = false;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Equipment")
-		bool HKey_Accel;
+		bool HKey_Accel = false;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Equipment")
-		bool HKey_Breaks;
+		bool HKey_Breaks = false;
 
 
 
 	/** Keeps is the player sprinting this update or not? */
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
-		bool nIsSprinting;
+		bool nIsSprinting = false;
 	/** Keeps is the player sprinting this update or not? */
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
-		bool nIsSliding;
-
-
-
+		bool nIsSliding = false;
 };

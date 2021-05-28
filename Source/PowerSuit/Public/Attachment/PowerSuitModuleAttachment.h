@@ -5,6 +5,7 @@
 #include "../EquipmentModuleComponent.h"
 #include "PowerSuitModuleAttachment.generated.h"
 
+class UAttachmentModuleUserWidget;
 class UUserWidget;
 
 UCLASS()
@@ -15,30 +16,30 @@ class POWERSUIT_API APowerSuitModuleAttachment : public AActor, public IFGSaveIn
 public:	
 	APowerSuitModuleAttachment();
 
-	void PreSaveGame_Implementation(int32 saveVersion, int32 gameVersion);
+	virtual void PreSaveGame_Implementation(int32 saveVersion, int32 gameVersion) override;
 
 
-	void PostSaveGame_Implementation(int32 saveVersion, int32 gameVersion);
+	virtual void PostSaveGame_Implementation(int32 saveVersion, int32 gameVersion) override;
 
 
-	void PreLoadGame_Implementation(int32 saveVersion, int32 gameVersion);
+	virtual void PreLoadGame_Implementation(int32 saveVersion, int32 gameVersion) override;
 
 
-	void PostLoadGame_Implementation(int32 saveVersion, int32 gameVersion);
+	virtual void PostLoadGame_Implementation(int32 saveVersion, int32 gameVersion) override;
 
 
-	void GatherDependencies_Implementation(TArray< UObject* >& out_dependentObjects);
+	virtual void GatherDependencies_Implementation(TArray< UObject* >& out_dependentObjects) override;
 
 
-	bool ShouldSave_Implementation() const;
+	virtual bool ShouldSave_Implementation() const override;
 
 
-	bool NeedTransform_Implementation();
+	virtual bool NeedTransform_Implementation() override;
 
 	// This is called before an Attachment is Installed and gives the Opportunity
 	// to overwrite Default assigned Stats before they are accounted for
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-		FEquipmentStats RecieveModuleStats(FEquipmentStats DefaultStats);
+		FEquipmentStats ReceiveModuleStats(FEquipmentStats DefaultStats);
 	// This will Attach the Attachment to the Suit, overwrite to do something else
 	UFUNCTION(BlueprintNativeEvent)
 	void AttachToSuit(AFGEquipment * EquipmentParent);
@@ -106,7 +107,7 @@ public:
 	// Changes here wont have any direct Effect
 	// Refresh needs to be Triggered and RecieveModuleStats needs to be overwritten for this to be changed at Runtime
 	// dont do this frequently since Refreshing causes alot of overhead
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite, SaveGame)
 	FEquipmentStats AttachmentStats;
 
 	/** Custom Widget - placed at the Bottom of the Suit Widget*/

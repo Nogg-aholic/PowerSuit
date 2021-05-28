@@ -21,26 +21,26 @@ private:
 
 	void PreTick();
 	void Tick();
-	void PostTick();
+	void PostTick() const;
 public:
 
-	void RegenShield();
+	void RegenShield() const;
 
-	bool ShouldRegenShield();
+	bool ShouldRegenShield() const;
 
 
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-		float GetShieldRechargeRate() { return FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nShieldRegen).value(), 0.f, 10000.f); };
+		float GetShieldRechargeRate() const { return FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nShieldRegen).value(), 0.f, 10000.f); };
 	// Max Shield is Mod *Mult 
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-		float GetMaxShield() { if (Parent->nProducing) return (Parent->GetSuitPropertySafe(ESuitProperty::nShield).value()); else return 0; };
+		float GetMaxShield() const { if (Parent->nProducing) return (Parent->GetSuitPropertySafe(ESuitProperty::nShield).value()); else return 0; };
 
 
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-		float GetShieldRechargeDelayDuration() { return FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nShieldRechargeDelay).value(), 0.f, 10000.f); };
+		float GetShieldRechargeDelayDuration() const { return FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nShieldRechargeDelay).value(), 0.f, 10000.f); };
 
 
-	float ApplyShieldDamage(float DmgIn);
+	float ApplyShieldDamage(float DmgIn) const;
 
 
 };

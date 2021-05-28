@@ -7,7 +7,7 @@
 // Server Only? this was previous on both, something is not replicated here and this helped to prevent stutter and death
 void UEMC_HyperTubeModule::ModifyPipeSpeed()
 {
-	float speed = Parent->MoveC->GetPipeVelocity();
+	const float speed = Parent->MoveC->GetPipeVelocity();
 #ifdef FOR_MODSHIPPING
 	FPlayerPipeHyperData & Data = Parent->MoveC->mPipeData;
 #else
@@ -15,17 +15,17 @@ void UEMC_HyperTubeModule::ModifyPipeSpeed()
 #endif
 	if (Cast<AFGBuildablePipeHyper>(Data.mTravelingPipeHyper))
 	{
-		float DistanceToLink = Cast<AFGBuildablePipeHyper>(Data.mTravelingPipeHyper)->mLength - Data.mPipeProgressReal;
-		float DistanceFromLink = Data.mPipeProgressReal;
-
-		if (DistanceToLink > 1000.f && FMath::Abs(DistanceFromLink) > 1000.f)
+		const float DistanceToLink = Cast<AFGBuildablePipeHyper>(Data.mTravelingPipeHyper)->mLength - Data.mPipeProgressReal;
+		const float DistanceFromLink = Data.mPipeProgressReal;
+		const float DeltaMovement = Parent->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSpeedInPipes).value() * Parent->Delta;
+		if (DistanceToLink > 1000.f - DeltaMovement && FMath::Abs(DistanceFromLink) > 1000.f + DeltaMovement)
 		{
 			// need to create Speed variable for Pipes
 			if (Parent->StateModule->HKey_Accel)
-				Data.mPipeVelocityReal = FMath::Clamp((speed + ((speed * Parent->Delta))), -10000.f - Parent->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSprintSpeed).value(), 10000.f);
+				Data.mPipeVelocityReal = FMath::Clamp((speed + ((speed * Parent->Delta))), -5000.f - Parent->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSpeedInPipes).value(), 5000.f + Parent->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSpeedInPipes).value());
 			else
-				Data.mPipeVelocityReal = FMath::Clamp((speed - ((speed * Parent->Delta))), -10000.f, 10000.f);
-			lastPipeVelocity = Data.mPipeVelocityReal;
+				Data.mPipeVelocityReal = FMath::Clamp((speed - ((speed * Parent->Delta))), -100000.f, 100000.f);
+			LastPipeVelocity = Data.mPipeVelocityReal;
 			Data.mPipeVelocity = Data.mPipeVelocityReal;
 		}
 	}
@@ -71,19 +71,15 @@ void UEMC_HyperTubeModule::HandlePipeVelocity()
 
 void UEMC_HyperTubeModule::PreTick()
 {
-	if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_PipeHyper && Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasPipeAccel))
+	if (Parent->SuitState == EPowerSuitState::PS_PIPEHYPER_SPRINT)
 	{
-		Parent->SuitState = EPowerSuitState::PS_PIPEHYPER_SPRINT;
 		HandlePipeVelocity();
 	}
 }
 
 void UEMC_HyperTubeModule::Tick()
 {
-	if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_PipeHyper && Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasPipeAccel))
-	{
-		HandlePipeVelocity();
-	}
+	
 }
 
 void UEMC_HyperTubeModule::PostTick()

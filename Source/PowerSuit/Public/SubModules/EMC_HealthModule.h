@@ -19,11 +19,11 @@ class POWERSUIT_API UEMC_HealthModule : public UEMC_SubModule
 public:
 
 	
-	void SetMaxHealth();
+	void SetMaxHealth() const;
 
 	float HealthBuffer;
 
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-		float GetNewMaxHealth();
+		float GetNewMaxHealth() const;
 
 };

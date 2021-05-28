@@ -21,7 +21,7 @@ void UEMC_PowerModule::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 }
 
 // Calculate current power production/consumption factoring in AddedDeltaPower
-float UEMC_PowerModule::GetPowerDraw()
+float UEMC_PowerModule::GetPowerDraw() const
 {
 	if (!Parent->EquipmentParent)
 		return 0;
@@ -33,13 +33,13 @@ float UEMC_PowerModule::GetPowerDraw()
 	float & mPowerCapacity_ = Parent->EquipmentParent->*get(steal_mPowerCapacity());
 #endif
 
-	float pw = FMath::Abs(Parent->nCurrentPower - mCurrentPowerLevel_) * (1/Parent->Delta);
+	const float pw = FMath::Abs(Parent->nCurrentPower - mCurrentPowerLevel_) * (1/Parent->Delta);
 
 	return Parent->PowerConsumption + pw;
 }
 
 // Calculate current power production/consumption factoring in AddedDeltaPower
-float UEMC_PowerModule::GetPowerCapacity()
+float UEMC_PowerModule::GetPowerCapacity() const
 {
 	if (!Parent->EquipmentParent)
 		return 0;
@@ -50,17 +50,17 @@ float UEMC_PowerModule::GetPowerCapacity()
 #endif
 	return mPowerCapacity_;
 }
-float UEMC_PowerModule::GetFuseTimerDuration()
+float UEMC_PowerModule::GetFuseTimerDuration() const
 {
 	return FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuseTime).value(), 0.f, 10000.f);
 }
-float UEMC_PowerModule::GetOverDrawDuration()
+float UEMC_PowerModule::GetOverDrawDuration() const
 {
 	return FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuseTimeOverDraw).value(), 0.f, 10000.f);
 };
 
 
-bool UEMC_PowerModule::IsFuseIntact()
+bool UEMC_PowerModule::IsFuseIntact() const
 {
 	// ... and the suit has been overdrawn for more than the suit's max overdraw time ...
 	if (FTimespan(FDateTime::Now() - Parent->nFuseBreakOverDraw).GetTotalSeconds() > Parent->GetSuitPropertySafe(ESuitProperty::nFuseTimeOverDraw).value())
@@ -76,7 +76,8 @@ bool UEMC_PowerModule::IsFuseIntact()
 }
 
 // Run checks to update and return if suit is producing power
-void UEMC_PowerModule::UpdateProductionState() {
+void UEMC_PowerModule::UpdateProductionState() const
+{
 
 
 	// Ff the suit is out of power...
@@ -104,7 +105,8 @@ void UEMC_PowerModule::UpdateProductionState() {
 }
 
 // Handle power consumption/generation and fuse break timer setting
-void UEMC_PowerModule::RegenPower() {
+void UEMC_PowerModule::RegenPower() const
+{
 
 	const float PowerBalance = GetPowerDraw();
 	const float DeltaPower = PowerBalance* Parent->Delta;
@@ -129,7 +131,7 @@ void UEMC_PowerModule::RegenPower() {
 
 
 
-void UEMC_PowerModule::TryRestart()
+void UEMC_PowerModule::TryRestart() const
 {
 	const FTimespan timeSinceFuseBreak = FDateTime::Now() - Parent->nFuseBreak;
 	// ... and the FuseTimer has ran out ...
@@ -187,14 +189,14 @@ void UEMC_PowerModule::PreTick() {
 
 
 // Server Only
-void UEMC_PowerModule::Tick()
+void UEMC_PowerModule::Tick() const
 {
 	if (Parent->nProducing)
 	{
 		float powerCost = 0.f;
 
-		powerCost += Parent->GetSuitPropertySafe(ESuitProperty::nPowerConsumption).clamp();
-		powerCost -= Parent->GetSuitPropertySafe(ESuitProperty::nPowerProduction).clamp();
+		powerCost += Parent->GetSuitPropertySafe(ESuitProperty::nPowerConsumption).Clamp();
+		powerCost -= Parent->GetSuitPropertySafe(ESuitProperty::nPowerProduction).Clamp();
 
 		for (auto * i : Parent->AttachmentModule->Attachments)
 			if (i)
@@ -210,7 +212,8 @@ void UEMC_PowerModule::Tick()
 
 // Handle power consumption/generation and fuse break timer setting
 // Server Only
-void UEMC_PowerModule::PostTick() {
+void UEMC_PowerModule::PostTick() const
+{
 	// Check if producing power now (suit is on) *after* seeing if it should be re-enabled (now that FuseTimer reboot checking has been done)
 	UpdateProductionState();
 	if (Parent->nProducing)

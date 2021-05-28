@@ -233,18 +233,18 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent) {
 
 void UPowerSuitBPLibrary::UpdateFlags(APowerSuit* EquipmentParent)
 {
-	for (int32 i = 1; i < ENDamageType::DamageTypeMAX; i = ENDamageType(i + i))
+	for (int32 i = 1; i < ENDamageType::DamageTypeMAX; i = static_cast<ENDamageType>(i + i))
 	{
 		if (EquipmentParent->Module->Stats.HasRemoveDamageMask(i))
 			if ((EquipmentParent->Module->Stats.HasDamageMask(i)))
-				EquipmentParent->Module->Stats.RemoveDamageShieldAbsorbtion -= ENDamageType(i);
+				EquipmentParent->Module->Stats.RemoveDamageShieldAbsorption -= static_cast<ENDamageType>(i);
 	}
 
-	for (int32 i = 1; i < ESuitFlag::SuitFlag_END; i = ESuitFlag(i + i))
+	for (int32 i = 1; i < ESuitFlag::SuitFlag_END; i = static_cast<ESuitFlag>(i + i))
 	{
 		if (EquipmentParent->Module->Stats.HasRemoveFlag(i))
 			if ((EquipmentParent->Module->Stats.HasFlag(i)))
-				EquipmentParent->Module->Stats.RemoveSuitFlags -= ESuitFlag(i);
+				EquipmentParent->Module->Stats.RemoveSuitFlags -= static_cast<ESuitFlag>(i);
 	}
 }
 
@@ -312,17 +312,17 @@ void UPowerSuitBPLibrary::SetPropertyGeneral(FEquipmentStats& Stats, EEquipmentS
 	{
 	case EEquipmentStatsProperty::ESSP_nSuitProperties:
 	{
-		SetSuitProperty(Stats,ESuitProperty(Index), Property);
+		SetSuitProperty(Stats,static_cast<ESuitProperty>(Index), Property);
 		break;
 	}
 	case EEquipmentStatsProperty::ESSP_nMovementProperties:
 	{
-		SetSuitMovementProperty(Stats, ESuitMovementProperty(Index), Property);
+		SetSuitMovementProperty(Stats, static_cast<ESuitMovementProperty>(Index), Property);
 		break;
 	}
 	case EEquipmentStatsProperty::ESSP_nFlightProperties:
 	{
-		SetSuitFlightProperty(Stats, ESuitFlightProperty(Index), Property);
+		SetSuitFlightProperty(Stats, static_cast<ESuitFlightProperty>(Index), Property);
 		break;
 	}
 	default:

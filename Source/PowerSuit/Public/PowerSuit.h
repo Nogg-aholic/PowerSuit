@@ -4,6 +4,9 @@
 
 #include "Modules/ModuleManager.h"
 
+//#define FOR_MODSHIPPING 1
+
+
 class FPowerSuitModule : public FDefaultGameModuleImpl
 {
 public:

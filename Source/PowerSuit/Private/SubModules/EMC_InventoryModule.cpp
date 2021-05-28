@@ -43,7 +43,7 @@ AFGCharacterPlayer* UEMC_InventoryModule::InitInventory()
 
 	if (!Parent->nInventory)
 	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("No Inventory Component on Init, the Inventory Component hasnt Replicated yet or Shit´s broken"))
+		UE_LOG(PowerSuit_Log, Display, TEXT("No Inventory Component on Init, the Inventory Component hasnt Replicated yet or ShitÂ´s broken"))
 
 	}
 
@@ -110,18 +110,18 @@ void UEMC_InventoryModule::ResetInventoryStats()
 }
 
 
-void UEMC_InventoryModule::RefreshInventoryRemove(TSubclassOf<UFGItemDescriptor> itemClass, int32 numAdded)
+void UEMC_InventoryModule::RefreshInventoryRemove(TSubclassOf<UFGItemDescriptor> ItemClass, int32 NumAdded)
 {
 	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventoryRemove"));
 
-	if (!ItemsRemembered.Contains(itemClass))
+	if (!ItemsRemembered.Contains(ItemClass))
 	{
 		UE_LOG(PowerSuit_Log, Error, TEXT("An Item was removed we didnt know was in there ?! "));
 		RefreshInventory();
 	}
 	else
 	{
-		TArray<FEquipmentStats>&  SlotStats = ItemsRemembered.Find(itemClass)->Stats;
+		TArray<FEquipmentStats>&  SlotStats = ItemsRemembered.Find(ItemClass)->Stats;
 		int32 RemoveIdx = -1;
 		int32 idx = 0;
 
@@ -145,7 +145,7 @@ void UEMC_InventoryModule::RefreshInventoryRemove(TSubclassOf<UFGItemDescriptor>
 			{
 				FInventoryStack Stack;
 				Parent->nInventory->GetStackFromIndex(i.mCachedInventorySlot, Stack);
-				if (Stack.Item.ItemClass != itemClass)
+				if (Stack.Item.ItemClass != ItemClass)
 				{
 					UE_LOG(PowerSuit_Log, Error, TEXT("this Slot was replaced directly ? "));
 
@@ -161,9 +161,9 @@ void UEMC_InventoryModule::RefreshInventoryRemove(TSubclassOf<UFGItemDescriptor>
 		//FInventoryStack Stack;
 		//Parent->nInventory->GetStackFromIndex(SlotStats[RemoveIdx].mCachedInventorySlot, Stack);
 
-		if (itemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()) && SlotStats.IsValidIndex(RemoveIdx))
+		if (ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()) && SlotStats.IsValidIndex(RemoveIdx))
 		{
-			TSubclassOf<class UEquipmentModuleDescriptor> Item = itemClass;
+			const TSubclassOf<class UEquipmentModuleDescriptor> Item = ItemClass;
 			SubtractModuleStats(Item, SlotStats[RemoveIdx].mCachedInventorySlot);
 		}
 		else
@@ -177,7 +177,7 @@ void UEMC_InventoryModule::RefreshInventoryRemove(TSubclassOf<UFGItemDescriptor>
 
 	if (Parent->EquipmentParent->HasAuthority())
 	{
-		Parent->RemoteInventoryRefresh(false,itemClass,numAdded);
+		Parent->RemoteInventoryRefresh(false,ItemClass,NumAdded);
 		UE_LOG(PowerSuit_Log, Display, TEXT("Calling Remote with Refresh Add : False"));
 	}
 }
@@ -192,18 +192,18 @@ void UEMC_InventoryModule::RefreshInventory()
 		BulkUpdateStats(Parent->nInventory);
 }
 
-void UEMC_InventoryModule::RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> itemClass, int32 numAdded)
+void UEMC_InventoryModule::RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> ItemClass, int32 NumAdded)
 {
 	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventoryAdd"));
 
-	int32 NewIndex = -1; int32 ItemsLeft = numAdded;
-	TArray<TSubclassOf<UFGItemDescriptor>> RelevantClasses; RelevantClasses.Add(itemClass);
+	int32 NewIndex = -1; int32 ItemsLeft = NumAdded;
+	TArray<TSubclassOf<UFGItemDescriptor>> RelevantClasses; RelevantClasses.Add(ItemClass);
 	TArray<int32> RelevantSlotIndexes = Parent->nInventory->GetRelevantStackIndexes(RelevantClasses);
 	while (ItemsLeft > 0)
 	{
-		if (ItemsRemembered.Contains(itemClass))
+		if (ItemsRemembered.Contains(ItemClass))
 		{
-			TArray<FEquipmentStats> & RememberedStats = ItemsRemembered.Find(itemClass)->Stats;
+			TArray<FEquipmentStats> & RememberedStats = ItemsRemembered.Find(ItemClass)->Stats;
 			// Iterate remembered Modules of that Type to remove Irrelevant Indexes
 			for (FEquipmentStats RememberedStat : RememberedStats)
 			{
@@ -253,7 +253,7 @@ void UEMC_InventoryModule::RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> it
 	UPowerSuitBPLibrary::UpdateAllNoRefresh(Parent->EquipmentParent);
 	if (Parent->EquipmentParent->GetInstigator()->HasAuthority() && !Parent->EquipmentParent->GetInstigator()->IsLocallyControlled())
 	{
-		Parent->RemoteInventoryRefresh(true, itemClass, numAdded);
+		Parent->RemoteInventoryRefresh(true, ItemClass, NumAdded);
 	}
 
 }
@@ -288,8 +288,8 @@ void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & S
 				Equipment->InventorySlot = StatsRef.mCachedInventorySlot;
 				StatsRef.mCachedAttachment = Equipment;
 				Parent->Stats + StatsRef;
-				const TSubclassOf< class UEquipmentModuleDescriptor> item = Stack.Item.ItemClass;
-				StatsRef.UnlockFuels(Parent, item.GetDefaultObject()->nAllowedFuels);
+				const TSubclassOf< class UEquipmentModuleDescriptor> Item = Stack.Item.ItemClass;
+				StatsRef.UnlockFuels(Parent, Item.GetDefaultObject()->nAllowedFuels);
 			}
 			else
 			{
@@ -351,15 +351,15 @@ void UEMC_InventoryModule::BulkUpdateStats(UFGInventoryComponent * Inventory)
 	UPowerSuitBPLibrary::UpdateAllNoRefresh(Parent->EquipmentParent);
 }
 
-bool UEMC_InventoryModule::MergeOnIndex(int32 ind, bool Safe)
+bool UEMC_InventoryModule::MergeOnIndex(const int32 Ind, const bool Safe)
 {
-	if (Parent->nInventory->IsSomethingOnIndex(ind))
+	if (Parent->nInventory->IsSomethingOnIndex(Ind))
 	{
 		FInventoryStack Stack;
-		Parent->nInventory->GetStackFromIndex(ind, Stack);
+		Parent->nInventory->GetStackFromIndex(Ind, Stack);
 		if (Stack.Item.ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()))
 		{
-			FEquipmentStats StatsRef = GetModuleStats(Stack, ind);
+			FEquipmentStats StatsRef = GetModuleStats(Stack, Ind);
 			MergeStats(Stack, StatsRef);
 		}
 		return true;
@@ -373,14 +373,14 @@ bool UEMC_InventoryModule::MergeOnIndex(int32 ind, bool Safe)
 		return false;
 }
 
-bool UEMC_InventoryModule::UpdateOnIndex(int32 index)
+bool UEMC_InventoryModule::UpdateOnIndex(const int32 Index)
 {
-	if (index == -1)
+	if (Index == -1)
 		return false;
-	if (Parent->nInventory->IsSomethingOnIndex(index))
+	if (Parent->nInventory->IsSomethingOnIndex(Index))
 	{
 		FInventoryStack Stack;
-		Parent->nInventory->GetStackFromIndex(index, Stack);
+		Parent->nInventory->GetStackFromIndex(Index, Stack);
 		if (Stack.HasItems())
 		{
 			if (!ItemsRemembered.Contains(Stack.Item.ItemClass))
@@ -395,14 +395,14 @@ bool UEMC_InventoryModule::UpdateOnIndex(int32 index)
 				int32 indexToRemove = 0;
 				for (FEquipmentStats& i : Arr)
 				{
-					if (i.mCachedInventorySlot == index)
+					if (i.mCachedInventorySlot == Index)
 					{
 						Stack.Item.ItemClass;
 						// found
 						TSubclassOf< class UEquipmentModuleDescriptor> item = Stack.Item.ItemClass;
 
-						SubtractModuleStats(item,index);
-						FEquipmentStats StatsRef = GetModuleStats(Stack, index);
+						SubtractModuleStats(item,Index);
+						FEquipmentStats StatsRef = GetModuleStats(Stack, Index);
 						MergeStats(Stack, StatsRef);
 						UPowerSuitBPLibrary::UpdateAllNoRefresh(Parent->EquipmentParent);
 						return true;
@@ -419,6 +419,7 @@ bool UEMC_InventoryModule::UpdateOnIndex(int32 index)
 void UEMC_InventoryModule::PreTick()
 {
 }
+
 void UEMC_InventoryModule::Tick()
 {
 }
@@ -427,17 +428,17 @@ void UEMC_InventoryModule::PostTick()
 {
 }
 
-void  UEMC_InventoryModule::SubtractModuleStats(TSubclassOf< class UEquipmentModuleDescriptor> item, int32 Index)
+void  UEMC_InventoryModule::SubtractModuleStats(const TSubclassOf< class UEquipmentModuleDescriptor> Item, const int32 Index)
 {
-	if (!item)
+	if (!Item)
 		return;
 
-	if (!item->IsChildOf(UEquipmentModuleDescriptor::StaticClass()))
+	if (!Item->IsChildOf(UEquipmentModuleDescriptor::StaticClass()))
 		return;
 
-	const UEquipmentModuleDescriptor* ItemObj = item.GetDefaultObject();
+	const UEquipmentModuleDescriptor* ItemObj = Item.GetDefaultObject();
 
-	if (!ItemsRemembered.Contains(item))
+	if (!ItemsRemembered.Contains(Item))
 	{
 		UE_LOG(PowerSuit_Log, Display, TEXT("An Item was removed we didnt know was in there ?! "));
 		RefreshInventory();
@@ -445,7 +446,7 @@ void  UEMC_InventoryModule::SubtractModuleStats(TSubclassOf< class UEquipmentMod
 	else
 	{
 
-		TArray<FEquipmentStats>& Arr = ItemsRemembered.Find(item)->Stats;
+		TArray<FEquipmentStats>& Arr = ItemsRemembered.Find(Item)->Stats;
 		int32 indexToRemove = 0;
 		APowerSuitModuleAttachment* Equipment = nullptr;
 		for (FEquipmentStats& i : Arr)
@@ -463,7 +464,7 @@ void  UEMC_InventoryModule::SubtractModuleStats(TSubclassOf< class UEquipmentMod
 				}
 				else
 				{
-					Out = item->GetName();
+					Out = Item->GetName();
 				}
 				UE_LOG(PowerSuit_Log, Display, TEXT("Subtracted Stats from : %s Remebered Stats Left: %s ; Keys Total %s "), *Out, *FString::FromInt(Arr.Num()), *FString::FromInt(ItemsRemembered.Num()));
 
@@ -473,10 +474,10 @@ void  UEMC_InventoryModule::SubtractModuleStats(TSubclassOf< class UEquipmentMod
 		}
 
 
-		if (ItemObj->GetnUniqueUsage(item))
-			if (UniquesActive.Contains(item))
+		if (ItemObj->GetnUniqueUsage(Item))
+			if (UniquesActive.Contains(Item))
 			{
-				UniquesActive.Remove(item);
+				UniquesActive.Remove(Item);
 			}
 
 			
@@ -493,7 +494,7 @@ void  UEMC_InventoryModule::SubtractModuleStats(TSubclassOf< class UEquipmentMod
 	}
 }
 
-FEquipmentStats UEMC_InventoryModule::GetModuleStats(FInventoryStack Stack, int32 ind)
+FEquipmentStats UEMC_InventoryModule::GetModuleStats(const FInventoryStack Stack, const int32 Ind)
 {
 	FEquipmentStats StatObject;
 
@@ -502,7 +503,7 @@ FEquipmentStats UEMC_InventoryModule::GetModuleStats(FInventoryStack Stack, int3
 
 		UE_LOG(PowerSuit_Log, Error, TEXT("Stack has no Items ??"))
 		StatObject = FEquipmentStats();
-		StatObject.mCachedInventorySlot = ind;
+		StatObject.mCachedInventorySlot = Ind;
 		return StatObject;
 	}
 
@@ -510,25 +511,25 @@ FEquipmentStats UEMC_InventoryModule::GetModuleStats(FInventoryStack Stack, int3
 	{
 		if (!Stack.Item.ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()))
 			return FEquipmentStats();
-		const TSubclassOf< class UEquipmentModuleDescriptor> item = Stack.Item.ItemClass;
+		const TSubclassOf< class UEquipmentModuleDescriptor> Item = Stack.Item.ItemClass;
 
 
-		const UEquipmentModuleDescriptor* ItemObj = item.GetDefaultObject();
+		const UEquipmentModuleDescriptor* ItemObj = Item.GetDefaultObject();
 
 		// if this is a Unique Use Module and we have one of this kind Accounted for already we skip it
-		if (ItemObj->GetnUniqueUsage(item))
-			if (UniquesActive.Contains(item))
+		if (ItemObj->GetnUniqueUsage(Item))
+			if (UniquesActive.Contains(Item))
 			{
 
 				UE_LOG(PowerSuit_Log, Warning, TEXT("Ignored Item %s because of an Already active Unique Item"), *ItemObj->mDisplayName.ToString())
 				StatObject = FEquipmentStats();
-				StatObject.mCachedInventorySlot = ind;
+				StatObject.mCachedInventorySlot = Ind;
 				return StatObject;
 			}
 			else
-				UniquesActive.Add(item);
+				UniquesActive.Add(Item);
 
-		APowerSuitModuleAttachment* Equipment = CreateAttachmentStateIfNeeded(Stack, ItemObj, item, ind);
+		APowerSuitModuleAttachment* Equipment = CreateAttachmentStateIfNeeded(Stack, ItemObj, Item, Ind);
 
 		
 		if (Stack.Item.HasState())
@@ -539,7 +540,7 @@ FEquipmentStats UEMC_InventoryModule::GetModuleStats(FInventoryStack Stack, int3
 				if (Equipment->GetIsConditionMet())
 				{
 					Equipment->Parent = Parent;
-					StatObject = Equipment->RecieveModuleStats(ItemObj->EquipmentStats);
+					StatObject = Equipment->ReceiveModuleStats(ItemObj->EquipmentStats);
 				}
 				else
 				{
@@ -554,7 +555,7 @@ FEquipmentStats UEMC_InventoryModule::GetModuleStats(FInventoryStack Stack, int3
 		}
 		else
 		{
-			if (ItemObj->GetnAttachment(item))
+			if (ItemObj->GetnAttachment(Item))
 			{
 				if (!Parent->EquipmentParent->HasAuthority())
 				{
@@ -569,7 +570,7 @@ FEquipmentStats UEMC_InventoryModule::GetModuleStats(FInventoryStack Stack, int3
 						if (Equipment->GetIsConditionMet())
 						{
 							Equipment->Parent = Parent;
-							StatObject = Equipment->RecieveModuleStats(ItemObj->EquipmentStats);
+							StatObject = Equipment->ReceiveModuleStats(ItemObj->EquipmentStats);
 						}
 						else
 						{
@@ -591,17 +592,17 @@ FEquipmentStats UEMC_InventoryModule::GetModuleStats(FInventoryStack Stack, int3
 
 			}
 		}
-		StatObject.mCachedInventorySlot = ind;
+		StatObject.mCachedInventorySlot = Ind;
 		return StatObject;
 	}
 	StatObject = FEquipmentStats();
-	StatObject.mCachedInventorySlot = ind;
+	StatObject.mCachedInventorySlot = Ind;
 	return StatObject;
 }
 
-APowerSuitModuleAttachment* UEMC_InventoryModule::CreateAttachmentStateIfNeeded(FInventoryStack Stack, const UEquipmentModuleDescriptor* ItemObj, const TSubclassOf< class UEquipmentModuleDescriptor> item, const int32 index)
+APowerSuitModuleAttachment* UEMC_InventoryModule::CreateAttachmentStateIfNeeded(const FInventoryStack Stack, const UEquipmentModuleDescriptor* ItemObj, const TSubclassOf< class UEquipmentModuleDescriptor> Item, const int32 Index)
 {
-	if (ItemObj->GetnAttachment(item) && !Stack.Item.HasState())
+	if (ItemObj->GetnAttachment(Item) && !Stack.Item.HasState())
 	{
 		if (Parent->EquipmentParent && Parent->EquipmentParent->HasAuthority())
 		{
@@ -611,11 +612,11 @@ APowerSuitModuleAttachment* UEMC_InventoryModule::CreateAttachmentStateIfNeeded(
 			SpawnSettings.bNoFail = true;
 			SpawnSettings.Owner = Parent->EquipmentParent->GetOwner();
 			SpawnSettings.Instigator = Parent->EquipmentParent->GetInstigator();
-			APowerSuitModuleAttachment* Equipment = Cast< APowerSuitModuleAttachment>(Parent->EquipmentParent->GetWorld()->SpawnActor(ItemObj->GetnAttachment(item), &Loc, &Rot, SpawnSettings));
+			APowerSuitModuleAttachment* Equipment = Cast< APowerSuitModuleAttachment>(Parent->EquipmentParent->GetWorld()->SpawnActor(ItemObj->GetnAttachment(Item), &Loc, &Rot, SpawnSettings));
 			check(Equipment);
 			Equipment->SetReplicates(true);
 			Equipment->Parent = Parent;
-			Parent->nInventory->SetStateOnIndex(index, FSharedInventoryStatePtr::MakeShared(Equipment));
+			Parent->nInventory->SetStateOnIndex(Index, FSharedInventoryStatePtr::MakeShared(Equipment));
 			UE_LOG(PowerSuit_Log, Display, TEXT("Created Module Descriptor Attachment Actor %s"), *Equipment->GetName());
 			return Equipment;
 		}

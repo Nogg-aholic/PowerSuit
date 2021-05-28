@@ -43,7 +43,7 @@ bool APowerSuitModuleAttachment::NeedTransform_Implementation()
 
 
 
-FEquipmentStats APowerSuitModuleAttachment::RecieveModuleStats_Implementation(FEquipmentStats DefaultStats) { return DefaultStats; };
+FEquipmentStats APowerSuitModuleAttachment::ReceiveModuleStats_Implementation(FEquipmentStats DefaultStats) { return DefaultStats; };
 
 void APowerSuitModuleAttachment::AttachToSuit_Implementation(AFGEquipment * EquipmentParent) {
 	AttachToActor(EquipmentParent, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true));

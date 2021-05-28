@@ -46,10 +46,13 @@ public:
         void ServerSetIsSliding(UEquipmentModuleComponent* Component, bool State);
 
     UFUNCTION(BlueprintCallable, unreliable, Server)
-    void ServerSetIsSprinting(UEquipmentModuleComponent* Component, bool State);
+		void ServerSetIsSprinting(UEquipmentModuleComponent* Component, bool State);
 
     UFUNCTION(BlueprintCallable, unreliable, Server)
-       void ServerSetHovering(UEquipmentModuleComponent* Component, bool State);
+       void ServerSetGravityMode(UEquipmentModuleComponent* Component, bool State);
+
+	UFUNCTION(BlueprintCallable, unreliable, Server)
+		void ServerSetFrictionMode(UEquipmentModuleComponent* Component, bool State);
 
 	UFUNCTION(BlueprintCallable, Server, unreliable)
 	void ServerSetAttachmentFloatValue(APowerSuitModuleAttachment* Component, float State, uint8 Index);

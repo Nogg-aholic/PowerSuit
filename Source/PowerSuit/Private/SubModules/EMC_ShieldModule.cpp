@@ -14,7 +14,7 @@ void UEMC_ShieldModule::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 
 // Block incoming damage with the shield and return however much could not be absorbed
-float UEMC_ShieldModule::ApplyShieldDamage(float DmgIn)
+float UEMC_ShieldModule::ApplyShieldDamage(const float DmgIn) const
 {
 	if (DmgIn <= 0.f)
 		return 0.f;
@@ -31,15 +31,15 @@ float UEMC_ShieldModule::ApplyShieldDamage(float DmgIn)
 	else
 	{
 		// ... take the damage and break the shield, returning the unabsorbed damage amount
-		float dmgout = DmgIn - Parent->nCurrentShield;
+		const float DmgOut = DmgIn - Parent->nCurrentShield;
 		Parent->OnShieldDamageTaken.Broadcast(Parent->nCurrentShield, Parent->nShieldDmg, true);
 		Parent->nCurrentShield = 0;
-		return dmgout;
+		return DmgOut;
 	}
 }
 
 // Check if shield should regenerate given time since last damage
-bool UEMC_ShieldModule::ShouldRegenShield()
+bool UEMC_ShieldModule::ShouldRegenShield() const
 {
 	if (!Parent->EquipmentParent)
 		return false;
@@ -57,7 +57,8 @@ bool UEMC_ShieldModule::ShouldRegenShield()
 }
 
 // Handle shield regeneration per tick and mark shield active timer if needed
-void UEMC_ShieldModule::RegenShield() {
+void UEMC_ShieldModule::RegenShield() const
+{
 	Parent->nCurrentShield = FMath::Clamp(Parent->nCurrentShield + (GetShieldRechargeRate() * Parent->Delta), 0.f, GetMaxShield());
 	// Regenerating Shield causes the Suit to Go Active ( Consume additional Power )
 }
@@ -71,7 +72,7 @@ void UEMC_ShieldModule::Tick()
 {
 }
 
-void  UEMC_ShieldModule::PostTick()
+void  UEMC_ShieldModule::PostTick() const
 {
 	if (Parent->nProducing)
 	{

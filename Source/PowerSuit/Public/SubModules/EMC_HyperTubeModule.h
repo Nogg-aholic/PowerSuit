@@ -30,6 +30,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
 	float nPipeVelocity;
 
-	float lastPipeVelocity = 0.f;
+	float LastPipeVelocity = 0.f;
 
 };

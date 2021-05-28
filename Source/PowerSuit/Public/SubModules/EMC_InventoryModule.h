@@ -34,7 +34,7 @@ private:
 	void Tick();
 	void PostTick();
 
-	void SubtractModuleStats(TSubclassOf<class UEquipmentModuleDescriptor> item, int32 Index);
+	void SubtractModuleStats(TSubclassOf<class UEquipmentModuleDescriptor> Item, int32 Index);
 
 	friend class UEquipmentModuleComponent;
 	friend class UEMC_PowerModule;
@@ -48,25 +48,25 @@ private:
 
 	void BulkUpdateStats(UFGInventoryComponent * Inventory);
 
-	APowerSuitModuleAttachment* CreateAttachmentStateIfNeeded(FInventoryStack Stack, const UEquipmentModuleDescriptor* ItemObj, const TSubclassOf<class UEquipmentModuleDescriptor> item, const int32 index);
+	APowerSuitModuleAttachment* CreateAttachmentStateIfNeeded(FInventoryStack Stack, const UEquipmentModuleDescriptor* ItemObj, const TSubclassOf<class UEquipmentModuleDescriptor> Item, const int32 Index);
 
-	bool MergeOnIndex(int32 ind, bool Safe = true);
+	bool MergeOnIndex(int32 Ind, bool Safe = true);
 
 	void MergeStats(FInventoryStack Stack, FEquipmentStats& StatsRef);
 
-	FEquipmentStats GetModuleStats(FInventoryStack Stack, int32 ind);
+	FEquipmentStats GetModuleStats(FInventoryStack Stack, int32 Ind);
 
 public:
 
 	UFUNCTION(BlueprintCallable)
-		bool UpdateOnIndex(int32 index);
+		bool UpdateOnIndex(int32 Index);
 
 	UFUNCTION(BlueprintCallable, Category = "EquipmentModule")
 		void RefreshInventory();
 	UFUNCTION()
-		void RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> itemClass, int32 numAdded);
+		void RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> ItemClass, int32 NumAdded);
 	UFUNCTION()
-		void RefreshInventoryRemove(TSubclassOf<UFGItemDescriptor> itemClass, int32 numAdded);
+		void RefreshInventoryRemove(TSubclassOf<UFGItemDescriptor> ItemClass, int32 NumAdded);
 
 	// GC should stay away
 	UPROPERTY() 

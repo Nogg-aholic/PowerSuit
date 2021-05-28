@@ -30,27 +30,25 @@ public:
 	UEquipmentModuleComponent();
 
 
+	virtual void PreSaveGame_Implementation(int32 saveVersion, int32 gameVersion) override;
 
 
-	void PreSaveGame_Implementation(int32 saveVersion, int32 gameVersion);
+	virtual void PostSaveGame_Implementation(int32 saveVersion, int32 gameVersion) override;
 
 
-	void PostSaveGame_Implementation(int32 saveVersion, int32 gameVersion);
+	virtual void PreLoadGame_Implementation(int32 saveVersion, int32 gameVersion) override;
 
 
-	void PreLoadGame_Implementation(int32 saveVersion, int32 gameVersion);
+	virtual void PostLoadGame_Implementation(int32 saveVersion, int32 gameVersion) override;
 
 
-	void PostLoadGame_Implementation(int32 saveVersion, int32 gameVersion);
+	virtual void GatherDependencies_Implementation(TArray< UObject* >& out_dependentObjects) override;
 
 
-	void GatherDependencies_Implementation(TArray< UObject* >& out_dependentObjects);
-
-	
-	bool ShouldSave_Implementation() const;
+	virtual bool ShouldSave_Implementation() const override;
 
 
-	bool NeedTransform_Implementation();
+	virtual bool NeedTransform_Implementation() override;
 
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnConsumeFuelItem, TSubclassOf<class UFGItemDescriptor>, Item, int32, Slotid, int32, AmountLeft);
@@ -104,7 +102,7 @@ public:
 	UFUNCTION(BlueprintPure)
 	FModMultProperty GetFlightPropertySafe(ESuitFlightProperty property) const;
 	UFUNCTION(BlueprintPure)
-	FModMultProperty GetStatePropertySafe(TMap<TEnumAsByte< EPowerSuitState>, FModMultProperty> Map, EPowerSuitState property) const;
+	static FModMultProperty GetStatePropertySafe(TMap<TEnumAsByte< EPowerSuitState>, FModMultProperty> Map, EPowerSuitState property);
 
 
 
@@ -185,13 +183,13 @@ public:
 	UPowerSuitRCO* RCO;
 
 
-	UPROPERTY(Category = "EquipmentModule", BlueprintReadWrite)
+	UPROPERTY(Category = "EquipmentModule", SaveGame, BlueprintReadWrite)
 		TEnumAsByte<enum EMovementMode> nMovementMode;
 	// "
-	UPROPERTY(Category = "EquipmentModule", BlueprintReadWrite)
+	UPROPERTY(Category = "EquipmentModule", SaveGame,BlueprintReadWrite)
 		uint8 nCustomMovementMode;
 	// "
-	UPROPERTY(Category = "EquipmentModule", BlueprintReadWrite, Replicated)
+	UPROPERTY(Category = "EquipmentModule", BlueprintReadWrite,SaveGame, Replicated)
 		TEnumAsByte<EPowerSuitState> SuitState;
 
 
@@ -202,8 +200,10 @@ public:
 		bool TKey_Fly;
 	// key is also KB_Up but with delay Timer
 	UPROPERTY(BlueprintReadWrite, SaveGame, Category = "EquipmentModule")
+		bool TKey_NoGravity;
+	// key is also KB_Up but with delay Timer
+	UPROPERTY(BlueprintReadWrite, SaveGame, Category = "EquipmentModule")
 		bool TKey_NoFriction;
-
 	
 
 
@@ -251,6 +251,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
 		FKey KB_Toggle;
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
+		FKey KB_Toggle2;
+	UPROPERTY(BlueprintReadWrite, Category = "Movement")
 		FKey KB_Up;
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
 		FKey KB_Down;
@@ -258,6 +260,7 @@ public:
 		FKey KB_Accel;
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
 		FKey KB_Breaks;
-
+	UPROPERTY(BlueprintReadWrite, Category = "Movement")
+		FKey KB_UI;
 	float Delta;
 };

@@ -16,7 +16,7 @@ class POWERSUIT_API UEMC_SubModule : public UObject
 public:
 
 	
-
+	UPROPERTY()
 	UEquipmentModuleComponent* Parent;
 
 };

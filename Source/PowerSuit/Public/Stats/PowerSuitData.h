@@ -252,28 +252,31 @@ enum ENDamageType
 	DamageTypeMAX = 1 << 5 UMETA(hidden, Displayname = "Invalid value!", Tooltip = "Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change.")
 
 };
+//SuitFlag_HasBeltImmunity = 1 << 0 UMETA(Tooltip = "Prevents belts from moving the character against their intended direction of movement"),
 
 UENUM(Blueprinttype, meta = (Bitflags, UseEnumValuesAsMaskValuesInEditor = "true"))
 enum ESuitFlag
 {
 	SuitFlag_Null = 0x00 UMETA(hidden, Displayname = "Invalid value!", Tooltip = "Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change."),
-	SuitFlag_HasBeltImmunity = 1 << 0 UMETA(Tooltip = "Prevents belts from moving the character against their intended direction of movement"),
-	SuitFlag_HasPipeAccel = 1 << 1 UMETA(Tooltip = "Allows hotkey-bound accelerating and decelerating in hypertubes"),
-	SuitFlag_HasFlightUnlocked = 1 << 2 UMETA(Tooltip = "Allows flight. Be sure to also set flight speed properties and such"),
-	SuitFlag_FuseNeverBreaksWhenFueled = 1 << 3 UMETA(Tooltip = "If the suit has fuel available, using too much power will never result in the suit fuse breaking. Works well with EmptyPowerFuelPenalty"),
-	SuitFlag_HasNoFrictionMode = 1 << 4 UMETA(Tooltip = "If the module allows hovering. Does not grant flight ability, use Has Flight Unlock for that"),
-	SuitFlag_ForceNoFrictionMode = 1 << 5 UMETA(Tooltip = "Force the Suit to use Hover when ever flight is used"),
-	SuitFlag_HasAirReFuel = 1 << 6 UMETA(Tooltip = "Allow refilling the fuel tank while in flight-related movement states"),
-	SuitFlag_HasInfiniteSlide = 1 << 7 UMETA(Tooltip = "Allows the user to slide forever as long as the angle is acceptable (continually resets their slide timer"),
-	SuitFlag_HasZiplineAccel = 1 << 8 UMETA(Tooltip = "Allows hotkey-bound accelerating and decelerating while using Ziplines"),
-
-	SuitFlag_END = 1 << 9 UMETA(hidden, Displayname = "Invalid value!", Tooltip = "Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change.")
+	SuitFlag_HasPipeAccel = 1 << 0 UMETA(Tooltip = "Allows hotkey-bound accelerating and decelerating in hypertubes"),
+	SuitFlag_HasFlightUnlocked = 1 << 1 UMETA(Tooltip = "Allows flight. Be sure to also set flight speed properties and such"),
+	SuitFlag_FuseNeverBreaksWhenFueled = 1 << 2 UMETA(Tooltip = "If the suit has fuel available, using too much power will never result in the suit fuse breaking. Works well with EmptyPowerFuelPenalty"),
+	SuitFlag_HasNoGravityMode = 1 << 3 UMETA(Tooltip = "Hover Mode has no Gravity Mode; Powersuit reImplements this optionaly, can it be turned off?"),
+	SuitFlag_ForceGravityMode = 1 << 4 UMETA(Tooltip = "Force the Suit to use Gravity Mode - its on by Default but this overwrites Toggle"),
+	SuitFlag_HasAirReFuel = 1 << 5 UMETA(Tooltip = "Allow refilling the fuel tank while in flight-related movement states"),
+	SuitFlag_HasInfiniteSlide = 1 << 6 UMETA(Tooltip = "Allows the user to slide forever as long as the angle is acceptable (continually resets their slide timer"),
+	SuitFlag_HasNoFrictionMode = 1 << 7 UMETA(Tooltip = "Toggle Hotkey for Friction SuitValue or 0 "),
+	SuitFlag_END = 1 << 8 UMETA(hidden, Displayname = "Invalid value!", Tooltip = "Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change.")
 
 };
 
 UENUM(Blueprinttype)
 enum ESuitProperty
 {
+	/**
+	* Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change.
+	*/
+	SuitPropertyNULL UMETA(hidden, Displayname = "NULL"),
 	/**
 	* Maximum power in MW that the Suit can store.
 	*	Additive
@@ -377,6 +380,10 @@ enum ESuitProperty
 UENUM(Blueprinttype)
 enum ESuitMovementProperty
 {
+	/**
+	* Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change.
+	*/
+	ESMC_NULL UMETA(hidden, Displayname = "NULL"),
 	/** Additive on Default: 500.0f;
 	* Initial velocity (instantaneous vertical acceleration) when jumping.
 	* Blade Runners is roughly 300.0f
@@ -480,6 +487,8 @@ enum ESuitMovementProperty
 	ESMC_mZiplineSpeedMultiplierUp UMETA(Displayname = "mZiplineSpeedMultiplierUp"),
 	/* Speed multiplier used when going downwards on zipline */
 	ESMC_mZiplineSpeedMultiplierDown UMETA(Displayname = "mZiplineSpeedMultiplierDown"),
+
+	ESMC_mMaxSpeedInPipes UMETA(Displayname = "mMaxSpeedInPipes"),
 	/**
 	* Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change.
 	*/
@@ -489,6 +498,10 @@ enum ESuitMovementProperty
 UENUM(Blueprinttype)
 enum ESuitFlightProperty
 {
+	/**
+	* Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change.
+	*/
+	EFP_NULL UMETA(hidden, Displayname = "NULL"),
 	/** How fast the character moves with the hover pack. */
 	EFP_mHoverSpeed UMETA(Displayname = "mHoverSpeed"),
 	/** How fast the hoverpack accelerates. Units / Second. Might need to be higher / lower depending on hover friction. */
@@ -554,7 +567,7 @@ public:
 	*	-1.0f	->	-100% Keep in mind that this can still be counteracted with positive values - this doesn't necessarily mean "set to zero"
 	*	-0.1f	->	-10%
 	*/
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UPROPERTY(EditDefaultsOnly, SaveGame, BlueprintReadWrite)
 		float Multiplier = 0;
 
 	/**
@@ -567,15 +580,15 @@ public:
 	*	100.0	-> +100.0f to the value (ex. +1.0 m/s)
 	*	-10.0	-> +10.0f to the value (ex. -0.1 m/s)
 	*/
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UPROPERTY(EditDefaultsOnly, SaveGame, BlueprintReadWrite)
 		float Modifier = 0;
 
 	// This operator Adds only the Modifier to the Input Value 
-	float operator+(float  Input) const {
+	float operator+(const float  Input) const {
 		return Input + Modifier;
 	}
 	// This operator Multiplies the Input Value only with the Multiplier 1 based
-	float operator*(float  Input) const {
+	float operator*(const float  Input) const {
 		return Input * (1 + Multiplier);
 	}
 
@@ -585,12 +598,12 @@ public:
 	}
 
 	// 1 Based Multiplier * Mod + Add Clamped to [0 <-> 99999999]
-	float clampAdd(int32 Add) const {
+	float ClampAdd(const int32 Add) const {
 		return FMath::Clamp((Multiplier + 1) * (Modifier + Add), 0.f, 99999999.f);
 	}
 
 	// 1 Based Multiplier * Mod Clamped to [0 <-> 99999999]
-	float clamp() const {
+	float Clamp() const {
 		return FMath::Clamp((Multiplier + 1) * (Modifier), 0.f, 99999999.f);
 	}
 	// since + is already in use for Modifier Adding you can use % to add Both Mult and Mod together
@@ -623,208 +636,35 @@ public:
 
 	void ForgetUnlockedFuels(UEquipmentModuleComponent* Parent);
 
-	FEquipmentStats operator+(const FEquipmentStats& OtherStruct) {
-		SetupDefaults();
+	FEquipmentStats operator+(const FEquipmentStats& OtherStruct);
 
-		if (OtherStruct.nMovementProperties.Num() > 0)
-		{
-			TArray< TEnumAsByte<ESuitMovementProperty>> MovementProperties;
-			OtherStruct.nMovementProperties.GetKeys(MovementProperties);
-			for (auto i : MovementProperties)
-			{
-				nMovementProperties.Add(i, *nMovementProperties.Find(i) % *OtherStruct.nMovementProperties.Find(i));
-			}
-		}
+	FEquipmentStats operator-(const FEquipmentStats& OtherStruct);
 
-		if (OtherStruct.nFlightProperties.Num() > 0)
-		{
-			TArray< TEnumAsByte<ESuitFlightProperty>> FlightProperties;
-			OtherStruct.nFlightProperties.GetKeys(FlightProperties);
-			for (auto i : FlightProperties)
-			{
-				nFlightProperties.Add(i, *nFlightProperties.Find(i) % *OtherStruct.nFlightProperties.Find(i));
-			}
-		}
+	bool HasFlag(UPARAM(meta = (Bitmask, BitmaskEnum = ESuitFlag)) int32 Bitmask) const;;
 
-		if (OtherStruct.nSuitProperties.Num() > 0)
-		{
-			TArray< TEnumAsByte<ESuitProperty>> SuitProps;
-			OtherStruct.nSuitProperties.GetKeys(SuitProps);
-			for (auto i : SuitProps)
-			{
-				nSuitProperties.Add(i, *nSuitProperties.Find(i) % *OtherStruct.nSuitProperties.Find(i));
-			}
-		}
+	bool HasDamageMask(UPARAM(meta = (Bitmask, BitmaskEnum = ENDamageType)) int32 Bitmask) const;;
 
-		if (OtherStruct.nDamageTypeResistance.Num() > 0)
-		{
-			TArray< TEnumAsByte<ENDamageType>> nDamageTypeArray;
-			OtherStruct.nDamageTypeResistance.GetKeys(nDamageTypeArray);
-			for (int32 i = 0; i < nDamageTypeArray.Num(); i++)
-			{
-				nDamageTypeResistance.Add(nDamageTypeArray[i], *nDamageTypeResistance.Find(nDamageTypeArray[i]) % OtherStruct.nDamageTypeResistance[nDamageTypeArray[i]]);
-			}
-		}
+	bool HasRemoveFlag(UPARAM(meta = (Bitmask, BitmaskEnum = ESuitFlag)) int32 Bitmask) const;;
 
-		for (int32 i = 1; i < ENDamageType::DamageTypeMAX; i = ENDamageType(i + i))
-		{
-			if (OtherStruct.HasDamageMask(i))
-				if (!(HasDamageMask(i)))
-					DamageShieldAbsorbtion += ENDamageType(i);
-		}
-
-		for (int32 i = 1; i < ESuitFlag::SuitFlag_END; i = ESuitFlag(i + i))
-		{
-			if (OtherStruct.HasFlag(i))
-				if (!(HasFlag(i)))
-					SuitFlags += ESuitFlag(i);
-		}
-
-		for (int32 i = 1; i < ENDamageType::DamageTypeMAX; i = ENDamageType(i + i))
-		{
-			if (OtherStruct.HasRemoveDamageMask(i))
-				if (!(HasDamageMask(i)))
-					RemoveDamageShieldAbsorbtion += ENDamageType(i);
-		}
-
-		for (int32 i = 1; i < ESuitFlag::SuitFlag_END; i = ESuitFlag(i + i))
-		{
-			if (OtherStruct.HasRemoveFlag(i))
-				if (!(HasFlag(i)))
-					RemoveSuitFlags += ESuitFlag(i);
-		}
-
-
-		if (OtherStruct.nDamageResistance.Num() > 0)
-		{
-			TArray< TSubclassOf<class UFGDamageType>> DamageTypeArray;
-			OtherStruct.nDamageResistance.GetKeys(DamageTypeArray);
-			for (int32 i = 0; i < DamageTypeArray.Num(); i++)
-				if (nDamageResistance.Contains(DamageTypeArray[i]))
-					nDamageResistance.Add(DamageTypeArray[i], *nDamageResistance.Find(DamageTypeArray[i]) % OtherStruct.nDamageResistance[DamageTypeArray[i]]);
-				else
-					nDamageResistance.Add(DamageTypeArray[i], OtherStruct.nDamageResistance[DamageTypeArray[i]]);
-		}
-
-
-		InventorySlots = InventorySlots + OtherStruct.InventorySlots;
-
-		return *this;
-	}
-	FEquipmentStats operator-(const FEquipmentStats& OtherStruct) {
-		SetupDefaults();
-
-		// Power
-		if (OtherStruct.nMovementProperties.Num() > 0)
-		{
-			TArray< TEnumAsByte<ESuitMovementProperty>> MovementProperties;
-			OtherStruct.nMovementProperties.GetKeys(MovementProperties);
-			for (auto i : MovementProperties)
-			{
-				nMovementProperties.Add(i, *nMovementProperties.Find(i) - *OtherStruct.nMovementProperties.Find(i));
-			}
-		}
-
-		if (OtherStruct.nFlightProperties.Num() > 0)
-		{
-			TArray< TEnumAsByte<ESuitFlightProperty>> FlightProperties;
-			OtherStruct.nFlightProperties.GetKeys(FlightProperties);
-			for (auto i : FlightProperties)
-			{
-				nFlightProperties.Add(i, *nFlightProperties.Find(i) - *OtherStruct.nFlightProperties.Find(i));
-			}
-		}
-
-		if (OtherStruct.nSuitProperties.Num() > 0)
-		{
-			TArray< TEnumAsByte<ESuitProperty>> SuitProps;
-			OtherStruct.nSuitProperties.GetKeys(SuitProps);
-			for (auto i : SuitProps)
-			{
-				nSuitProperties.Add(i, *nSuitProperties.Find(i) - *OtherStruct.nSuitProperties.Find(i));
-			}
-		}
-
-		if (OtherStruct.nDamageTypeResistance.Num() > 0)
-		{
-			TArray< TEnumAsByte<ENDamageType>> arr;
-			OtherStruct.nDamageTypeResistance.GetKeys(arr);
-			for (int32 i = 0; i < arr.Num(); i++)
-			{
-				nDamageTypeResistance.Add(arr[i], *nDamageTypeResistance.Find(arr[i]) - OtherStruct.nDamageTypeResistance[arr[i]]);
-			}
-		}
-
-		for (int32 i = 1; i < ENDamageType::DamageTypeMAX; i = ENDamageType(i + i))
-		{
-			if (OtherStruct.HasDamageMask(i))
-				if (!(HasDamageMask(i)))
-					DamageShieldAbsorbtion -= ENDamageType(i);
-		}
-
-		for (int32 i = 1; i < ESuitFlag::SuitFlag_END; i = ESuitFlag(i + i))
-		{
-			if (OtherStruct.HasFlag(i))
-				if ((HasFlag(i)))
-					SuitFlags -= ESuitFlag(i);
-		}
-
-		for (int32 i = 1; i < ESuitFlag::SuitFlag_END; i = ESuitFlag(i + i))
-		{
-			if (OtherStruct.HasRemoveFlag(i))
-				if (!(HasRemoveFlag(i)))
-					RemoveSuitFlags -= ESuitFlag(i);
-		}
-
-		if (OtherStruct.nDamageResistance.Num() > 0)
-		{
-			TArray< TSubclassOf<class UFGDamageType>> arr;
-			OtherStruct.nDamageResistance.GetKeys(arr);
-			for (int32 i = 0; i < arr.Num(); i++)
-				if (nDamageResistance.Contains(arr[i]))
-					nDamageResistance.Add(arr[i], *nDamageResistance.Find(arr[i]) - OtherStruct.nDamageResistance[arr[i]]);
-		}
-
-
-		InventorySlots = InventorySlots - OtherStruct.InventorySlots;
-
-
-		return *this;
-	}
-
-	const bool HasFlag(UPARAM(meta = (Bitmask, BitmaskEnum = ESuitFlag)) int32 Bitmask) const {
-		return (Bitmask & SuitFlags) == Bitmask;
-	};
-
-	const bool HasDamageMask(UPARAM(meta = (Bitmask, BitmaskEnum = ENDamageType)) int32 Bitmask) const {
-		return (Bitmask & DamageShieldAbsorbtion) == Bitmask;
-	};
-
-	const bool HasRemoveFlag(UPARAM(meta = (Bitmask, BitmaskEnum = ESuitFlag)) int32 Bitmask) const {
-		return (Bitmask & RemoveSuitFlags) == Bitmask;
-	};
-
-	const bool HasRemoveDamageMask(UPARAM(meta = (Bitmask, BitmaskEnum = ENDamageType)) int32 Bitmask) const {
-		return (Bitmask & RemoveDamageShieldAbsorbtion) == Bitmask;
-	};
+	bool HasRemoveDamageMask(UPARAM(meta = (Bitmask, BitmaskEnum = ENDamageType)) int32 Bitmask) const;;
 
 
 	/**
 	* Global settings that change base numeric properties of the suit
 	*/
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "EquipmentModule")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, SaveGame, Category = "EquipmentModule")
 		TMap< TEnumAsByte<ESuitMovementProperty>, FModMultProperty> nMovementProperties;
 
 	/**
 	* Global settings that change base numeric properties of the suit
 	*/
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "EquipmentModule")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, SaveGame, Category = "EquipmentModule")
 		TMap< TEnumAsByte<ESuitFlightProperty>, FModMultProperty> nFlightProperties;
 
 	/**
 	* Global settings that change base numeric properties of the suit
 	*/
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "EquipmentModule")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, SaveGame, Category = "EquipmentModule")
 		TMap< TEnumAsByte<ESuitProperty>, FModMultProperty> nSuitProperties;
 
 	// Resistances
@@ -835,7 +675,7 @@ public:
 	*	Multiplier 1.0 is full resistance
 	*	Consider checking Damage Resistance options as well
 	*/
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "EquipmentModule | Resistances")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, SaveGame, Category = "EquipmentModule | Resistances")
 		TMap<TEnumAsByte< ENDamageType>, FModMultProperty> nDamageTypeResistance;
 
 	/**
@@ -843,29 +683,29 @@ public:
 	*	Additive
 	*	Multiplier 1.0 is full resistance
 	*/
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "EquipmentModule | Resistances")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, SaveGame, Category = "EquipmentModule | Resistances")
 		TMap<TSubclassOf<class UFGDamageType>, FModMultProperty> nDamageResistance;
 
 	/*
 	*	What Damage Types the Suits EnergyShield can Absorb
 	*/
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = ENDamageType))
-		int32 DamageShieldAbsorbtion;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ENDamageType))
+		int32 DamageShieldAbsorption;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = ENDamageType))
-		int32 RemoveDamageShieldAbsorbtion;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ENDamageType))
+		int32 RemoveDamageShieldAbsorption;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = ESuitFlag))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ESuitFlag))
 		int32 SuitFlags;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = ESuitFlag))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ESuitFlag))
 		int32 RemoveSuitFlags;
 	/*
 	* Additional slots in the suit's inventory.
 	* Not tested with modules, only with the suit's built in module.
 	*/
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipmentModule | Inventory")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, SaveGame, Category = "EquipmentModule | Inventory")
 		int32 InventorySlots;
 
 

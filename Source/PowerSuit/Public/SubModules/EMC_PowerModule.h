@@ -19,34 +19,32 @@ private:
 
 
 	void PreTick();
-	void Tick();
-	void PostTick();
+	void Tick() const;
+	void PostTick() const;
 
-	void UpdateProductionState();
+	void UpdateProductionState() const;
 
 
-	void RegenPower();
+	void RegenPower() const;
 
 	
-	void TryRestart();
+	void TryRestart() const;
 
 	void BreakFuse();
 
 public:
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-	float GetPowerCapacity();
+	float GetPowerCapacity() const;
 
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-	float GetFuseTimerDuration();
+	float GetFuseTimerDuration() const;
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-		float GetOverDrawDuration();
+		float GetOverDrawDuration() const;
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-		bool IsFuseIntact();
+		bool IsFuseIntact() const;
 
 	// Power Draw in MW including External
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-		float GetPowerDraw();
-
-	UEquipmentModuleComponent* Parent;
+		float GetPowerDraw() const;
 
 };

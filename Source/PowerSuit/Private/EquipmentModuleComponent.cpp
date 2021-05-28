@@ -89,12 +89,12 @@ void UEquipmentModuleComponent::RemoteInventoryRefresh_Implementation(bool IsAdd
 	{
 		TimerDel.BindUFunction(InventoryModule, FName("RefreshInventoryAdd"), Class, Amount);
 
-		UE_LOG(PowerSuit_Log, Display, TEXT("Remote with Refresh Add : true"));
+		//UE_LOG(PowerSuit_Log, Display, TEXT("Remote with Refresh Add : true"));
 	}
 	else
 	{
 		TimerDel.BindUFunction(InventoryModule, FName("RefreshInventoryRemove"), Class, Amount);
-		UE_LOG(PowerSuit_Log, Display, TEXT("Remote with Refresh Add : false"));
+		//UE_LOG(PowerSuit_Log, Display, TEXT("Remote with Refresh Add : false"));
 
 
 	}
@@ -235,8 +235,6 @@ void UEquipmentModuleComponent::Init( APowerSuit * Parent)
 	SetupSubModules();
 
 	InventoryModule->InitInventory();
-
-	StateModule->UpdateHotkeys();
 }
 // Calculate damage while factoring in damage resistances
 float UEquipmentModuleComponent::CalculateDamage(float DmgIn, int32 Type, TSubclassOf<class UFGDamageType>  BpType)
@@ -254,10 +252,10 @@ float UEquipmentModuleComponent::CalculateDamage(float DmgIn, int32 Type, TSubcl
 			
 			if (flag & Type)
 			{
-				if(Stats.nDamageTypeResistance.Contains(ENDamageType(flag)))
+				if(Stats.nDamageTypeResistance.Contains(static_cast<ENDamageType>(flag)))
 				{
-					Reduction =+ Stats.nDamageTypeResistance[ENDamageType(flag)].Modifier;
-					ReductionPercent =+ Stats.nDamageTypeResistance[ENDamageType(flag)].Multiplier;
+					Reduction =+ Stats.nDamageTypeResistance[static_cast<ENDamageType>(flag)].Modifier;
+					ReductionPercent =+ Stats.nDamageTypeResistance[static_cast<ENDamageType>(flag)].Multiplier;
 					Hits++;
 				}
 			}
@@ -323,10 +321,10 @@ FModMultProperty UEquipmentModuleComponent::GetFlightPropertySafe(ESuitFlightPro
 
 }
 
-FModMultProperty UEquipmentModuleComponent::GetStatePropertySafe(TMap<TEnumAsByte<EPowerSuitState>, FModMultProperty> Map, EPowerSuitState prop) const
+FModMultProperty UEquipmentModuleComponent::GetStatePropertySafe(TMap<TEnumAsByte<EPowerSuitState>, FModMultProperty> Map, const EPowerSuitState Prop)
 {
-	if (Map.Contains(prop))
-		return *Map.Find(prop);
+	if (Map.Contains(Prop))
+		return *Map.Find(Prop);
 	else
 		return FModMultProperty();
 }
@@ -334,6 +332,8 @@ FModMultProperty UEquipmentModuleComponent::GetStatePropertySafe(TMap<TEnumAsByt
 
 void UEquipmentModuleComponent::ResetStats()
 {
+	if (!EquipmentParent)
+		return;
 	UE_LOG(PowerSuit_Log, Display, TEXT("Resetting Stats"));
 
 	// Reset everything
@@ -370,6 +370,7 @@ void UEquipmentModuleComponent::PostLoadGame_Implementation(int32 saveVersion, i
 
 void UEquipmentModuleComponent::GatherDependencies_Implementation(TArray<UObject*>& out_dependentObjects)
 {
+	
 }
 
 bool UEquipmentModuleComponent::ShouldSave_Implementation() const
