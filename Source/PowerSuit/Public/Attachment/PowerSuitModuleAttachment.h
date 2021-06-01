@@ -85,7 +85,7 @@ public:
 	void AttachmentTick(float DeltaTime);
 	
 	// Called after the Suit is already done with this tick. 
-	// It's too late to do anything to the values this Frame (probably).
+	// It's too late to do anything to the values this Frame (probably (tm)).
 	UFUNCTION(BlueprintNativeEvent)
 	void AttachmentPostTick(float DeltaTime);
 
@@ -97,7 +97,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 		void ServerSetBoolValue(bool Value, uint8 Index);
 
-
+	// The (parent) Equipment Module that owns this attachment instance. Access suit properties and module stuff from this.
 	UPROPERTY(BlueprintReadOnly)
 	UEquipmentModuleComponent * Parent;
 
