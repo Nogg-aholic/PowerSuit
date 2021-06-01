@@ -251,6 +251,8 @@ void UPowerSuitBPLibrary::UpdateFlags(APowerSuit* EquipmentParent)
 
 void UPowerSuitBPLibrary::UpdateInventorySize(APowerSuit* EquipmentParent)
 {
+	if (!EquipmentParent)
+		return;
 	if (!EquipmentParent->HasAuthority())
 		return;
 
