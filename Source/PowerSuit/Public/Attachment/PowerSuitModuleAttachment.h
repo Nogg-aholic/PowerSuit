@@ -40,9 +40,11 @@ public:
 	// to overwrite Default assigned Stats before they are accounted for
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 		FEquipmentStats ReceiveModuleStats(FEquipmentStats DefaultStats);
+
 	// This will Attach the Attachment to the Suit, overwrite to do something else
 	UFUNCTION(BlueprintNativeEvent)
 	void AttachToSuit(AFGEquipment * EquipmentParent);
+
 	// Detaching from Suit
 	UFUNCTION(BlueprintNativeEvent)
 	void DetachFromSuit();
@@ -50,39 +52,40 @@ public:
 	// Called after Stats are accounted for 
 	UFUNCTION(BlueprintNativeEvent)
 	void AttachmentInstalled(FInventoryItem Item);
+
 	// Called when the Suit Resets Stats, the Inventory Changed or when this Module was Unequipped
-	// We dont really know which one it is
-	// If Install follows it was a Refresh if not , the item is no longer in the Suit Inventory
+	// We don't really know which one it is
+	// If Install follows it was a Refresh if not, the item is no longer in the Suit Inventory
 	UFUNCTION(BlueprintNativeEvent)
 	void AttachmentUnInstalled();
 
 
-	// How much fuel in MW do we consume this Frame can also be negative for production
+	// How much Fuel in MW do we consume this Frame? Can also be negative for production
 	UFUNCTION(BlueprintNativeEvent)
 	float GetDeltaFuelConsumption(float DeltaTime) const;
 
-	// How much Power in MW do we consume this Frame? can also be negative for production
+	// How much Power in MW do we consume this Frame? Can also be negative for production
 	UFUNCTION(BlueprintNativeEvent)
 	float GetDeltaPowerConsumption(float DeltaTime) const;
 
-	// Are all Requirements met for this to be still Accounted for ?
+	// Are all requirements met for this to be still accounted for?
 	// If this is false and the Module is currently installed, a Refresh is triggered and this module
-	// will become Inactive untill the Condition changes to True
-	// then the Refresh is triggered again , Installing this Module
+	// will become Inactive until the Condition changes to True
+	// then the Refresh is triggered again, Installing this Module
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	bool GetIsConditionMet()const;
 
-	// This Tick is before the Suit State has been processed this Frame, you stil have the Chance here to influrence how the Result will be
+	// This Tick is before the Suit State has been processed this Frame, you still have the Chance here to influence what the Result will be
 	UFUNCTION(BlueprintNativeEvent)
 	void AttachmentPreTick(float DeltaTime);
 
-	// The Suits State was assigned and we have calculated this Frame Power and Fuel Consumption
+	// The Suit's State was assigned and we have already calculated this Frame Power and Fuel Consumption
 	// Last chance to do something before Power and Fuel values are changed this Frame
 	UFUNCTION(BlueprintNativeEvent)
 	void AttachmentTick(float DeltaTime);
 	
-	// The Suits State was assigned and we have calculated this Frame Power and Fuel Consumption
-	// Last chance to do something before Power and Fuel values are changed this Frame
+	// Called after the Suit is already done with this tick. 
+	// It's too late to do anything to the values this Frame (probably).
 	UFUNCTION(BlueprintNativeEvent)
 	void AttachmentPostTick(float DeltaTime);
 
@@ -98,21 +101,24 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	UEquipmentModuleComponent * Parent;
 
-
+	// Slot index of the module in the suit inventory
 	UPROPERTY(BlueprintReadOnly)
 		int32 InventorySlot = -1;
 
-	
+
 	// Cached Stat values
-	// Changes here wont have any direct Effect
+	// Can be used to set the initial values for a module before it saves its own stats
+	// (to do that, on ReceiveModuleStats event, return these instead of DefaultStats)
+	//
 	// Refresh needs to be Triggered and RecieveModuleStats needs to be overwritten for this to be changed at Runtime
-	// dont do this frequently since Refreshing causes alot of overhead
+	// Don't do this frequently since Refreshing causes a lot of overhead
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite, SaveGame)
 	FEquipmentStats AttachmentStats;
 
-	/** Custom Widget - placed at the Bottom of the Suit Widget*/
+	/** Custom Widget - placed at the bottom of the Suit Widget in the "Module Configuration" section*/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		TSubclassOf<UAttachmentModuleUserWidget> CustomWidget;
+
 
 	UPROPERTY(BlueprintReadOnly)
 		bool bIsActive = false;
