@@ -82,7 +82,7 @@ void UEMC_StateModule::CheckHotkeys()
 		// Toggle Hotkey, controls Gravity if allowed
 		if (Controller->WasInputKeyJustPressed(Parent->KB_Toggle))
 		{
-			if (Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasNoGravityMode))
+			if (Parent->Stats.HasFlag(ESuitFlag::SuitFlag_AllowsToggleGravityMode))
 			{
 				Parent->TKey_NoGravity = !Parent->TKey_NoGravity;
 				if (!Controller->HasAuthority())
