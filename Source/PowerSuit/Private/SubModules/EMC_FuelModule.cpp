@@ -54,10 +54,13 @@ void UEMC_FuelModule::PreTick()
 {
 	if (Parent->EquipmentParent->HasAuthority()) 
 	{
-		// only perform refueling actions if allowed to - NOT flying/falling, unless an installed module grants flight refueling
-		if (!((Parent->nMovementMode != EMovementMode::MOVE_Flying && Parent->nMovementMode != EMovementMode::MOVE_Falling) || !Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasAirReFuel)))
-			return;
-
+		if (Parent->nMovementMode == EMovementMode::MOVE_Flying || Parent->nMovementMode == EMovementMode::MOVE_Falling || Parent->nMovementMode == EMovementMode::MOVE_Custom)
+		{
+			// incase we are not moving on the ground 
+			if (!Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasAirReFuel))
+				return;
+		}
+		
 		// if the fuel buffer is empty, consume items to refill it
 		if (Parent->nFuelAmount <= 0)
 		{
