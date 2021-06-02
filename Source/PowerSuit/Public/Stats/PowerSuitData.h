@@ -530,7 +530,12 @@ enum ESuitFlightProperty
 	EFP_mCharacterUseDistanceWhenActive UMETA(Displayname = "mCharacterUseDistanceWhenActive"),
 	/** How much power is drained per second when using the slow fall mode. */
 	EFP_mPowerConsumption UMETA(Displayname = "mPowerConsumption"),
-	/** How much power the hoverpack drains when connected to a grid. */
+	/** How much power the hoverpack drains when connected to a grid.
+	* 
+	* PowerSuit note: In MWs. This is what the hoverpack will actually consume when flying. 
+	* But don't use this for flying power consumption, because it can't shut off the suit.
+	* Use an attachment to do movement state dependent power consumption instead.
+	*/
 	EFP_mPowerDrainRate UMETA(Displayname = "mPowerDrainRate"),
 	/**
 	* Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change.
@@ -686,24 +691,38 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, SaveGame, Category = "EquipmentModule | Resistances")
 		TMap<TSubclassOf<class UFGDamageType>, FModMultProperty> nDamageResistance;
 
-	/*
-	*	What Damage Types the Suits EnergyShield can Absorb
+	/**
+	*	What Damage Types the Suit's EnergyShield can Absorb
 	*/
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ENDamageType))
 		int32 DamageShieldAbsorption;
 
+	/**
+	*	Revoke Damage Types from the Suit's EnergyShield that were granted by other modules.
+	*   Use this to remove suit damage types when a certain module is installed.
+	*   Always takes precedence over DamageShieldAbsorption.
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ENDamageType))
 		int32 RemoveDamageShieldAbsorption;
 
+	/**
+	* Boolean flags for general suit abilities such as being able to enter flight mode.
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ESuitFlag))
 		int32 SuitFlags;
 
+	/**
+	* Unset the values that could have been set in SuitFlags by other modules.
+	* Use this to remove suit abilities when a certain module is installed.
+	* Always takes precedence over SuitFlags.
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ESuitFlag))
 		int32 RemoveSuitFlags;
+
 	/*
 	* Additional slots in the suit's inventory.
-	* Not tested with modules, only with the suit's built in module.
+	* Not tested with much modules, only with the suit's built in module.
+	* Seems to work with modules but need re equip? and might delete modules on change size.
 	*/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, SaveGame, Category = "EquipmentModule | Inventory")
 		int32 InventorySlots;
@@ -715,6 +734,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule | Inventory")
 	APowerSuitModuleAttachment* mCachedAttachment;
 
+	/**
+	* Allow the suit to refill its Fuel by consuming these items from the inventory.
+	*/
 	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule | Inventory")
 	TArray<TSubclassOf<class UFGItemDescriptor>> nUnlockedAllowedFuels;
 
