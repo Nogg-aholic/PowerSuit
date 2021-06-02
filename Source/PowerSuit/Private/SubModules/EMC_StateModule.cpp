@@ -34,12 +34,10 @@ void UEMC_StateModule::PreTick()
 	const EHoverPackMode MM = Parent->EquipmentParent->*get(steal_mCurrentHoverMode());
 	float & Friction = Parent->EquipmentParent->*get(steal_mHoverFriction());
 #endif
-	if (MM == EHoverPackMode::HPM_Hover || MM == EHoverPackMode::HPM_HoverSlowFall)
+
+	if (!Parent->TKey_NoGravity || Parent->Stats.HasFlag(ESuitFlag::SuitFlag_ForceGravityMode))
 	{
-		if (!Parent->TKey_NoGravity || Parent->Stats.HasFlag(ESuitFlag::SuitFlag_ForceGravityMode))
-		{
-			Parent->MoveC->GravityScale = 1.f;
-		}
+		Parent->MoveC->GravityScale = 1.f;
 	}
 
 	if (Parent->TKey_NoFriction)
@@ -133,28 +131,28 @@ void UEMC_StateModule::CheckHotkeys()
 #else
 				const float& JumpHoldTime = Parent->EquipmentParent->*get(steal_mJumpKeyHoldActivationTime());
 #endif
-				if (!Parent->TKey_Fly && (Parent->TKey_Fly_Pressed > JumpHoldTime) || Controller->IsInputKeyDown(EKeys::LeftControl))
+				if (!Parent->TKey_Fly && (Parent->FallingTime > JumpHoldTime) || Controller->IsInputKeyDown(EKeys::LeftControl))
 				{
 
 					if (Parent->EquipmentParent->GetInstigator()->HasAuthority())
 					{
+						Parent->FallingTime = 0;
 						Parent->TKey_Fly = true;
 					}
 					else
 					{
+						Parent->FallingTime = 0;
 						Parent->TKey_Fly = true;
 						Parent->RCO->ServerSetFlying(Parent, true);
 					}
 				}
 				else
 				{
-					Parent->TKey_Fly_Pressed = Parent->TKey_Fly_Pressed + Parent->Delta;
 				}
 			}
 		}
 		else {
-			if (Parent->TKey_Fly_Pressed != 0)
-				Parent->TKey_Fly_Pressed = 0;
+			//if (Parent->TKey_Fly_Pressed != 0)
 		}
 
 		// DownHotkey mostly mapped to C (Crouch)
@@ -203,7 +201,7 @@ void UEMC_StateModule::UpdateSuitState()
 	}
 	else if (Parent->nMovementMode == EMovementMode::MOVE_Custom)
 	{
-		if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_PipeHyper)
+		if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_PipeHyper || Parent->MoveC->IsInHyperPipe())
 		{
 			// Accel and De-Accel both need Power and we use only 1 State 
 			if ((HKey_Accel || HKey_Down) && Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasPipeAccel)) // Is pipe accelerating or decelerating
@@ -221,9 +219,9 @@ void UEMC_StateModule::UpdateSuitState()
 		}
 		else if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_HoverSlowFall && !Parent->TKey_NoGravity)
 		{
+			Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive);
 			Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
 			Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
-			Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive);
 			Parent->SuitState = EPowerSuitState::PS_FALLING;
 			UE_LOG(PowerSuit_Log, Display, TEXT("Disabled SlowFall"));
 		}
@@ -235,38 +233,31 @@ void UEMC_StateModule::UpdateSuitState()
 			{
 				if (!Parent->TKey_NoGravity && !HKey_Up)
 				{
+					Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive);
 					Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
 					Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
-					Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive);
 					Parent->SuitState = EPowerSuitState::PS_FALLING;
 					UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight"));
 				}
 				else
 				{
-					if (HKey_Up)
+					if (HKey_Accel)
+						Parent->SuitState = EPowerSuitState::PS_HOVERSPRINT;
+					else if (HKey_Up)
 						Parent->SuitState = EPowerSuitState::PS_FLYUP;
 					else if (HKey_Down)
 						Parent->SuitState = EPowerSuitState::PS_FLYDOWN;
-					else if (HKey_Accel)
-						Parent->SuitState = EPowerSuitState::PS_HOVERSPRINT;
 					else if (Parent->MoveC->Velocity.Size2D() > 0.1f)
 						Parent->SuitState = EPowerSuitState::PS_HOVERMOVE;
 					else
 						Parent->SuitState = EPowerSuitState::PS_HOVER;
 				}
 			}
-			else if (bCanFly && Parent->TKey_NoGravity && Parent->nCustomMovementMode == ECustomMovementMode::CMM_Hover)
-			{
-				Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_HoverSlowFall);
-				Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_HoverSlowFall);
-				Parent->SuitState = EPowerSuitState::PS_SLOWFALL;
-				UE_LOG(PowerSuit_Log, Display, TEXT("Disabled SlowFall"));
-			}
 			else
 			{
+				Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive);
 				Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
 				Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
-				Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive);
 				Parent->SuitState = EPowerSuitState::PS_FALLING;
 				UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight"));
 			}
@@ -297,8 +288,10 @@ void UEMC_StateModule::UpdateSuitState()
 	}
 	else if (Parent->nMovementMode == EMovementMode::MOVE_Falling)
 	{
+		Parent->FallingTime = Parent->FallingTime + Parent->Delta;
+
 		// if we want to fly and are in the Air we allow if Unlocked
-		if (Parent->TKey_Fly && Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked) && Parent->nCurrentPower > 0.1f)
+		if (Parent->TKey_Fly && Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked) && Parent->nCurrentPower > 0.1f &&  !Parent->MoveC->IsInHyperPipe())
 		{
 			if(!(!Parent->TKey_NoGravity && !HKey_Up))
 			{

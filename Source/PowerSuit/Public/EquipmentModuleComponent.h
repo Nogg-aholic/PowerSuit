@@ -195,7 +195,7 @@ public:
 
 
 	UPROPERTY(BlueprintReadWrite, SaveGame, Category = "EquipmentModule")
-		float TKey_Fly_Pressed;
+		float FallingTime;
 	UPROPERTY(BlueprintReadWrite, SaveGame, Category = "EquipmentModule")
 		bool TKey_Fly;
 	// key is also KB_Up but with delay Timer
