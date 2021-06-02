@@ -502,11 +502,11 @@ enum ESuitFlightProperty
 	* Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change.
 	*/
 	EFP_NULL UMETA(hidden, Displayname = "NULL"),
-	/** How fast the character moves with the hover pack. */
+	/** How fast the character moves with the hover pack. Base game is 650.0f */
 	EFP_mHoverSpeed UMETA(Displayname = "mHoverSpeed"),
 	/** How fast the hoverpack accelerates. Units / Second. Might need to be higher / lower depending on hover friction. */
 	EFP_mHoverAccelerationSpeed UMETA(Displayname = "mHoverAccelerationSpeed"),
-	/** How fast the character moves with the hover pack when sprinting. */
+	/** How fast the character moves with the hover pack when sprinting. Base game is is 2.0f*/
 	EFP_mHoverSprintMultiplier UMETA(Displayname = "mHoverSprintMultiplier"),
 	/** How fast the character moves with the hover pack when rail surfing. */
 	EFP_mRailRoadSurfSpeed UMETA(Displayname = "mRailRoadSurfSpeed"),
@@ -532,8 +532,8 @@ enum ESuitFlightProperty
 	EFP_mPowerConsumption UMETA(Displayname = "mPowerConsumption"),
 	/** How much power the hoverpack drains when connected to a grid.
 	* 
-	* PowerSuit note: In MWs. This is what the hoverpack will actually consume when flying. 
-	* But don't use this for flying power consumption, because it can't shut off the suit.
+	* PowerSuit note: Modified to be in MWs. This is what the hoverpack will actually consume when flying. 
+	* But don't use this for flying power consumption, because it can't shut off the suit when you run out (base game clamped).
 	* Use an attachment to do movement state dependent power consumption instead.
 	*/
 	EFP_mPowerDrainRate UMETA(Displayname = "mPowerDrainRate"),
