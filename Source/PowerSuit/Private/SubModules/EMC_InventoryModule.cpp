@@ -273,34 +273,36 @@ void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & S
 	}
 	if (Stack.Item.HasState() || StatsRef.mCachedAttachment)
 	{
-		APowerSuitModuleAttachment* Equipment = StatsRef.mCachedAttachment ? StatsRef.mCachedAttachment : Cast< APowerSuitModuleAttachment>(Stack.Item.ItemState.Get());
-		if (Equipment)
+		APowerSuitModuleAttachment* Attachment = StatsRef.mCachedAttachment ? StatsRef.mCachedAttachment : Cast< APowerSuitModuleAttachment>(Stack.Item.ItemState.Get());
+		if (Attachment)
 		{
-			if (Equipment->GetIsConditionMet())
+			if (Attachment->GetIsConditionMet())
 			{
-				if (Parent->AttachmentModule->InactiveAttachments.Contains(Equipment))
-					Parent->AttachmentModule->InactiveAttachments.Remove(Equipment);
+				if (Parent->AttachmentModule->InactiveAttachments.Contains(Attachment))
+					Parent->AttachmentModule->InactiveAttachments.Remove(Attachment);
 
-				if (!Parent->AttachmentModule->Attachments.Contains(Equipment))
-					Parent->AttachmentModule->Attachments.Add(Equipment);
+				if (!Parent->AttachmentModule->Attachments.Contains(Attachment))
+					Parent->AttachmentModule->Attachments.Add(Attachment);
 
-				Equipment->AttachToSuit(Parent->EquipmentParent);
-				Equipment->SetOwner(Parent->EquipmentParent->GetOwner());
-				Equipment->SetInstigator(Parent->EquipmentParent->GetInstigator());
-				Equipment->AttachmentInstalled(Stack.Item);
-				Equipment->InventorySlot = StatsRef.mCachedInventorySlot;
-				StatsRef.mCachedAttachment = Equipment;
+				Attachment->InventorySlot = StatsRef.mCachedInventorySlot; // This happens before events so that InventorySlot is valid when the events process things
+
+				Attachment->AttachToSuit(Parent->EquipmentParent);
+				Attachment->SetOwner(Parent->EquipmentParent->GetOwner());
+				Attachment->SetInstigator(Parent->EquipmentParent->GetInstigator());
+				Attachment->AttachmentInstalled(Stack.Item);
+				
+				StatsRef.mCachedAttachment = Attachment;
 				Parent->Stats + StatsRef;
 				const TSubclassOf< class UEquipmentModuleDescriptor> Item = Stack.Item.ItemClass;
 				StatsRef.UnlockFuels(Parent, Item.GetDefaultObject()->nAllowedFuels);
 			}
 			else
 			{
-				if (Parent->AttachmentModule->Attachments.Contains(Equipment))
-					Parent->AttachmentModule->Attachments.Remove(Equipment);
+				if (Parent->AttachmentModule->Attachments.Contains(Attachment))
+					Parent->AttachmentModule->Attachments.Remove(Attachment);
 
-				if (!Parent->AttachmentModule->InactiveAttachments.Contains(Equipment))
-					Parent->AttachmentModule->InactiveAttachments.Add(Equipment);
+				if (!Parent->AttachmentModule->InactiveAttachments.Contains(Attachment))
+					Parent->AttachmentModule->InactiveAttachments.Add(Attachment);
 			}
 		}
 	}
