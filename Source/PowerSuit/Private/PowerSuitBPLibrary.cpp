@@ -138,6 +138,55 @@ void UPowerSuitBPLibrary::UpdateMovementComponent(APowerSuit * EquipmentParent)
 	MovementComponent->*get(steal_mZiplineSpeedMultiplierUp()) +=  EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mZiplineSpeedMultiplierUp).value();
 	MovementComponent->*get(steal_mZiplineSpeedMultiplierDown()) +=  EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mZiplineSpeedMultiplierDown).value();
 #endif
+
+
+	// Setup component properties factoring in the defaults for the player character
+	MovementComponent->JumpZVelocity *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_JumpZVelocity).ClampMult(); // ESMC_JumpZVelocity
+	MovementComponent->JumpOffJumpZFactor *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_JumpZVelocity).ClampMult(); // ESMC_JumpOffJumpZFactor
+	MovementComponent->GravityScale *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_GravityScale).ClampMult(); // ESMC_GravityScale
+#ifdef FOR_MODSHIPPING
+
+	MovementComponent->mBoostJumpZMultiplier *= EquipmentParent->Module->GetMovementPropertySafe(ESMC_mBoostJumpZMultiplier).ClampMult(); // ESMC_mBoostJumpZMultiplier
+	MovementComponent->mBoostJumpVelocityMultiplier *= EquipmentParent->Module->GetMovementPropertySafe(ESMC_mBoostJumpVelocityMultiplier).ClampMult(); // ESMC_mBoostJumpVelocityMultiplier
+#else
+	MovementComponent->*get(steal_mBoostJumpZMultiplier()) *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mBoostJumpZMultiplier).ClampMult(); // ESMC_mBoostJumpZMultiplier 
+	MovementComponent->*get(steal_mBoostJumpVelocityMultiplier()) *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mBoostJumpVelocityMultiplier).ClampMult(); // ESMC_mBoostJumpVelocityMultiplier
+#endif
+	MovementComponent->GroundFriction *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_GroundFriction).ClampMult(); // ESMC_GroundFriction
+	MovementComponent->MaxWalkSpeed *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_MaxWalkSpeed).ClampMult(); //ESMC_MaxWalkSpeed
+	MovementComponent->MaxWalkSpeedCrouched *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_MaxWalkSpeedCrouched).ClampMult(); // ESMC_MaxWalkSpeedCrouched
+	MovementComponent->MaxSwimSpeed *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_MaxSwimSpeed).ClampMult(); //ESMC_MaxSwimSpeed
+	MovementComponent->BrakingFrictionFactor *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_BrakingFrictionFactor).ClampMult(); //	ESMC_BrakingFrictionFactor 
+	MovementComponent->BrakingFriction *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_BrakingFriction).ClampMult(); //ESMC_BrakingFriction
+	MovementComponent->BrakingDecelerationWalking *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_BrakingDecelerationWalking).ClampMult(); //ESMC_BrakingDecelerationWalking
+	MovementComponent->BrakingDecelerationFalling *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_BrakingDecelerationFalling).ClampMult(); //ESMC_BrakingDecelerationSwimming
+	MovementComponent->BrakingDecelerationSwimming *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_BrakingDecelerationSwimming).ClampMult(); //ESMC_BrakingDecelerationFalling
+	MovementComponent->FallingLateralFriction *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_FallingLateralFriction).ClampMult(); // ESMC_FallingLateralFriction
+
+
+	MovementComponent->mClimbSpeed *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mClimbSpeed).ClampMult(); // ESMC_mClimbSpeed
+	MovementComponent->mMaxSprintSpeed *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSprintSpeed).ClampMult(); //ESMC_mMaxSprintSpeed
+	//  Tick overrides ref->mMaxSlideAngle = Stats.mMaxSlideAngle + 1.64999997615814f; // ESMC_mMaxSlideAngle
+#ifdef FOR_MODSHIPPING
+
+	MovementComponent->mBoostJumpTimeWindow *= EquipmentParent->Module->GetMovementPropertySafe(ESMC_mBoostJumpTimeWindow).ClampMult(); //ESMC_mBoostJumpTimeWindow
+
+	MovementComponent->mZiplineSpeed *= EquipmentParent->Module->GetMovementPropertySafe(ESMC_mZiplineSpeed).ClampMult(); // ESMC_mZiplineSpeed
+	MovementComponent->mZiplineCorrectionSpeedMultiplier *= EquipmentParent->Module->GetMovementPropertySafe(ESMC_mZiplineCorrectionSpeedMultiplier).ClampMult(); //ESMC_mZiplineCorrectionSpeedMultiplier
+	MovementComponent->mZiplineVelocityInterpolationSpeed *= EquipmentParent->Module->GetMovementPropertySafe(ESMC_mZiplineVelocityInterpolationSpeed).ClampMult();
+	MovementComponent->mZiplineSpeedMultiplierUp *= EquipmentParent->Module->GetMovementPropertySafe(ESMC_mZiplineSpeedMultiplierUp).ClampMult();
+	MovementComponent->mZiplineSpeedMultiplierDown *= EquipmentParent->Module->GetMovementPropertySafe(ESMC_mZiplineSpeedMultiplierDown).ClampMult();
+#else
+	MovementComponent->*get(steal_mBoostJumpTimeWindow()) *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mBoostJumpTimeWindow).ClampMult(); //ESMC_mBoostJumpTimeWindow
+	MovementComponent->*get(steal_mZiplineSpeed()) *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mZiplineSpeed).ClampMult(); // ESMC_mZiplineSpeed
+	MovementComponent->*get(steal_mZiplineCorrectionSpeedMultiplier()) *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mZiplineCorrectionSpeedMultiplier).ClampMult(); //ESMC_mZiplineCorrectionSpeedMultiplier
+	MovementComponent->*get(steal_mZiplineVelocityInterpolationSpeed()) *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mZiplineVelocityInterpolationSpeed).ClampMult();
+	MovementComponent->*get(steal_mZiplineSpeedMultiplierUp()) *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mZiplineSpeedMultiplierUp).ClampMult();
+	MovementComponent->*get(steal_mZiplineSpeedMultiplierDown()) *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mZiplineSpeedMultiplierDown).ClampMult();
+#endif
+
+
+	
 }
 
 
@@ -228,6 +277,47 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent) {
 	EquipmentParent->*get(steal_mPowerDrainRate()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerDrainRate).value();
 	EquipmentParent->*get(steal_mPowerConsumption()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConsumption).value();
 	EquipmentParent->*get(steal_mPowerCapacity()) += EquipmentParent->Module->GetSuitPropertySafe(ESuitProperty::nPowerCapacity).value();
+#endif
+
+
+
+#ifdef FOR_MODSHIPPING
+
+	EquipmentParent->mHoverSpeed *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverSpeed).ClampMult();
+	EquipmentParent->mHoverAccelerationSpeed *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverAccelerationSpeed).ClampMult();
+	EquipmentParent->mHoverSprintMultiplier *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverSprintMultiplier).ClampMult();
+	EquipmentParent->mRailRoadSurfSpeed *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mRailRoadSurfSpeed).ClampMult();
+	EquipmentParent->mRailroadSurfSensitivity *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mRailroadSurfSensitivity).ClampMult();
+	EquipmentParent->mHoverFriction *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverFriction).ClampMult();
+	EquipmentParent->mJumpKeyHoldActivationTime *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mJumpKeyHoldActivationTime).ClampMult();
+	EquipmentParent->mFallSpeedLimitWhenPowered *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mFallSpeedLimitWhenPowered).ClampMult();
+	EquipmentParent->mPowerConnectionSearchRadius *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionSearchRadius).ClampMult();
+	EquipmentParent->mPowerConnectionSearchTickRate *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionSearchTickRate).ClampMult();
+	EquipmentParent->mPowerConnectionDisconnectionTime *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionDisconnectionTime).ClampMult();
+	EquipmentParent->mCrouchHoverCancelTime *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mCrouchHoverCancelTime).ClampMult();
+	EquipmentParent->mCharacterUseDistanceWhenActive *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mCharacterUseDistanceWhenActive).ClampMult();
+	EquipmentParent->mPowerDrainRate *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerDrainRate).ClampMult();
+	EquipmentParent->mPowerConsumption *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConsumption).ClampMult();
+	EquipmentParent->mPowerCapacity *= EquipmentParent->Module->GetSuitPropertySafe(ESuitProperty::nPowerCapacity).ClampMult();
+#else
+
+
+	EquipmentParent->*get(steal_mHoverSpeed()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverSpeed).ClampMult();
+	EquipmentParent->*get(steal_mHoverAccelerationSpeed()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverAccelerationSpeed).ClampMult();
+	EquipmentParent->*get(steal_mHoverSprintMultiplier()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverSprintMultiplier).ClampMult();
+	EquipmentParent->*get(steal_mRailRoadSurfSpeed()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mRailRoadSurfSpeed).ClampMult();
+	EquipmentParent->*get(steal_mRailroadSurfSensitivity()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mRailroadSurfSensitivity).ClampMult();
+	EquipmentParent->*get(steal_mHoverFriction()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverFriction).ClampMult();
+	EquipmentParent->*get(steal_mJumpKeyHoldActivationTime()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mJumpKeyHoldActivationTime).ClampMult();
+	EquipmentParent->*get(steal_mFallSpeedLimitWhenPowered()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mFallSpeedLimitWhenPowered).ClampMult();
+	EquipmentParent->*get(steal_mPowerConnectionSearchRadius()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionSearchRadius).ClampMult();
+	EquipmentParent->*get(steal_mPowerConnectionSearchTickRate()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionSearchTickRate).ClampMult();
+	EquipmentParent->*get(steal_mPowerConnectionDisconnectionTime()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionDisconnectionTime).ClampMult();
+	EquipmentParent->*get(steal_mCrouchHoverCancelTime()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mCrouchHoverCancelTime).ClampMult();
+	EquipmentParent->*get(steal_mCharacterUseDistanceWhenActive()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mCharacterUseDistanceWhenActive).ClampMult();
+	EquipmentParent->*get(steal_mPowerDrainRate()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerDrainRate).ClampMult();
+	EquipmentParent->*get(steal_mPowerConsumption()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConsumption).ClampMult();
+	EquipmentParent->*get(steal_mPowerCapacity()) *= EquipmentParent->Module->GetSuitPropertySafe(ESuitProperty::nPowerCapacity).ClampMult();
 #endif
 }
 

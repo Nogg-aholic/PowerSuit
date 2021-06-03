@@ -611,6 +611,10 @@ public:
 	float Clamp() const {
 		return FMath::Clamp((Multiplier + 1) * (Modifier), 0.f, 99999999.f);
 	}
+	// 1 Based Multiplier Clamped to [0 <-> 99999999]
+	float ClampMult()const {
+		return FMath::Clamp(Multiplier + 1, 0.f, 99999999.f);
+	}
 	// since + is already in use for Modifier Adding you can use % to add Both Mult and Mod together
 	FModMultProperty operator%(const FModMultProperty& Input) {
 		Modifier = Input.Modifier + Modifier;
