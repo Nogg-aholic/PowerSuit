@@ -562,22 +562,25 @@ public:
 	FModMultProperty();
 
 	/**
-	* Additive multiplier for the property. This number is first added to 1.0, then all Multiplier values are summed, then multiplied with the sum of the Modifiers.
-	* End result value is Base + (SumOfModifiers * SumOfMultipliers)
-	* Make sure you have a Modifier set by some module (or the suit) for it to act on - zero times any Multiplier value is still zero.
+	* Additive multiplier for the property. This number is first added to 1.0, then all Multiplier values are summed, then multiplied with the sum of the Modifiers of base.
+	* End result value is (Base + SumOfModifiers) * SumOfMultipliers
+	* Note that Multipliers will apply to the base game values for stats as well, not just the Modifier.
+	    Ex. walk speed Mult -1.0f means your walking speed becomes 0% of base + Mod -> you can't walk regardless of Mod
+	* 
 	* Examples:
 	*	0.0f	->	No change
 	*	0.1f	->	+10%
 	*	1.0f	->	+100%
-	*	-1.0f	->	-100% Keep in mind that this can still be counteracted with positive values - this doesn't necessarily mean "set to zero"
 	*	-0.1f	->	-10%
+	*	-1.0f	->	-100% Keep in mind that this can still be counteracted with positive Multipliers - this doesn't necessarily mean "permanent set to zero"
+	*	-10.0f	->	-1000% Same as -1.0f if there is nothing else adding positive Multipliers.
 	*/
 	UPROPERTY(EditDefaultsOnly, SaveGame, BlueprintReadWrite)
 		float Multiplier = 0;
 
 	/**
 	* Additive modifier for the property. This number is summed with the other Modifiers before multiplication with Multipliers.
-	* End result value is Base + (SumOfModifiers * SumOfMultipliers)
+	* End result value is (Base + SumOfModifiers) * SumOfMultipliers
 	* Most speed-related values are in cm/s
 	* Most time-related values are in seconds
 	* Examples:
