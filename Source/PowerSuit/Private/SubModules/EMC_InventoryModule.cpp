@@ -106,7 +106,10 @@ void UEMC_InventoryModule::ResetInventoryStats()
 	ItemsRemembered.Empty();
 	UniquesActive.Empty();
 	Parent->FuelModule->nAllowedFuels.Empty();
-
+	for (auto i : Parent->EquipmentParent->mCostToUse)
+	{
+		Parent->FuelModule->nAllowedFuels.Add(i.ItemClass);
+	}
 }
 
 
