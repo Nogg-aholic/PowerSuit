@@ -367,7 +367,7 @@ enum ESuitProperty
 	nFuelEfficiency UMETA(Displayname = "nFuelEfficiency"),
 
 	/**
-	* How much Fuel can we Load from the Buffer to the Tank?
+	* How much Fuel (in MW seconds) can the fuel tank hold?
 	*/
 	nFuelTankSize  UMETA(Displayname = "FuelTankSize"),
 
