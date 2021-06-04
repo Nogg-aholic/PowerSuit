@@ -192,6 +192,7 @@ void UEMC_StateModule::UpdateSuitState()
 	// Deterministic solveable through RCO replicated Key inputs and serverside replicated properties
 	if (!Parent->EquipmentParent->HasAuthority())
 	{
+		Parent->FallingTime = Parent->FallingTime + Parent->Delta;
 		return;
 	}
 
