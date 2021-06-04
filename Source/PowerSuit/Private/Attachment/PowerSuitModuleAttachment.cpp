@@ -82,7 +82,7 @@ void APowerSuitModuleAttachment::SetSuitMovementProperty(ESuitMovementProperty E
 {
 	if (!HasAuthority())
 	{
-		Parent->RCO->ServerSetSuitMovementProperty(this, Enum, Property);
+		ParentModule->RCO->ServerSetSuitMovementProperty(this, Enum, Property);
 	}
 
 	if (Enum >= ESuitMovementProperty::ESMC_JumpZVelocity && Enum <= ESuitMovementProperty::ESMC_MAX)
@@ -95,7 +95,7 @@ void APowerSuitModuleAttachment::SetSuitFlightProperty(ESuitFlightProperty Enum,
 {
 	if (!HasAuthority())
 	{
-		Parent->RCO->ServerSetSuitFlightProperty(this, Enum, Property);
+		ParentModule->RCO->ServerSetSuitFlightProperty(this, Enum, Property);
 	}
 	if (Enum >= ESuitFlightProperty::EFP_mHoverSpeed && Enum <= ESuitFlightProperty::EFP_MAX)
 	{
@@ -107,7 +107,7 @@ void APowerSuitModuleAttachment::SetSuitProperty(ESuitProperty Enum, FModMultPro
 {
 	if (!HasAuthority())
 	{
-		Parent->RCO->ServerSetSuitProperty(this, Enum, Property);
+		ParentModule->RCO->ServerSetSuitProperty(this, Enum, Property);
 	}
 	if (Enum >= ESuitProperty::nPowerCapacity && Enum <= ESuitProperty::SuitPropertyMAX)
 	{
@@ -121,7 +121,7 @@ void APowerSuitModuleAttachment::SetPropertyGeneral(EEquipmentStatsProperty Prop
 {
 	if (!HasAuthority())
 	{
-		Parent->RCO->ServerSetPropertyGeneral(this, PropertyType,Index, Property);
+		ParentModule->RCO->ServerSetPropertyGeneral(this, PropertyType,Index, Property);
 	}
 	switch (PropertyType)
 	{
@@ -150,7 +150,7 @@ void APowerSuitModuleAttachment::SetSuitFlag(ESuitFlag Flag, bool Enabled)
 {
 	if (!HasAuthority())
 	{
-		Parent->RCO->ServerSetSuitFlag(this, Flag, Enabled);
+		ParentModule->RCO->ServerSetSuitFlag(this, Flag, Enabled);
 	}
 	const bool Has = AttachmentStats.HasFlag(Flag);
 	if (Has && Enabled)

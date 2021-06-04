@@ -285,7 +285,7 @@ void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & S
 					Parent->AttachmentModule->Attachments.Add(Attachment);
 
 				Attachment->InventorySlot = StatsRef.mCachedInventorySlot; // This happens before events so that InventorySlot is valid when the events process things
-				Attachment->Parent = Parent;
+				Attachment->ParentModule = Parent;
 				Attachment->AttachToSuit(Parent->EquipmentParent);
 				Attachment->SetOwner(Parent->EquipmentParent->GetOwner());
 				Attachment->SetInstigator(Parent->EquipmentParent->GetInstigator());
@@ -495,7 +495,7 @@ void  UEMC_InventoryModule::SubtractModuleStats(const TSubclassOf< class UEquipm
 
 			Equipment->DetachFromSuit();
 			Equipment->AttachmentUnInstalled();
-			Equipment->Parent = nullptr;
+			Equipment->ParentModule = nullptr;
 		}
 	}
 }
@@ -543,9 +543,9 @@ FEquipmentStats UEMC_InventoryModule::GetModuleStats(const FInventoryStack Stack
 			Equipment = Cast< APowerSuitModuleAttachment>(Stack.Item.ItemState.Get());
 			if (Equipment)
 			{
+				Equipment->ParentModule = Parent;
 				if (Equipment->GetIsConditionMet())
 				{
-					Equipment->Parent = Parent;
 					StatObject = Equipment->ReceiveModuleStats(ItemObj->EquipmentStats);
 				}
 				else
@@ -573,9 +573,9 @@ FEquipmentStats UEMC_InventoryModule::GetModuleStats(const FInventoryStack Stack
 					// ItemState isnt directly aviable even on Server apparantly
 					if (Equipment)
 					{
+						Equipment->ParentModule = Parent;
 						if (Equipment->GetIsConditionMet())
 						{
-							Equipment->Parent = Parent;
 							StatObject = Equipment->ReceiveModuleStats(ItemObj->EquipmentStats);
 						}
 						else
@@ -621,7 +621,7 @@ APowerSuitModuleAttachment* UEMC_InventoryModule::CreateAttachmentStateIfNeeded(
 			APowerSuitModuleAttachment* Equipment = Cast< APowerSuitModuleAttachment>(Parent->EquipmentParent->GetWorld()->SpawnActor(ItemObj->GetnAttachment(Item), &Loc, &Rot, SpawnSettings));
 			check(Equipment);
 			Equipment->SetReplicates(true);
-			Equipment->Parent = Parent;
+			Equipment->ParentModule = Parent;
 			Parent->nInventory->SetStateOnIndex(Index, FSharedInventoryStatePtr::MakeShared(Equipment));
 			UE_LOG(PowerSuit_Log, Display, TEXT("Created Module Descriptor Attachment Actor %s"), *Equipment->GetName());
 			return Equipment;

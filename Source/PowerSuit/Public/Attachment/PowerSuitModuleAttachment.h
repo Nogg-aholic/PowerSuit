@@ -99,7 +99,7 @@ public:
 
 	// The (parent) Equipment Module that owns this attachment instance. Access suit properties and module stuff from this.
 	UPROPERTY(BlueprintReadOnly)
-	UEquipmentModuleComponent * Parent;
+	UEquipmentModuleComponent * ParentModule;
 
 	// Slot index of the module in the suit inventory
 	UPROPERTY(BlueprintReadOnly)
