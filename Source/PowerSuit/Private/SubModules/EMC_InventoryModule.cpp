@@ -37,6 +37,12 @@ AFGCharacterPlayer* UEMC_InventoryModule::InitInventory()
 	}
 	else
 	{
+		if (Parent->EquipmentParent->HasAuthority())
+		{
+			Parent->EquipmentParent->Server_WaitAndInitRemote();
+			Parent->ResetStats();
+			Parent->nProducing = false;
+		}
 		BulkUpdateStats(Parent->nInventory);
 		// setup binding to Inventory changes 
 	}

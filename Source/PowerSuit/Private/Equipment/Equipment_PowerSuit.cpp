@@ -86,7 +86,7 @@ void  APowerSuit::UnEquip()
 	{
 		Module->ResetStats();
 	}
-	Super::UnEquip();
+	//Super::UnEquip();
 	SetInstigator(nullptr);
 	SetOwner(nullptr);
 };
