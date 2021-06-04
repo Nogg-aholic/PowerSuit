@@ -399,8 +399,11 @@ void UEMC_StateModule::HoverModeChange()
 	float & mCurrentPowerLevel_ = Parent->EquipmentParent->*get(steal_mCurrentPowerLevel());
 	float & mPowerCapacity_ = Parent->EquipmentParent->*get(steal_mPowerCapacity());
 #endif
-	mCurrentPowerLevel_ = FMath::Clamp(Parent->nCurrentPower, 0.f, mPowerCapacity_);
-	if (!Parent->EquipmentParent->HasAuthority())
+	if (Parent->EquipmentParent->HasAuthority())
+	{
+		mCurrentPowerLevel_ = FMath::Clamp(Parent->nCurrentPower, 0.f, mPowerCapacity_);
+	}
+	else
 	{
 		UE_LOG(PowerSuit_Log, Display, TEXT("Remote ! Hover modo changed  %i"), static_cast<int32>(mCurrentHoverMode));
 		Parent->RCO->ServerUpdateCurrentHoverMode(Parent,mCurrentHoverMode);
