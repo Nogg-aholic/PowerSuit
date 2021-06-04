@@ -41,7 +41,8 @@ bool UEMC_FuelModule::ConsumeFuelItem(UFGInventoryComponent* Inventory, TSubclas
 		if (Inventory->HasItems(inClass, inAmount))
 		{
 			Inventory->Remove(inClass, inAmount);
-			Parent->nFuelAmount = FMath::Clamp(inAmount* inClass.GetDefaultObject()->mEnergyValue * Parent->GetSuitPropertySafe(ESuitProperty::nFuelEfficiency).ClampAdd(1), 0.f, Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value());
+			const float MJPercent = (inAmount* inClass.GetDefaultObject()->mEnergyValue * Parent->GetSuitPropertySafe(ESuitProperty::nFuelEfficiency).ClampAdd(1) ) / FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value(),0.01f,99999999999.f);
+			Parent->nFuelAmount = FMath::Clamp(MJPercent, 0.f, 1.f);
 			Parent->OnConsumeFuelItem.Broadcast(inClass, 0, 1);
 			return true;
 		}
@@ -103,7 +104,7 @@ void UEMC_FuelModule::PostTick() const
 		// Subtracting the Fuel Consumption Cost in MJ for this frame(Delta)
 		// division by MJ of the Item brings us back to Percent
 		const float MJCurrent = Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value() * FMath::Clamp(Parent->nFuelAmount, 0.f, 1.f);
-		Parent->nFuelAmount = FMath::Clamp(((MJCurrent - (Parent->nFuelConsumption * Parent->Delta)))/FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value(), 1.f, 99999.f), 0.f, 1.f);
+		Parent->nFuelAmount = FMath::Clamp(((MJCurrent - (Parent->nFuelConsumption * Parent->Delta)))/FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value(), 1.f, 999999999.f), 0.f, 1.f);
 	}
 }
 

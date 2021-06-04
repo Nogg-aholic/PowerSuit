@@ -19,6 +19,8 @@ void UPowerSuitRCO::ServerSetFrictionMode_Implementation(UEquipmentModuleCompone
 	if (!Component)
 		return;
 	Component->TKey_NoFriction = State;
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO Server Friction %b"),Component->TKey_NoFriction);
+
 }
 
 void UPowerSuitRCO::ServerSetEMovementMode_Implementation(UEquipmentModuleComponent* Component, uint8 Enum)
@@ -26,6 +28,7 @@ void UPowerSuitRCO::ServerSetEMovementMode_Implementation(UEquipmentModuleCompon
 	if (!Component)
 		return;
 	Component->nMovementMode = static_cast<EMovementMode>(Enum);
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO Server nMovementMode %i"),Component->nMovementMode);
 
 }
 
@@ -34,6 +37,7 @@ void UPowerSuitRCO::ServerSetEMovementModeCustom_Implementation(UEquipmentModule
 	if (!Component)
 		return;
 	Component->nCustomMovementMode = Enum;
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO Server nCustomMovementMode %i"),Component->nCustomMovementMode);
 
 }
 
@@ -42,6 +46,8 @@ void UPowerSuitRCO::ServerSetHotKeyDirectionalAccel_Implementation(UEquipmentMod
 	if (!Component)
 		return;
 	Component->StateModule->HKey_Accel = State;
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO Server HKey_Accel %i"),Component->StateModule->HKey_Accel);
+
 }
 
 
@@ -50,6 +56,8 @@ void UPowerSuitRCO::ServerSetHotKeyDirectionalDeAccel_Implementation(UEquipmentM
 	if (!Component)
 		return;
 	Component->StateModule->HKey_Breaks = State;
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO Server HKey_Breaks %i"),Component->StateModule->HKey_Breaks);
+
 }
 
 
@@ -58,6 +66,8 @@ void UPowerSuitRCO::ServerSetHotKeyDownAccel_Implementation(UEquipmentModuleComp
 	if (!Component)
 		return;
 	Component->StateModule->HKey_Down = State;
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO Server HKey_Down %i"),Component->StateModule->HKey_Down);
+
 }
 
 
@@ -66,6 +76,8 @@ void UPowerSuitRCO::ServerSetHotKeyUpAccel_Implementation(UEquipmentModuleCompon
 	if (!Component)
 		return;
 	Component->StateModule->HKey_Up = State;
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO Server HKey_Up %i"),Component->StateModule->HKey_Up);
+
 }
 
 
@@ -74,6 +86,8 @@ void UPowerSuitRCO::ServerSetFlying_Implementation(UEquipmentModuleComponent* Co
 	if (!Component)
 		return;
 	Component->TKey_Fly = State;
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO Server TKey_Fly %i"),Component->TKey_Fly);
+
 }
 
 
@@ -82,6 +96,8 @@ void UPowerSuitRCO::ServerSetIsSliding_Implementation(UEquipmentModuleComponent*
 	if (!Component)
 		return;
 	Component->StateModule->nIsSliding = State;
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO Server nIsSliding %i"),Component->StateModule->nIsSliding);
+
 }
 
 
@@ -90,6 +106,8 @@ void UPowerSuitRCO::ServerSetIsSprinting_Implementation(UEquipmentModuleComponen
 	if (!Component)
 		return;
 	Component->StateModule->nIsSprinting = State;
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO Server nIsSprinting %i"),Component->StateModule->nIsSprinting);
+
 }
 
 
@@ -98,6 +116,8 @@ void UPowerSuitRCO::ServerSetGravityMode_Implementation(UEquipmentModuleComponen
 	if (!Component)
 		return;
 	Component->TKey_NoGravity = State;
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO Server TKey_NoGravity %i"),Component->TKey_NoGravity);
+
 }
 
 
@@ -107,6 +127,8 @@ void UPowerSuitRCO::ServerSetAttachmentFloatValue_Implementation(APowerSuitModul
 	if (!Component)
 		return;
 	Component->ServerSetFloatValue(State, Index);
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO  ServerSetFloatValue %f On Index : %i"),State,Index);
+
 };
 
 
@@ -116,6 +138,7 @@ void UPowerSuitRCO::ServerSetAttachmentBoolValue_Implementation(APowerSuitModule
 	if (!Component)
 		return;
 	Component->ServerSetBoolValue(State, Index);
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO  ServerSetBoolValue %b On Index : %i"),State,Index);
 
 };
 
@@ -126,6 +149,8 @@ void UPowerSuitRCO::ServerUpdateOnIndex_Implementation(UEquipmentModuleComponent
 	if (!Component)
 		return;
 	Component->InventoryModule->UpdateOnIndex(Index);
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO  UpdateOnIndex Index : %i"),Index);
+
 
 }
 
@@ -137,6 +162,7 @@ void UPowerSuitRCO::ServerSetSuitMovementProperty_Implementation(APowerSuitModul
 	if (!Attachment)
 		return;
 	Attachment->SetSuitMovementProperty(Enum, Property);
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO  SetSuitMovementProperty %i On Value: %f"),Enum,Property.value());
 
 }
 
@@ -146,6 +172,7 @@ void UPowerSuitRCO::ServerSetSuitFlightProperty_Implementation(APowerSuitModuleA
 		return;
 	Attachment->SetSuitFlightProperty(Enum, Property);
 
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO  SetSuitFlightProperty %i On Value: %f"),Enum,Property.value());
 
 }
 
@@ -154,6 +181,7 @@ void UPowerSuitRCO::ServerSetSuitProperty_Implementation(APowerSuitModuleAttachm
 	if (!Attachment)
 		return;
 	Attachment->SetSuitProperty(Enum, Property);
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO  SetSuitProperty %i On Value: %f"),Enum,Property.value());
 
 }
 
@@ -162,6 +190,8 @@ void UPowerSuitRCO::ServerSetPropertyGeneral_Implementation(APowerSuitModuleAtta
 	if (!Attachment)
 		return;
 	Attachment->SetPropertyGeneral(PropertyType,Index,  Property);
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO  SetPropertyGeneral %i On Index : %i Value: %f"),PropertyType,Index,Property.value());
+
 }
 
 void UPowerSuitRCO::ServerSetSuitFlag_Implementation(APowerSuitModuleAttachment* Attachment, ESuitFlag Flag, bool Enabled)
@@ -169,6 +199,8 @@ void UPowerSuitRCO::ServerSetSuitFlag_Implementation(APowerSuitModuleAttachment*
 	if (!Attachment)
 		return;
 	Attachment->SetSuitFlag(Flag, Enabled);
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO  SetSuitFlag %i  State : %b "),Flag,Enabled);
+
 }
 
 
@@ -188,5 +220,7 @@ void UPowerSuitRCO::ServerUpdateCurrentHoverMode_Implementation(UEquipmentModule
 	int32 ValueNew = static_cast<int32>(Index);
 
 	Component->EquipmentParent->SetHoverMode(Index, false);
+	UE_LOG(PowerSuit_Log, Display, TEXT("RCO  SetHoverMode : %i "),Index);
+
 }
 

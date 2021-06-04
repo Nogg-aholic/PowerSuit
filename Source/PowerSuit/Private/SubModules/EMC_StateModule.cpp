@@ -192,13 +192,33 @@ void UEMC_StateModule::UpdateSuitState()
 	// Deterministic solveable through RCO replicated Key inputs and serverside replicated properties
 	if (!Parent->EquipmentParent->HasAuthority())
 	{
-		Parent->FallingTime = Parent->FallingTime + Parent->Delta;
+		if (!Parent->nProducing)
+		{
+			Parent->TKey_Fly = false;
+			Parent->TKey_NoGravity = false;
+			Parent->TKey_NoFriction = false;
+		}
+		if (Parent->nMovementMode == EMovementMode::MOVE_Falling)
+		{
+			Parent->FallingTime = Parent->FallingTime + Parent->Delta;
+		}
 		return;
 	}
 
 	if (!Parent->nProducing)
 	{
 		Parent->SuitState = EPowerSuitState::PS_REBOOTING;
+		Parent->TKey_Fly = false;
+		Parent->TKey_NoGravity = false;
+		Parent->TKey_NoFriction = false;
+		if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_Hover || Parent->nCustomMovementMode == ECustomMovementMode::CMM_HoverSlowFall)
+		{
+			Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive);
+			Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
+			Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
+			Parent->SuitState = EPowerSuitState::PS_FALLING;
+			UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight"));
+		}
 	}
 	else if (Parent->nMovementMode == EMovementMode::MOVE_Custom)
 	{
