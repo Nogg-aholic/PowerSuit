@@ -285,7 +285,7 @@ void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & S
 					Parent->AttachmentModule->Attachments.Add(Attachment);
 
 				Attachment->InventorySlot = StatsRef.mCachedInventorySlot; // This happens before events so that InventorySlot is valid when the events process things
-
+				Attachment->Parent = Parent;
 				Attachment->AttachToSuit(Parent->EquipmentParent);
 				Attachment->SetOwner(Parent->EquipmentParent->GetOwner());
 				Attachment->SetInstigator(Parent->EquipmentParent->GetInstigator());
@@ -495,6 +495,7 @@ void  UEMC_InventoryModule::SubtractModuleStats(const TSubclassOf< class UEquipm
 
 			Equipment->DetachFromSuit();
 			Equipment->AttachmentUnInstalled();
+			Equipment->Parent = nullptr;
 		}
 	}
 }
