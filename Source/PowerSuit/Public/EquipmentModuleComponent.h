@@ -243,7 +243,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "EquipmentModule")
 		float nFuelConsumption;
 
-	/** Energy value for this Buffer In megawatt seconds (MWs), a.k.a. mega joule (MJ) */
+	/** Fractional fill level of the fuel tank, 0.0 empty to 1.0 full */
 	UPROPERTY(BlueprintReadWrite, Replicated, SaveGame, Category = "EquipmentModule")
 		float nFuelAmount;
 
