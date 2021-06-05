@@ -346,6 +346,8 @@ enum ESuitProperty
 	nShieldRechargeDelay UMETA(Displayname = "nShieldRechargeDelay"),
 
 	/**
+	* TODO update this comment with new behavior for refueling. No longer seems to be 1-based.
+	* 
 	* Increases the amount energy units we get out of Fuel used by the suit.
 	* When the suit refuels, it consumes some amount of items (set by suit) to fill a whole fuel tank's worth of juice.
 	* 1 based, where 1 is a full tank of fuel
