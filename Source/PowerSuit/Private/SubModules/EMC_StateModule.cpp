@@ -264,10 +264,10 @@ void UEMC_StateModule::UpdateSuitState()
 				{
 					if (HKey_Accel)
 						Parent->SuitState = EPowerSuitState::PS_HOVERSPRINT;
-					else if (HKey_Up)
-						Parent->SuitState = EPowerSuitState::PS_FLYUP;
 					else if (HKey_Down)
 						Parent->SuitState = EPowerSuitState::PS_FLYDOWN;
+					else if (HKey_Up)
+						Parent->SuitState = EPowerSuitState::PS_FLYUP;
 					else if (Parent->MoveC->Velocity.Size2D() > 0.1f)
 						Parent->SuitState = EPowerSuitState::PS_HOVERMOVE;
 					else

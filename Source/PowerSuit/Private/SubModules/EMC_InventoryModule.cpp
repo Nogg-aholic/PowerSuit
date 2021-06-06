@@ -10,6 +10,10 @@
 #include "Equipment/Equipment_PowerSuit.h"
 AFGCharacterPlayer* UEMC_InventoryModule::InitInventory()
 {
+	if (!Parent->EquipmentParent->GetInstigator())
+		return nullptr;
+
+
 	if (Parent->nInventory)
 	{
 		UE_LOG(PowerSuit_Log, Display, TEXT("InitInventory %s"), *Parent->nInventory->GetName());
@@ -82,6 +86,9 @@ AFGCharacterPlayer* UEMC_InventoryModule::InitInventory()
 
 void UEMC_InventoryModule::UpdateInventorySize()
 {
+	if (!Parent->EquipmentParent->GetInstigator())
+		return;
+
 	UE_LOG(PowerSuit_Log, Display, TEXT("UpdateInventorySize"));
 
 	if (!Parent->EquipmentParent->HasAuthority())
@@ -107,6 +114,9 @@ void UEMC_InventoryModule::UpdateInventorySize()
 
 void UEMC_InventoryModule::ResetInventoryStats()
 {
+	if (!Parent->EquipmentParent->GetInstigator())
+		return;
+
 	UE_LOG(PowerSuit_Log, Display, TEXT("ResetInventoryStats"));
 
 	ItemsRemembered.Empty();
@@ -121,6 +131,9 @@ void UEMC_InventoryModule::ResetInventoryStats()
 
 void UEMC_InventoryModule::RefreshInventoryRemove(TSubclassOf<UFGItemDescriptor> ItemClass, int32 NumAdded)
 {
+	if (!Parent->EquipmentParent->GetInstigator())
+		return;
+
 	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventoryRemove"));
 
 	if (!ItemsRemembered.Contains(ItemClass))
@@ -195,6 +208,8 @@ void UEMC_InventoryModule::RefreshInventoryRemove(TSubclassOf<UFGItemDescriptor>
 
 void UEMC_InventoryModule::RefreshInventory()
 {
+	if (!Parent->EquipmentParent->GetInstigator())
+		return;
 	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventory"));
 
 	if (Parent->EquipmentParent && Parent->nInventory)
@@ -203,6 +218,10 @@ void UEMC_InventoryModule::RefreshInventory()
 
 void UEMC_InventoryModule::RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> ItemClass, int32 NumAdded)
 {
+
+	if (!Parent->EquipmentParent->GetInstigator())
+		return; 
+
 	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventoryAdd"));
 
 	int32 NewIndex = -1; int32 ItemsLeft = NumAdded;

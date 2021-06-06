@@ -86,6 +86,13 @@ void  APowerSuit::UnEquip()
 	{
 		Module->ResetStats();
 	}
+	if (Module->MoveC->MovementMode == MOVE_Custom && (Module->MoveC->CustomMovementMode == ECustomMovementMode::CMM_Hover || Module->MoveC->CustomMovementMode == ECustomMovementMode::CMM_HoverSlowFall))
+	{
+		SetHoverMode(EHoverPackMode::HPM_Inactive);
+		Module->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
+		Module->MoveC->MovementMode = EMovementMode::MOVE_Falling;
+		UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight"));
+	}
 	Super::UnEquip();
 	SetInstigator(nullptr);
 	SetOwner(nullptr);
