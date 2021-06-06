@@ -30,9 +30,6 @@ void APowerSuit::BeginPlay()
 {
 	UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit Spawn ****************\n %s"), *GetName());
 	Super::BeginPlay();
-	//FScriptDelegate NewDel = FScriptDelegate();
-	//NewDel.BindUFunction(this, "OnConnectionStatusUpdatedReplacement");
-	//HoverModeChangedDelegate.Add(NewDel);
 }
 
 

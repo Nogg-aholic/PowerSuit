@@ -321,6 +321,14 @@ FModMultProperty UEquipmentModuleComponent::GetFlightPropertySafe(ESuitFlightPro
 
 }
 
+FModMultProperty UEquipmentModuleComponent::GetNamedPropertySafe(FName property) const
+{
+	if (Stats.nNamedProperties.Contains(property))
+		return *Stats.nNamedProperties.Find(property);
+	else
+		return FModMultProperty();
+}
+
 FModMultProperty UEquipmentModuleComponent::GetStatePropertySafe(TMap<TEnumAsByte<EPowerSuitState>, FModMultProperty> Map, const EPowerSuitState Prop)
 {
 	if (Map.Contains(Prop))

@@ -102,6 +102,8 @@ public:
 	UFUNCTION(BlueprintPure)
 	FModMultProperty GetFlightPropertySafe(ESuitFlightProperty property) const;
 	UFUNCTION(BlueprintPure)
+	FModMultProperty GetNamedPropertySafe(FName property) const;
+	UFUNCTION(BlueprintPure)
 	static FModMultProperty GetStatePropertySafe(TMap<TEnumAsByte< EPowerSuitState>, FModMultProperty> Map, EPowerSuitState property);
 
 

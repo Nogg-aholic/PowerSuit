@@ -179,6 +179,28 @@ FEquipmentStats FEquipmentStats::operator+(const FEquipmentStats& OtherStruct)
 
 	InventorySlots = InventorySlots + OtherStruct.InventorySlots;
 
+
+	if (OtherStruct.nNamedProperties.Num() > 0)
+	{
+		TArray<FName> nNamedPropertiesArray;
+		OtherStruct.nNamedProperties.GetKeys(nNamedPropertiesArray);
+		for (int32 i = 0; i < nNamedPropertiesArray.Num(); i++)
+		{
+			if (nNamedProperties.Contains(nNamedPropertiesArray[i]))
+			{
+				nNamedProperties.Add(nNamedPropertiesArray[i],
+					*nNamedProperties.Find(nNamedPropertiesArray[i]) % OtherStruct.
+					nNamedProperties[nNamedPropertiesArray[i]]);
+			}
+			else
+			{
+				nNamedProperties.Add(nNamedPropertiesArray[i], OtherStruct.nNamedProperties[nNamedPropertiesArray[i]]);
+			}
+		}
+	}
+
+	
+
 	return *this;
 }
 
@@ -260,7 +282,28 @@ FEquipmentStats FEquipmentStats::operator-(const FEquipmentStats& OtherStruct)
 	
 	InventorySlots = InventorySlots - OtherStruct.InventorySlots;
 
-
+	if (OtherStruct.nNamedProperties.Num() > 0)
+	{
+		TArray<FName> nNamedPropertiesArray;
+		OtherStruct.nNamedProperties.GetKeys(nNamedPropertiesArray);
+		for (int32 i = 0; i < nNamedPropertiesArray.Num(); i++)
+		{
+			if (nNamedProperties.Contains(nNamedPropertiesArray[i]))
+			{
+				if ((*nNamedProperties.Find(nNamedPropertiesArray[i]) - OtherStruct.
+					nNamedProperties[nNamedPropertiesArray[i]]).value() != 0.f)
+				{
+					nNamedProperties.Add(nNamedPropertiesArray[i],
+						*nNamedProperties.Find(nNamedPropertiesArray[i]) - OtherStruct.
+						nNamedProperties[nNamedPropertiesArray[i]]);
+				}
+				else
+				{
+					nNamedProperties.Remove(nNamedPropertiesArray[i]);
+				}
+			}
+		}
+	}
 	return *this;
 }
 

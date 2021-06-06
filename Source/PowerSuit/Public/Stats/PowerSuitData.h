@@ -752,6 +752,17 @@ public:
 	TArray<TSubclassOf<class UFGItemDescriptor>> nUnlockedAllowedFuels;
 
 
+
+	/**
+	*	Named Custom Properties
+	*	Additive
+	*	Multiplier 1.0 
+	*	Consider using this when the Suit doesnt already implement a value you can use
+	*/
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, SaveGame, Category = "EquipmentModule | Custom")
+		TMap<FName, FModMultProperty> nNamedProperties;
+
+
 	~FEquipmentStats() = default;
 
 };
