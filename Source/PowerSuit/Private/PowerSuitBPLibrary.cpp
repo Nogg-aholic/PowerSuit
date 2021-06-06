@@ -94,6 +94,8 @@ void UPowerSuitBPLibrary::UpdateMovementComponent(APowerSuit * EquipmentParent)
 
 	ResetMovementComponent(MovementComponent);
 
+	EquipmentParent->Module->nPowerCapacity = FMath::Clamp(EquipmentParent->Module->GetSuitPropertySafe(ESuitProperty::nPowerCapacity).value(),0.0001f,999999999.f);
+
 	// Setup component properties factoring in the defaults for the player character
 	MovementComponent->JumpZVelocity += EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_JumpZVelocity).value(); // ESMC_JumpZVelocity
 	MovementComponent->JumpOffJumpZFactor += EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_JumpZVelocity).value(); // ESMC_JumpOffJumpZFactor
@@ -257,7 +259,7 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent) {
 	EquipmentParent->mCharacterUseDistanceWhenActive +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mCharacterUseDistanceWhenActive).value();
 	EquipmentParent->mPowerDrainRate +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerDrainRate).value();
 	EquipmentParent->mPowerConsumption +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConsumption).value();
-	EquipmentParent->mPowerCapacity += EquipmentParent->Module->GetSuitPropertySafe(ESuitProperty::nPowerCapacity).value();
+	EquipmentParent->mPowerCapacity += EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerCapacity).value();
 #else
 
 
@@ -276,7 +278,7 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent) {
 	EquipmentParent->*get(steal_mCharacterUseDistanceWhenActive()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mCharacterUseDistanceWhenActive).value();
 	EquipmentParent->*get(steal_mPowerDrainRate()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerDrainRate).value();
 	EquipmentParent->*get(steal_mPowerConsumption()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConsumption).value();
-	EquipmentParent->*get(steal_mPowerCapacity()) += EquipmentParent->Module->GetSuitPropertySafe(ESuitProperty::nPowerCapacity).value();
+	EquipmentParent->*get(steal_mPowerCapacity()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerCapacity).value();
 #endif
 
 
@@ -298,7 +300,7 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent) {
 	EquipmentParent->mCharacterUseDistanceWhenActive *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mCharacterUseDistanceWhenActive).ClampMult();
 	EquipmentParent->mPowerDrainRate *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerDrainRate).ClampMult();
 	EquipmentParent->mPowerConsumption *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConsumption).ClampMult();
-	EquipmentParent->mPowerCapacity *= EquipmentParent->Module->GetSuitPropertySafe(ESuitProperty::nPowerCapacity).ClampMult();
+	EquipmentParent->mPowerCapacity *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerCapacity).ClampMult();
 #else
 
 
@@ -317,7 +319,7 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent) {
 	EquipmentParent->*get(steal_mCharacterUseDistanceWhenActive()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mCharacterUseDistanceWhenActive).ClampMult();
 	EquipmentParent->*get(steal_mPowerDrainRate()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerDrainRate).ClampMult();
 	EquipmentParent->*get(steal_mPowerConsumption()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConsumption).ClampMult();
-	EquipmentParent->*get(steal_mPowerCapacity()) *= EquipmentParent->Module->GetSuitPropertySafe(ESuitProperty::nPowerCapacity).ClampMult();
+	EquipmentParent->*get(steal_mPowerCapacity()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerCapacity).ClampMult();
 #endif
 }
 

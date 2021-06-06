@@ -413,18 +413,10 @@ void UEMC_StateModule::HoverModeChange()
 	// we dont want that so we overwrite it whenever we have this scenario 
 #ifdef MODDING_SHIPPING
 	EHoverPackMode & mCurrentHoverMode = Parent->EquipmentParent->mCurrentHoverMode;
-	float & mCurrentPowerLevel_ = Parent->EquipmentParent->mCurrentPowerLevel;
-	float & mPowerCapacity_ = Parent->EquipmentParent->mPowerCapacity;
 #else
 	EHoverPackMode & mCurrentHoverMode = Parent->EquipmentParent->*get(steal_mCurrentHoverMode());
-	float & mCurrentPowerLevel_ = Parent->EquipmentParent->*get(steal_mCurrentPowerLevel());
-	float & mPowerCapacity_ = Parent->EquipmentParent->*get(steal_mPowerCapacity());
 #endif
-	if (Parent->EquipmentParent->HasAuthority())
-	{
-		mCurrentPowerLevel_ = FMath::Clamp(Parent->nCurrentPower, 0.f, mPowerCapacity_);
-	}
-	else
+	if (!Parent->EquipmentParent->HasAuthority())
 	{
 		UE_LOG(PowerSuit_Log, Display, TEXT("Remote ! Hover modo changed  %i"), static_cast<int32>(mCurrentHoverMode));
 		Parent->RCO->ServerUpdateCurrentHoverMode(Parent,mCurrentHoverMode);

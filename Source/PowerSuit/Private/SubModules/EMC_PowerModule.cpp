@@ -25,17 +25,8 @@ float UEMC_PowerModule::GetPowerDraw() const
 {
 	if (!Parent->EquipmentParent)
 		return 0;
-#ifdef MODDING_SHIPPING
-	float & mCurrentPowerLevel_ = Parent->EquipmentParent->mCurrentPowerLevel;
-	float & mPowerCapacity_ = Parent->EquipmentParent->mPowerCapacity;
-#else
-	float & mCurrentPowerLevel_ = Parent->EquipmentParent->*get(steal_mCurrentPowerLevel());
-	float & mPowerCapacity_ = Parent->EquipmentParent->*get(steal_mPowerCapacity());
-#endif
 
-	const float pw = FMath::Abs(Parent->nCurrentPower - mCurrentPowerLevel_) * (1/Parent->Delta);
-
-	return Parent->PowerConsumption + pw;
+	return Parent->PowerConsumption;
 }
 
 // Calculate current power production/consumption factoring in AddedDeltaPower
@@ -43,12 +34,8 @@ float UEMC_PowerModule::GetPowerCapacity() const
 {
 	if (!Parent->EquipmentParent)
 		return 0;
-#ifdef MODDING_SHIPPING
-	float& mPowerCapacity_ = Parent->EquipmentParent->mPowerCapacity;
-#else
-	float& mPowerCapacity_ = Parent->EquipmentParent->*get(steal_mPowerCapacity());
-#endif
-	return mPowerCapacity_;
+
+	return Parent->nPowerCapacity;
 }
 float UEMC_PowerModule::GetFuseTimerDuration() const
 {
@@ -110,18 +97,9 @@ void UEMC_PowerModule::RegenPower() const
 
 	const float PowerBalance = GetPowerDraw();
 	const float DeltaPower = PowerBalance* Parent->Delta;
-
-#ifdef MODDING_SHIPPING
-	float & mCurrentPowerLevel_ = Parent->EquipmentParent->mCurrentPowerLevel;
-	float & mPowerCapacity_ = Parent->EquipmentParent->mPowerCapacity;
-#else
-	float & mCurrentPowerLevel_ = Parent->EquipmentParent->*get(steal_mCurrentPowerLevel());
-	float & mPowerCapacity_ = Parent->EquipmentParent->*get(steal_mPowerCapacity());
-#endif
 	// reading value from hover pack since it modified power last frame after we did 
-	Parent->nCurrentPower = FMath::Clamp(Parent->nCurrentPower - DeltaPower, 0.f, mPowerCapacity_);
-	// now set value to it so it uses our  modifications as well
-	mCurrentPowerLevel_ = Parent->nCurrentPower;
+	Parent->nCurrentPower = FMath::Clamp(Parent->nCurrentPower - DeltaPower, 0.f, Parent->nPowerCapacity);
+	
 	// If out of power and the suit has been overdrawn for more than the suit's max overdraw time, set the fusebreak overdraw time to now
 	if (Parent->nCurrentPower == 0.f)
 		if (FTimespan(FDateTime::Now() - Parent->nFuseBreakOverDraw).GetTotalSeconds() > Parent->GetSuitPropertySafe(ESuitProperty::nFuseTimeOverDraw).value() + 1)
@@ -137,18 +115,11 @@ void UEMC_PowerModule::TryRestart() const
 	// ... and the FuseTimer has ran out ...
 	if (timeSinceFuseBreak.GetTotalSeconds() > GetFuseTimerDuration())
 	{
-#ifdef MODDING_SHIPPING
-		float & mCurrentPowerLevel_ = Parent->EquipmentParent->mCurrentPowerLevel;
-#else
-		float & mCurrentPowerLevel_ = Parent->EquipmentParent->*get(steal_mCurrentPowerLevel());
-#endif
-		mCurrentPowerLevel_ = 0.01f;
 		Parent->nCurrentPower = 0.01f;
 
 		Parent->nProducing = true; // restart power production
 
 		Parent->InventoryModule->BulkUpdateStats(Parent->nInventory);
-		
 	}
 }
 

@@ -41,6 +41,16 @@ class POWERSUIT_API APowerSuit : public AFGHoverPack
 
 public:
 
+	UFUNCTION(BlueprintPure)
+	float GetCurrentPowerNormalized() const;
+	
+	UFUNCTION(BlueprintPure)
+	float GetSuitPowerCapacity() const;
+	
+	UFUNCTION(BlueprintPure)
+	float GetCurrentPower() const;
+
+
 	UFUNCTION(BlueprintImplementableEvent)
 		void Server_WaitAndInitRemote();
 

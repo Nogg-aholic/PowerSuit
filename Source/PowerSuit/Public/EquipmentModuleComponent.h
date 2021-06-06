@@ -238,6 +238,8 @@ public:
 	UPROPERTY(replicated, SaveGame)
 		float nCurrentPower;
 
+	UPROPERTY(SaveGame)
+		float nPowerCapacity;
 
 	//	External Fuel Draw in MWs	( Power overdraw is negativly reducing ChargeDuration on which we base the amount to remove per frame)
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "EquipmentModule")

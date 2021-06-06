@@ -532,6 +532,8 @@ enum ESuitFlightProperty
 	EFP_mCharacterUseDistanceWhenActive UMETA(Displayname = "mCharacterUseDistanceWhenActive"),
 	/** How much power is drained per second when using the slow fall mode. */
 	EFP_mPowerConsumption UMETA(Displayname = "mPowerConsumption"),
+	/** How much power is drained per second when using the slow fall mode. */
+	EFP_mPowerCapacity UMETA(Displayname = "mPowerCapacity"),
 	/** How much power the hoverpack drains when connected to a grid.
 	* 
 	* PowerSuit note: Modified to be in MWs. This is what the hoverpack will actually consume when flying. 

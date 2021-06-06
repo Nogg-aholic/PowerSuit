@@ -105,22 +105,6 @@ void APowerSuit::Tick(float DeltaSeconds)
 	Module->EquippedTick(DeltaSeconds);
 	
 	Super::Tick(DeltaSeconds);
-
-	if (!HasAuthority())
-		return;
-
-#ifdef MODDING_SHIPPING
-	float & mCurrentPowerLevel_ = mCurrentPowerLevel;
-	float & mPowerCapacity_ =mPowerCapacity;
-#else
-	float & mCurrentPowerLevel_ = this->*get(steal_mCurrentPowerLevel());
-	float & mPowerCapacity_ = this->*get(steal_mPowerCapacity());
-#endif
-
-	if((mCurrentPowerLevel_ / mPowerCapacity_) - (Module->nCurrentPower/ mPowerCapacity_) > 0.7f)
-		mCurrentPowerLevel_ = FMath::Clamp(Module->nCurrentPower, 0.f, mPowerCapacity_);
-
-
 }
 
 void APowerSuit::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -131,6 +115,31 @@ void APowerSuit::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 bool APowerSuit::ShouldSaveState() const
 {
 	return true;
+}
+
+
+float APowerSuit::GetCurrentPowerNormalized() const
+{
+	if (!Module)
+		return 0.f;
+
+	return Module->nCurrentPower / FMath::Clamp(Module->nPowerCapacity,0.000001f,99999999.f);
+}
+
+float APowerSuit::GetSuitPowerCapacity() const
+{
+	if (!Module)
+		return 0.f;
+
+	return Module->nPowerCapacity;
+}
+
+float APowerSuit::GetCurrentPower() const
+{
+	if (!Module)
+		return 0.f;
+
+	return Module->nCurrentPower;
 }
 
 void APowerSuit::AddEquipmentActionBindings()
