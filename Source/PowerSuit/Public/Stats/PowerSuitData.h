@@ -689,8 +689,11 @@ public:
 	/**
 	* Named Custom Properties
 	* Have no immediate effect on the suit unless you implement it yourself in attachment or custom suit logic.
-	* Consider using this when the Suit doesn't already implement a value you can use
-	* Although it is suggested that they follow normal mod/mult property rules, they don't have to
+	* Consider using this when the Suit doesn't already implement a value you can use.
+	* 
+	* Trying to fetch them when not present will result in an blank ModMult property.
+	* Although it is suggested that they follow normal mod/mult property rules, they don't have to.
+	* It is probably wise to make sure that they have no effects when their value is the blank ModMult property.
 	* 
 	* Suggested name format: ModReference_PropertyName
 	*/
