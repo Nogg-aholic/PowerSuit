@@ -666,22 +666,34 @@ public:
 
 
 	/**
-	* Global settings that change base numeric properties of the suit
+	* Settings that change base numeric properties of the suit
+	* These ones are related to the player's movement on the ground, when falling, in hypertubes, water, etc.
 	*/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, SaveGame, Category = "EquipmentModule")
 		TMap< TEnumAsByte<ESuitMovementProperty>, FModMultProperty> nMovementProperties;
 
 	/**
-	* Global settings that change base numeric properties of the suit
+	* Settings that change base numeric properties of the suit
+	* These ones are specifically from the Hover Pack, which the PowerSuit equipment extends.
 	*/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, SaveGame, Category = "EquipmentModule")
 		TMap< TEnumAsByte<ESuitFlightProperty>, FModMultProperty> nFlightProperties;
 
 	/**
-	* Global settings that change base numeric properties of the suit
+	* Settings that change base numeric properties of the suit
+	* These ones are specific to the suit itself, such as how much power and fuel it can store, shield capacity, etc.
 	*/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, SaveGame, Category = "EquipmentModule")
 		TMap< TEnumAsByte<ESuitProperty>, FModMultProperty> nSuitProperties;
+
+	/**
+	*	Named Custom Properties
+	*	Have no immediate effect on the suit unless you implement it yourself
+	*	Consider using this when the Suit doesn't already implement a value you can use
+	*   Suggested name format: ModReference_PropertyName
+	*/
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, SaveGame, Category = "EquipmentModule | Custom")
+		TMap<FName, FModMultProperty> nNamedProperties;
 
 	// Resistances
 
@@ -750,18 +762,6 @@ public:
 	*/
 	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule | Inventory")
 	TArray<TSubclassOf<class UFGItemDescriptor>> nUnlockedAllowedFuels;
-
-
-
-	/**
-	*	Named Custom Properties
-	*	Additive
-	*	Multiplier 1.0 
-	*	Consider using this when the Suit doesnt already implement a value you can use
-	*/
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, SaveGame, Category = "EquipmentModule | Custom")
-		TMap<FName, FModMultProperty> nNamedProperties;
-
 
 	~FEquipmentStats() = default;
 
