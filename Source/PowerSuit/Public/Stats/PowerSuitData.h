@@ -687,10 +687,12 @@ public:
 		TMap< TEnumAsByte<ESuitProperty>, FModMultProperty> nSuitProperties;
 
 	/**
-	*	Named Custom Properties
-	*	Have no immediate effect on the suit unless you implement it yourself
-	*	Consider using this when the Suit doesn't already implement a value you can use
-	*   Suggested name format: ModReference_PropertyName
+	* Named Custom Properties
+	* Have no immediate effect on the suit unless you implement it yourself in attachment or custom suit logic.
+	* Consider using this when the Suit doesn't already implement a value you can use
+	* Although it is suggested that they follow normal mod/mult property rules, they don't have to
+	* 
+	* Suggested name format: ModReference_PropertyName
 	*/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, SaveGame, Category = "EquipmentModule | Custom")
 		TMap<FName, FModMultProperty> nNamedProperties;
