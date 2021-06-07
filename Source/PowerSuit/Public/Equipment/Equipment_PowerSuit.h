@@ -64,7 +64,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Equipment", DisplayName = "Event PowerSuitUIToggle")
 		FPowerSuitUIToggle OnPowerSuitUIToggle;
 
-	UPROPERTY(BlueprintAssignable, Category = "Equipment", DisplayName = "Event PowerSuitUIToggle")
+	UPROPERTY(BlueprintAssignable, Category = "Equipment", DisplayName = "Event OnPowerSuitStatUpdate")
 		FPowerSuitStatUpdate OnPowerSuitStatUpdate;
 
 	UFUNCTION(BlueprintImplementableEvent)
