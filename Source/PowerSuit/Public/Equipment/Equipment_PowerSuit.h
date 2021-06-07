@@ -17,6 +17,8 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPowerSuitFrictionToggle, FKey, Key);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPowerSuitUIToggle, FKey, Key);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPowerSuitStatUpdate, int32, Type);
+
 /**
  * 
  */
@@ -61,6 +63,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Equipment", DisplayName = "Event PowerSuitUIToggle")
 		FPowerSuitUIToggle OnPowerSuitUIToggle;
+
+	UPROPERTY(BlueprintAssignable, Category = "Equipment", DisplayName = "Event PowerSuitUIToggle")
+		FPowerSuitStatUpdate OnPowerSuitStatUpdate;
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnCheckHotkeys();
