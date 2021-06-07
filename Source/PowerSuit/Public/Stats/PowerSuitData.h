@@ -270,6 +270,22 @@ enum ESuitFlag
 
 };
 
+UENUM(Blueprinttype, meta = (Bitflags, UseEnumValuesAsMaskValuesInEditor = "true"))
+enum ESuitFlagAdvanced
+{
+	SuitFlagAdvanced_Null = 0x00 UMETA(hidden, Displayname = "Invalid value!", Tooltip = "Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change."),
+	SuitFlagAdvanced_NoRefuel = 1 << 0 UMETA(Tooltip = "No Refueling"),
+	SuitFlagAdvanced_Temp1 = 1 << 1 UMETA(Tooltip = ""),
+	SuitFlagAdvanced_Temp2 = 1 << 2 UMETA(Tooltip = ""),
+	SuitFlagAdvanced_Temp3 = 1 << 3 UMETA(Tooltip = ""),
+	SuitFlagAdvanced_Temp4 = 1 << 4 UMETA(Tooltip = ""),
+	SuitFlagAdvanced_Temp5 = 1 << 5 UMETA(Tooltip = ""),
+	SuitFlagAdvanced_Temp6 = 1 << 6 UMETA(Tooltip = ""),
+	SuitFlagAdvanced_Temp7 = 1 << 7 UMETA(Tooltip = ""),
+	SuitFlagAdvanced_END = 1 << 8 UMETA(hidden, Displayname = "Invalid value!", Tooltip = "Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change.")
+
+};
+
 UENUM(Blueprinttype)
 enum ESuitProperty
 {
@@ -664,6 +680,8 @@ public:
 
 	bool HasRemoveDamageMask(UPARAM(meta = (Bitmask, BitmaskEnum = ENDamageType)) int32 Bitmask) const;;
 
+	bool HasAdvancedFlag(UPARAM(meta = (Bitmask, BitmaskEnum = ESuitFlag)) int32 Bitmask) const;;
+	bool HasAdvancedRemoveFlag(UPARAM(meta = (Bitmask, BitmaskEnum = ESuitFlag)) int32 Bitmask) const;;
 
 	/**
 	* Settings that change base numeric properties of the suit
@@ -746,6 +764,19 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ESuitFlag))
 		int32 RemoveSuitFlags;
+
+
+	/**
+	* Boolean flags for general suit abilities such as being able to enter flight mode.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ESuitFlagAdvanced))
+		int32 SuitFlagsAdvanced;
+
+	/**
+	* Boolean flags for general suit abilities such as being able to enter flight mode.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ESuitFlagAdvanced))
+		int32 RemoveSuitFlagsAdvanced;
 
 	/*
 	* Additional slots in the suit's inventory.

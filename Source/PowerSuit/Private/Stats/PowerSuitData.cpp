@@ -162,6 +162,21 @@ FEquipmentStats FEquipmentStats::operator+(const FEquipmentStats& OtherStruct)
 				RemoveSuitFlags += static_cast<ESuitFlag>(i);
 	}
 
+	for (int32 i = 1; i < ESuitFlagAdvanced::SuitFlagAdvanced_Null; i = static_cast<ESuitFlagAdvanced>(i + i))
+	{
+		if (OtherStruct.HasAdvancedFlag(i))
+			if (!(HasAdvancedFlag(i)))
+				SuitFlagsAdvanced += static_cast<ESuitFlagAdvanced>(i);
+	}
+
+
+	for (int32 i = 1; i < ESuitFlagAdvanced::SuitFlagAdvanced_Null; i = static_cast<ESuitFlagAdvanced>(i + i))
+	{
+		if (OtherStruct.HasAdvancedRemoveFlag(i))
+			if (!(HasAdvancedFlag(i)))
+				RemoveSuitFlagsAdvanced += static_cast<ESuitFlagAdvanced>(i);
+	}
+
 
 	if (OtherStruct.nDamageResistance.Num() > 0)
 	{
@@ -271,6 +286,21 @@ FEquipmentStats FEquipmentStats::operator-(const FEquipmentStats& OtherStruct)
 				RemoveSuitFlags -= static_cast<ESuitFlag>(i);
 	}
 
+
+	for (int32 i = 1; i < ESuitFlagAdvanced::SuitFlagAdvanced_END; i = static_cast<ESuitFlagAdvanced>(i + i))
+	{
+		if (OtherStruct.HasAdvancedFlag(i))
+			if ((HasAdvancedFlag(i)))
+				SuitFlagsAdvanced -= static_cast<ESuitFlag>(i);
+	}
+
+	for (int32 i = 1; i < ESuitFlagAdvanced::SuitFlagAdvanced_END; i = static_cast<ESuitFlagAdvanced>(i + i))
+	{
+		if (OtherStruct.HasAdvancedRemoveFlag(i))
+			if (!(HasAdvancedRemoveFlag(i)))
+				RemoveSuitFlagsAdvanced -= static_cast<ESuitFlag>(i);
+	}
+
 	if (OtherStruct.nDamageResistance.Num() > 0)
 	{
 		TArray<TSubclassOf<class UFGDamageType>> Arr;
@@ -311,6 +341,11 @@ bool FEquipmentStats::HasFlag(int32 Bitmask) const
 {
 	return (Bitmask & SuitFlags) == Bitmask;
 }
+bool FEquipmentStats::HasAdvancedFlag(int32 Bitmask) const
+{
+	return (Bitmask & SuitFlagsAdvanced) == Bitmask;
+}
+
 
 bool FEquipmentStats::HasDamageMask(int32 Bitmask) const
 {
@@ -320,6 +355,12 @@ bool FEquipmentStats::HasDamageMask(int32 Bitmask) const
 bool FEquipmentStats::HasRemoveFlag(int32 Bitmask) const
 {
 	return (Bitmask & RemoveSuitFlags) == Bitmask;
+}
+
+
+bool FEquipmentStats::HasAdvancedRemoveFlag(int32 Bitmask) const
+{
+	return (Bitmask & RemoveSuitFlagsAdvanced) == Bitmask;
 }
 
 bool FEquipmentStats::HasRemoveDamageMask(int32 Bitmask) const

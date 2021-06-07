@@ -27,6 +27,11 @@ void UEMC_FuelModule::TryReload()
 	{
 		if (!pawn->HasAuthority())
 			return;
+
+		if (Parent->Stats.HasAdvancedFlag(ESuitFlagAdvanced::SuitFlagAdvanced_NoRefuel))
+		{
+			return;
+		}
 		// cycle through each fuel item specified in 'cost to use' in the order they are listed (top has highest priority)
 		for (const TSubclassOf<class UFGItemDescriptor> & i : nAllowedFuels)
 			if (ConsumeFuelItem(pawn->GetInventory(), i, 1))
