@@ -188,7 +188,8 @@ void UPowerSuitBPLibrary::UpdateMovementComponent(APowerSuit * EquipmentParent)
 #endif
 
 
-	
+	EquipmentParent->OnPowerSuitStatUpdate.Broadcast(0);
+
 }
 
 
@@ -235,6 +236,8 @@ void UPowerSuitBPLibrary::ResetFlightStats(APowerSuit * EquipmentParent) {
 	EquipmentParent->*get(steal_mPowerConsumption()) = MovementCDO->*get(steal_mPowerConsumption());
 	EquipmentParent->*get(steal_mPowerCapacity()) = MovementCDO->*get(steal_mPowerCapacity());
 #endif
+
+
 }
 
 
@@ -321,6 +324,9 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent) {
 	EquipmentParent->*get(steal_mPowerConsumption()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConsumption).ClampMult();
 	EquipmentParent->*get(steal_mPowerCapacity()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerCapacity).ClampMult();
 #endif
+
+	EquipmentParent->OnPowerSuitStatUpdate.Broadcast(1);
+
 }
 
 void UPowerSuitBPLibrary::UpdateFlags(APowerSuit* EquipmentParent)
@@ -338,6 +344,8 @@ void UPowerSuitBPLibrary::UpdateFlags(APowerSuit* EquipmentParent)
 			if ((EquipmentParent->Module->Stats.HasFlag(i)))
 				EquipmentParent->Module->Stats.RemoveSuitFlags -= static_cast<ESuitFlag>(i);
 	}
+	EquipmentParent->OnPowerSuitStatUpdate.Broadcast(3);
+
 }
 
 
@@ -356,6 +364,9 @@ void UPowerSuitBPLibrary::UpdateInventorySize(APowerSuit* EquipmentParent)
 	// Modules may stack but they must be Single when accounted for
 	for (int32 i = 0; i < EquipmentParent->Module->Stats.InventorySlots; i++)
 		EquipmentParent->Module->nInventory->AddArbitrarySlotSize(i, 1);
+
+	EquipmentParent->OnPowerSuitStatUpdate.Broadcast(2);
+
 }
 
 
