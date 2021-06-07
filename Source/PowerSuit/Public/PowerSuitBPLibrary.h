@@ -16,7 +16,8 @@ class UPowerSuitBPLibrary : public UBlueprintFunctionLibrary
 
 public:
 	UFUNCTION(BlueprintPure)
-		static float GetPropertyResult(FModMultProperty prop) { return prop.value(); };
+		static float GetPropertyResult(FModMultProperty prop) { return prop.value();
+	};
 
 	UFUNCTION(BlueprintCallable)
 		static void ToggleCameraMode(UFGCheatManager * manager) {
@@ -100,6 +101,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 		static void SetSuitProperty(UPARAM(ref) FEquipmentStats& Stats, ESuitProperty Enum, FModMultProperty Property);
 	// NOT REPLICATED ! see SetProperty for Instructions;
+	
+	UFUNCTION(BlueprintCallable)
+	void SetSuitPropertyNamed(FEquipmentStats& Stats, FName Prop, FModMultProperty Property);
+
 	UFUNCTION(BlueprintCallable)
 		static void SetPropertyGeneral(UPARAM(ref) FEquipmentStats& Stats, EEquipmentStatsProperty PropertyType, uint8 Index, FModMultProperty Property);
 	// NOT REPLICATED ! see SetProperty for Instructions;

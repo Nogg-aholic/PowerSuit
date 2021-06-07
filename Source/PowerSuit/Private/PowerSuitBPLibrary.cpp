@@ -397,7 +397,13 @@ void UPowerSuitBPLibrary::SetSuitProperty(FEquipmentStats& Stats, ESuitProperty 
 	}
 }
 
-
+void UPowerSuitBPLibrary::SetSuitPropertyNamed(FEquipmentStats& Stats, FName Prop, FModMultProperty Property)
+{
+	if (Prop != FName())
+	{
+		Stats.nNamedProperties.Add(Prop, Property);
+	}
+}
 
 void UPowerSuitBPLibrary::SetPropertyGeneral(FEquipmentStats& Stats, EEquipmentStatsProperty PropertyType, uint8 Index, FModMultProperty Property)
 {
