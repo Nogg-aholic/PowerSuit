@@ -160,6 +160,11 @@ DECLARE_LOG_CATEGORY_EXTERN(PowerSuit_Log, Log, Log);
 		friend type get(steal_mCurrentPowerLevel);
 	};
 
+	struct steal_mCostToUse {
+		typedef TArray< FItemAmount > AFGEquipment::* type;
+		friend type get(steal_mCostToUse);
+	};
+
 	template struct Steal<steal_mSlideTime, &UFGCharacterMovementComponent::mSlideTime>;
 	template struct Steal<steal_mMaxSlideAngle, &UFGCharacterMovementComponent::mMaxSlideAngle>;
 	template struct Steal<steal_mBoostJumpZMultiplier, &UFGCharacterMovementComponent::mBoostJumpZMultiplier>;
@@ -192,11 +197,9 @@ DECLARE_LOG_CATEGORY_EXTERN(PowerSuit_Log, Log, Log);
 	template struct Steal<steal_mCurrentHoverMode, &AFGHoverPack::mCurrentHoverMode>;
 	template struct Steal<steal_mCurrentPowerLevel, &AFGHoverPack::mCurrentPowerLevel>;
 
+	template struct Steal<steal_mCostToUse, &AFGEquipment::mCostToUse>;
 
 	
-
-	
-
 #endif
 
 /**

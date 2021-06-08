@@ -1,5 +1,6 @@
 #include "Stats/PowerSuitData.h"
 #include "SubModules/EMC_FuelModule.h"
+#include "Equipment/Equipment_PowerSuit.h"
 #include "Attachment/PowerSuitModuleAttachment.h"
 
 DEFINE_LOG_CATEGORY(PowerSuit_Log);
@@ -67,14 +68,34 @@ void FEquipmentStats::SetupDefaults()
 	}
 
 }
+
 void FEquipmentStats::UnlockFuels(UEquipmentModuleComponent* Parent, TArray<TSubclassOf<class UFGItemDescriptor>> FuelsToUnlock)
 {
+	Parent->DefaultStats.ForgetUnlockedFuels(Parent);
+
+	
 	for (auto i : FuelsToUnlock)
 	{
 		if (!Parent->FuelModule->nAllowedFuels.Contains(i))
 		{
 			Parent->FuelModule->nAllowedFuels.Add(i);
 			nUnlockedAllowedFuels.Add(i);
+		}
+	}
+	TArray<FItemAmount> Arr; 
+	
+#ifdef FOR_MODSHIPPING
+	Arr = Parent->EquipmentParent->mCostToUse;
+#else
+	Arr = Parent->EquipmentParent->*get(steal_mCostToUse());
+#endif
+
+	for (FItemAmount e : Arr)
+	{
+		if (!Parent->FuelModule->nAllowedFuels.Contains(e.ItemClass))
+		{
+			Parent->FuelModule->nAllowedFuels.Add(e.ItemClass);
+			Parent->DefaultStats.nUnlockedAllowedFuels.Add(e.ItemClass);
 		}
 	}
 };
@@ -86,6 +107,7 @@ void FEquipmentStats::ForgetUnlockedFuels(UEquipmentModuleComponent* Parent)
 			Parent->FuelModule->nAllowedFuels.Remove(e);
 		}
 	}
+	nUnlockedAllowedFuels.Empty();
 }
 
 FEquipmentStats FEquipmentStats::operator+(const FEquipmentStats& OtherStruct)

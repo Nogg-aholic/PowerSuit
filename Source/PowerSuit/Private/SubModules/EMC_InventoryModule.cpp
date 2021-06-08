@@ -122,9 +122,19 @@ void UEMC_InventoryModule::ResetInventoryStats()
 	ItemsRemembered.Empty();
 	UniquesActive.Empty();
 	Parent->FuelModule->nAllowedFuels.Empty();
-	for (auto i : Parent->EquipmentParent->mCostToUse)
+
+	TArray<FItemAmount> Arr;
+
+	#ifdef FOR_MODSHIPPING
+		Arr = Parent->EquipmentParent->mCostToUse;
+	#else
+		Arr = Parent->EquipmentParent->*get(steal_mCostToUse());
+	#endif
+
+	for (auto i : Arr)
 	{
 		Parent->FuelModule->nAllowedFuels.Add(i.ItemClass);
+		Parent->DefaultStats.nUnlockedAllowedFuels.Add(i.ItemClass);
 	}
 }
 
