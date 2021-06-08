@@ -78,8 +78,8 @@ void FEquipmentStats::UnlockFuels(UEquipmentModuleComponent* Parent, TArray<TSub
 	{
 		if (!Parent->FuelModule->nAllowedFuels.Contains(i))
 		{
-			Parent->FuelModule->nAllowedFuels.Add(i);
-			nUnlockedAllowedFuels.Add(i);
+			Parent->FuelModule->nAllowedFuels.Insert(i,0);
+			nUnlockedAllowedFuels.Insert(i, 0);
 		}
 	}
 	TArray<FItemAmount> Arr; 
@@ -94,8 +94,8 @@ void FEquipmentStats::UnlockFuels(UEquipmentModuleComponent* Parent, TArray<TSub
 	{
 		if (!Parent->FuelModule->nAllowedFuels.Contains(e.ItemClass))
 		{
-			Parent->FuelModule->nAllowedFuels.Add(e.ItemClass);
-			Parent->DefaultStats.nUnlockedAllowedFuels.Add(e.ItemClass);
+			Parent->FuelModule->nAllowedFuels.Insert(e.ItemClass,0);
+			Parent->DefaultStats.nUnlockedAllowedFuels.Insert(e.ItemClass, 0);
 		}
 	}
 };
