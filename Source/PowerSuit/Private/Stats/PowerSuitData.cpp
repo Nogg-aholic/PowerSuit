@@ -74,31 +74,35 @@ void FEquipmentStats::UnlockFuels(UEquipmentModuleComponent* Parent, TArray<TSub
 	Parent->DefaultStats.ForgetUnlockedFuels(Parent);
 
 	
+	// Add fuels that are granted by modules
+
 	for (auto i : FuelsToUnlock)
 	{
 		if (!Parent->FuelModule->nAllowedFuels.Contains(i))
 		{
-			Parent->FuelModule->nAllowedFuels.Insert(i,0);
-			nUnlockedAllowedFuels.Insert(i, 0);
+			Parent->FuelModule->nAllowedFuels.Add(i);
+			nUnlockedAllowedFuels.Add(i);
 		}
 	}
-	TArray<FItemAmount> Arr; 
-	
+
+	TArray<FItemAmount> SuitCostToUse; 
 #ifdef FOR_MODSHIPPING
-	Arr = Parent->EquipmentParent->mCostToUse;
+	SuitCostToUse = Parent->EquipmentParent->mCostToUse;
 #else
-	Arr = Parent->EquipmentParent->*get(steal_mCostToUse());
+	SuitCostToUse = Parent->EquipmentParent->*get(steal_mCostToUse());
 #endif
 
-	for (FItemAmount e : Arr)
+	// Add fuels from suit Cost to Use, ignoring specified counts (notably, this is done after module fuels. This means module fuels have higher priority than suit fuels.)
+	for (FItemAmount e : SuitCostToUse)
 	{
 		if (!Parent->FuelModule->nAllowedFuels.Contains(e.ItemClass))
 		{
-			Parent->FuelModule->nAllowedFuels.Insert(e.ItemClass,0);
-			Parent->DefaultStats.nUnlockedAllowedFuels.Insert(e.ItemClass, 0);
+			Parent->FuelModule->nAllowedFuels.Add(e.ItemClass);
+			Parent->DefaultStats.nUnlockedAllowedFuels.Add(e.ItemClass);
 		}
 	}
 };
+
 void FEquipmentStats::ForgetUnlockedFuels(UEquipmentModuleComponent* Parent)
 {
 	for (auto e : nUnlockedAllowedFuels) {
