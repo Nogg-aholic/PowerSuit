@@ -62,7 +62,7 @@ void  APowerSuit::Equip(class AFGCharacterPlayer* character){
 		if (character->HasAuthority())
 		{
 			SetInstigator(character);
-			SetOwner(character);
+			SetOwner(character->GetController());
 			if (Module)
 			{
 				Module->Init(this);

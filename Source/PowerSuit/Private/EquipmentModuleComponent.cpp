@@ -340,7 +340,7 @@ FModMultProperty UEquipmentModuleComponent::GetStatePropertySafe(TMap<TEnumAsByt
 
 void UEquipmentModuleComponent::ResetStats()
 {
-	if (!EquipmentParent)
+	if (!EquipmentParent ||EquipmentParent->IsPendingKill() || !EquipmentParent->GetInstigator() || EquipmentParent->GetInstigator()->IsPendingKill())
 		return;
 	UE_LOG(PowerSuit_Log, Display, TEXT("Resetting Stats"));
 

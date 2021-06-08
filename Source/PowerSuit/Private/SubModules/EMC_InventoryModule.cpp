@@ -31,7 +31,7 @@ AFGCharacterPlayer* UEMC_InventoryModule::InitInventory()
 		
 		if (Parent->EquipmentParent->HasAuthority())
 		{
-			Parent->nInventory = UFGInventoryLibrary::CreateInventoryComponent(Character, FName("nInventory" + Parent->EquipmentParent->GetName()));
+			Parent->nInventory = UFGInventoryLibrary::CreateInventoryComponent(Parent->EquipmentParent, FName("nInventory" + Parent->EquipmentParent->GetName()));
 			UE_LOG(PowerSuit_Log, Display,TEXT("Created Inventory; Calling Owning Client for Replication"))
 			Parent->EquipmentParent->Server_WaitAndInitRemote();
 			Parent->ResetStats();
