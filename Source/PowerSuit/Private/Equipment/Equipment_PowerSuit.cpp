@@ -79,10 +79,19 @@ void  APowerSuit::Equip(class AFGCharacterPlayer* character){
 void  APowerSuit::UnEquip()
 {	
 	UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit UnEquip ****************\n %s"), *GetName());	
-	UE_LOG(PowerSuit_Log, Display, TEXT("Pending kill is %b"), IsPendingKill());
+	
+	if(IsPendingKill())
+		UE_LOG(PowerSuit_Log, Display, TEXT("is Pending kill "));
+
 	if (Module->nInventory)
 	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("Inventory kill is %b"), Module->nInventory->IsPendingKill());
+		if (IsPendingKill())
+			UE_LOG(PowerSuit_Log, Display, TEXT("is Pending kill "))
+		else
+		{
+			UE_LOG(PowerSuit_Log, Display, TEXT("Valid Inventory %s "), *Module->nInventory->GetName());
+
+		}
 	}
 	else
 	{
