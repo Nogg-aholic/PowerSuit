@@ -79,11 +79,16 @@ void  APowerSuit::Equip(class AFGCharacterPlayer* character){
 void  APowerSuit::UnEquip()
 {	
 	UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit UnEquip ****************\n %s"), *GetName());
-	if (Module && !IsPendingKill())
+	// I don't know how to log ... am dumb ...
+	// UE_LOG(PowerSuit_Log, Display, TEXT("Module is %s"), *Module);
+	// UE_LOG(PowerSuit_Log, Display, TEXT("Pending kill is %s"), IsPendingKill());
+	// UE_LOG(PowerSuit_Log, Display, TEXT("MoveC is %s"), Module->MoveC);
+	if (Module && !IsPendingKill() && Module->MoveC)
 	{
+		UE_LOG(PowerSuit_Log, Display, TEXT("Called reset stats"));
 		Module->ResetStats();
 	}
-	if (Module->MoveC->MovementMode == MOVE_Custom && (Module->MoveC->CustomMovementMode == ECustomMovementMode::CMM_Hover || Module->MoveC->CustomMovementMode == ECustomMovementMode::CMM_HoverSlowFall))
+	if (Module->MoveC && Module->MoveC->MovementMode == MOVE_Custom && (Module->MoveC->CustomMovementMode == ECustomMovementMode::CMM_Hover || Module->MoveC->CustomMovementMode == ECustomMovementMode::CMM_HoverSlowFall))
 	{
 		SetHoverMode(EHoverPackMode::HPM_Inactive);
 		Module->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
@@ -91,8 +96,8 @@ void  APowerSuit::UnEquip()
 		UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight"));
 	}
 	Super::UnEquip();
-	SetInstigator(nullptr);
-	SetOwner(nullptr);
+	// SetInstigator(nullptr);
+	// SetOwner(nullptr);
 };
 
 
