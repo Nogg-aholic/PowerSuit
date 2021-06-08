@@ -73,8 +73,8 @@ void FEquipmentStats::UnlockFuels(UEquipmentModuleComponent* Parent, TArray<TSub
 	{
 		if (!Parent->FuelModule->nAllowedFuels.Contains(i))
 		{
-			Parent->FuelModule->nAllowedFuels.Add(i);
-			nUnlockedAllowedFuels.Add(i);
+			Parent->FuelModule->nAllowedFuels.Insert(i, 0);
+			nUnlockedAllowedFuels.Insert(i, 0);
 		}
 	}
 };
