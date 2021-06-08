@@ -78,13 +78,20 @@ void  APowerSuit::Equip(class AFGCharacterPlayer* character){
 
 void  APowerSuit::UnEquip()
 {	
-	UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit UnEquip ****************\n %s"), *GetName());
-	// I don't know how to log ... am dumb ...
-	// UE_LOG(PowerSuit_Log, Display, TEXT("Module is %s"), *Module);
-	// UE_LOG(PowerSuit_Log, Display, TEXT("Pending kill is %s"), IsPendingKill());
-	// UE_LOG(PowerSuit_Log, Display, TEXT("MoveC is %s"), Module->MoveC);
+	UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit UnEquip ****************\n %s"), *GetName());	
+	UE_LOG(PowerSuit_Log, Display, TEXT("Pending kill is %b"), IsPendingKill());
+	if (Module->nInventory)
+	{
+		UE_LOG(PowerSuit_Log, Display, TEXT("Inventory kill is %b"), Module->nInventory->IsPendingKill());
+	}
+	else
+	{
+		UE_LOG(PowerSuit_Log, Display, TEXT("Inventory Invalid !!"));
+	}
 	if (Module && !IsPendingKill() && Module->MoveC)
 	{
+		UE_LOG(PowerSuit_Log, Display, TEXT("Module is %s"), *Module->GetName());
+		UE_LOG(PowerSuit_Log, Display, TEXT("MoveC is %s"), *Module->MoveC->GetName());
 		UE_LOG(PowerSuit_Log, Display, TEXT("Called reset stats"));
 		Module->ResetStats();
 	}
@@ -95,7 +102,44 @@ void  APowerSuit::UnEquip()
 		Module->MoveC->MovementMode = EMovementMode::MOVE_Falling;
 		UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight"));
 	}
+	if (GetInstigator())
+	{
+		UE_LOG(PowerSuit_Log, Display, TEXT("Before Super : Instigator is %s"), *GetInstigator()->GetName());
+	}
+	else
+	{
+		UE_LOG(PowerSuit_Log, Display, TEXT("Before Super : Instigator is NULL"));
+	}
+
+	if (GetOwner())
+	{
+		UE_LOG(PowerSuit_Log, Display, TEXT("Before Super : GetOwner is %s"), *GetOwner()->GetName());
+	}
+	else
+	{
+		UE_LOG(PowerSuit_Log, Display, TEXT("Before Super : GetOwner is NULL"));
+	}
 	Super::UnEquip();
+
+	if (GetInstigator())
+	{
+		UE_LOG(PowerSuit_Log, Display, TEXT("After Super : Instigator is %s"), *GetInstigator()->GetName());
+	}
+	else
+	{
+		UE_LOG(PowerSuit_Log, Display, TEXT("After Super : Instigator is NULL"));
+	}
+
+
+	if (GetOwner())
+	{
+		UE_LOG(PowerSuit_Log, Display, TEXT("After Super : GetOwner is %s"), *GetOwner()->GetName());
+	}
+	else
+	{
+		UE_LOG(PowerSuit_Log, Display, TEXT("After Super : GetOwner is NULL"));
+	}
+
 	// SetInstigator(nullptr);
 	// SetOwner(nullptr);
 };
