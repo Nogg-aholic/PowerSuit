@@ -15,7 +15,7 @@
 ## Bugfixes
 
 - Numerous multiplayer client related bugfixes
-- Fixed loss of suit inventory/possible suit corruption on death. Suit inventories are now owned by the controller (persists) instead of the pawn (which is deleted on death)
+- Fixed loss of suit inventory/possible suit corruption on death. Suit inventories are no longer owned by the pawn, which is deleted on death. Instead, they are owned by the suit actor.
 - Fixed flight timer logic for multiplayer
 - Fixed MP clients being unable to wear suits that the host has used already
 - Unequipping a suit no longer leaves the equipment hud widget unusually large.
