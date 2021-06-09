@@ -8,7 +8,7 @@
 #include "EquipmentModuleDescriptor.generated.h"
 
 class APowerSuitModuleAttachment;
-
+class UPowerSuitWidget;
 UCLASS()
 class POWERSUIT_API UEquipmentModuleDescriptor : public UFGItemDescriptor
 {
@@ -66,6 +66,12 @@ protected:
 		TArray<TSubclassOf<class AFGEquipment>> nAllowedUsage;
 
 
+	// Added to Suit Overlay
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		TSubclassOf<UPowerSuitWidget> OverlayWidget;
 
 
+	// Added to Inventory UI
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		TSubclassOf<UPowerSuitWidget> InventoryWidget;
 };

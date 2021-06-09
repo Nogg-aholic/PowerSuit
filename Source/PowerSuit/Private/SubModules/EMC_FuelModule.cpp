@@ -75,9 +75,13 @@ void UEMC_FuelModule::PreTick()
 	}
 }
 
-// Server and Client
+// Server Only
 void UEMC_FuelModule::Tick() const
 {
+	if (!Parent->EquipmentParent->HasAuthority())
+	{
+		return;
+	}
 	float Fuel = 0;
 
 	for (auto * i : Parent->AttachmentModule->Attachments)
