@@ -20,9 +20,15 @@ public:
 	};
 
 	UFUNCTION(BlueprintCallable)
-		static void ToggleCameraMode(UFGCheatManager * manager) {
+		static void ToggleCameraMode(UFGCheatManager * manager, APlayerController* PlayerController) {
 		if (manager)
 			manager->ToggleCameraMode();
+		else if (PlayerController)
+		{
+			PlayerController->AddCheats(true);
+			if (manager)
+				manager->ToggleCameraMode();
+		}
 	}
 
 	UFUNCTION(BlueprintPure)
