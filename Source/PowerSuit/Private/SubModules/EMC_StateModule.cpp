@@ -189,7 +189,8 @@ void UEMC_StateModule::UpdateSuitState()
 		to fix this we use RCOs to replicate from Remote and use Parent->SuitState for all
 		out Consumption/Production Logic
 	*/
-	// Deterministic solveable through RCO replicated Key inputs and serverside replicated properties
+
+	
 	if (!Parent->EquipmentParent->HasAuthority())
 	{
 		if (!UFGBlueprintFunctionLibrary::IsLocallyHumanControlled(Parent->EquipmentParent->GetInstigator()))
@@ -197,62 +198,6 @@ void UEMC_StateModule::UpdateSuitState()
 			// server and not humanly controlled doesnt need to update Hotkeys
 			return;
 		}
-
-		if (!Parent->nProducing)
-		{
-			Parent->TKey_Fly = false;
-			Parent->TKey_NoGravity = false;
-			Parent->TKey_NoFriction = false;
-		}
-		if (Parent->nMovementMode == EMovementMode::MOVE_Falling)
-		{
-			Parent->FallingTime = Parent->FallingTime + Parent->Delta;
-		}
-		if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_HoverSlowFall && !Parent->TKey_NoGravity)
-		{
-			Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive,false);
-			Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
-			Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
-			UE_LOG(PowerSuit_Log, Display, TEXT("Disabled SlowFall"));
-		}
-		else if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_Hover || Parent->nCustomMovementMode == ECustomMovementMode::CMM_HoverSlowFall)
-		{
-			const bool bCanFly = Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked);
-			// if WantsToFly is disabled we assume we aborted flight 
-			if (Parent->TKey_Fly && bCanFly)
-			{
-				if (!Parent->TKey_NoGravity && !HKey_Up)
-				{
-					Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive, false);
-					Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
-					Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
-					UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight Remote"));
-				}
-				else
-				{
-					if (HKey_Accel)
-						Parent->SuitState = EPowerSuitState::PS_HOVERSPRINT;
-					else if (HKey_Down)
-						Parent->SuitState = EPowerSuitState::PS_FLYDOWN;
-					else if (HKey_Up)
-						Parent->SuitState = EPowerSuitState::PS_FLYUP;
-					else if (Parent->MoveC->Velocity.Size2D() > 0.1f)
-						Parent->SuitState = EPowerSuitState::PS_HOVERMOVE;
-					else
-						Parent->SuitState = EPowerSuitState::PS_HOVER;
-				}
-			}
-			else
-			{
-				Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive, false);
-				Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
-				Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
-				UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight Remote"));
-			}
-		}
-
-
-		return;
 	}
 
 	if (!Parent->nProducing)
