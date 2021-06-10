@@ -67,11 +67,11 @@ protected:
 
 
 	// Added to Suit Overlay
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		TSubclassOf<UPowerSuitWidget> OverlayWidget;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Tooltip = "Overlay Module Widget, Added above the Suits Overlay Widget ( permantly in view )"))
+		TSubclassOf<UPowerSuitWidget> OMW;
 
 
 	// Added to Inventory UI
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		TSubclassOf<UPowerSuitWidget> InventoryWidget;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Tooltip = "Inventory Module Widget, Added to the Character Inventory Widget"))
+		TSubclassOf<UPowerSuitWidget> IMW;
 };

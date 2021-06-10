@@ -390,3 +390,13 @@ bool UEquipmentModuleComponent::NeedTransform_Implementation()
 {
 	return false;
 }
+
+
+
+bool UEquipmentModuleComponent::VerifyItem(TSubclassOf< UFGItemDescriptor > ItemClass, int32 Amount)
+{
+	if (ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()))
+		return true;
+	else
+		return false;
+}

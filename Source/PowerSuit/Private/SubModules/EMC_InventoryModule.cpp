@@ -78,6 +78,8 @@ AFGCharacterPlayer* UEMC_InventoryModule::InitInventory()
 		if (!Parent->nInventory->GetIsReplicated())
 			Parent->nInventory->SetIsReplicated(true);
 
+		Parent->nInventory->mItemFilter.BindUFunction(Parent,"VerifyItem");
+		
 		UpdateInventorySize();
 	}
 	return Character;

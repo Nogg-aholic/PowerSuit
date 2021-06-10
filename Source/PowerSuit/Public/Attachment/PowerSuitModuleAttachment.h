@@ -116,8 +116,8 @@ public:
 	FEquipmentStats AttachmentStats;
 
 	/** Custom Widget - placed at the bottom of the Suit Widget in the "Module Configuration" section*/
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		TSubclassOf<UAttachmentModuleUserWidget> CustomWidget;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Tooltip = "Config Module Widget, Added into the Suit UI"))
+		TSubclassOf<UAttachmentModuleUserWidget> CMW;
 
 
 	UPROPERTY(BlueprintReadOnly)

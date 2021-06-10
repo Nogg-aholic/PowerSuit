@@ -50,6 +50,9 @@ public:
 
 	virtual bool NeedTransform_Implementation() override;
 
+	UFUNCTION()
+	bool VerifyItem(TSubclassOf<UFGItemDescriptor> ItemClass, int32 Amount);
+
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnConsumeFuelItem, TSubclassOf<class UFGItemDescriptor>, Item, int32, Slotid, int32, AmountLeft);
 	UPROPERTY(BlueprintAssignable, Category = "Events")

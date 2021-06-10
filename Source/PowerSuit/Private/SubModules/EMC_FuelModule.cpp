@@ -46,7 +46,10 @@ bool UEMC_FuelModule::ConsumeFuelItem(UFGInventoryComponent* Inventory, TSubclas
 		if (Inventory->HasItems(inClass, inAmount))
 		{
 			Inventory->Remove(inClass, inAmount);
-			const float MJPercent = (inAmount* inClass.GetDefaultObject()->mEnergyValue * Parent->GetSuitPropertySafe(ESuitProperty::nFuelEfficiency).ClampAdd(1) ) / FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value(),0.01f,99999999999.f);
+			const float FuelEfficiency = Parent->GetSuitPropertySafe(ESuitProperty::nFuelEfficiency).ClampAdd(1);
+			const float ItemMJ = inAmount * inClass.GetDefaultObject()->mEnergyValue;
+			const float TankSize = FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value(), 1.f, 99999999999.f);
+			const float MJPercent = (ItemMJ * FuelEfficiency) / TankSize;
 			Parent->nFuelAmount = FMath::Clamp(MJPercent, 0.f, 1.f);
 			Parent->OnConsumeFuelItem.Broadcast(inClass, 0, 1);
 			return true;
@@ -106,7 +109,7 @@ void UEMC_FuelModule::PostTick() const
 		if (!Parent->EquipmentParent)
 			return;
 
-		if (Parent->nFuelAmount <= 0)
+		if (Parent->nFuelAmount <= 0 && Parent->nFuelConsumption >= 0.f)
 			return;
 
 		// From Percent to Actual MJ Amount
