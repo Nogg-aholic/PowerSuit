@@ -344,6 +344,14 @@ void UPowerSuitBPLibrary::UpdateFlags(APowerSuit* EquipmentParent)
 			if ((EquipmentParent->Module->Stats.HasFlag(i)))
 				EquipmentParent->Module->Stats.RemoveSuitFlags -= static_cast<ESuitFlag>(i);
 	}
+
+	for (int32 i = 1; i < ESuitFlagAdvanced::SuitFlagAdvanced_END; i = static_cast<ESuitFlagAdvanced>(i + i))
+	{
+		if (EquipmentParent->Module->Stats.HasAdvancedRemoveFlag(i))
+			if ((EquipmentParent->Module->Stats.HasAdvancedFlag(i)))
+				EquipmentParent->Module->Stats.RemoveSuitFlagsAdvanced -= static_cast<ESuitFlagAdvanced>(i);
+	}
+
 	EquipmentParent->OnPowerSuitStatUpdate.Broadcast(3);
 
 }

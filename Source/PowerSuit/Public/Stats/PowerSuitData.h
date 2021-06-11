@@ -805,6 +805,12 @@ public:
 	*/
 	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule | Inventory")
 	TArray<TSubclassOf<class UFGItemDescriptor>> nUnlockedAllowedFuels;
+	/**
+	* Allow the suit to refill its Fuel by consuming these items from the inventory.
+	*/
+	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule | Inventory")
+		TArray<TSubclassOf<class UFGItemDescriptor>> nSkippedAllowedFuels;
+
 
 	~FEquipmentStats() = default;
 

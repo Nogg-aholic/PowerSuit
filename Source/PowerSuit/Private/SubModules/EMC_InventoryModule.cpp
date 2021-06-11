@@ -124,7 +124,7 @@ void UEMC_InventoryModule::ResetInventoryStats()
 	ItemsRemembered.Empty();
 	UniquesActive.Empty();
 	Parent->FuelModule->nAllowedFuels.Empty();
-
+	Parent->DefaultStats.nUnlockedAllowedFuels.Empty();
 	TArray<FItemAmount> Arr;
 
 	#ifdef FOR_MODSHIPPING

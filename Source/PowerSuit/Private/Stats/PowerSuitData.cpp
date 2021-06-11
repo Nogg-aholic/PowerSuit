@@ -2,6 +2,7 @@
 #include "SubModules/EMC_FuelModule.h"
 #include "Equipment/Equipment_PowerSuit.h"
 #include "Attachment/PowerSuitModuleAttachment.h"
+#include "SubModules/EMC_InventoryModule.h"
 
 DEFINE_LOG_CATEGORY(PowerSuit_Log);
 
@@ -71,6 +72,7 @@ void FEquipmentStats::SetupDefaults()
 
 void FEquipmentStats::UnlockFuels(UEquipmentModuleComponent* Parent, TArray<TSubclassOf<class UFGItemDescriptor>> FuelsToUnlock)
 {
+
 	Parent->DefaultStats.ForgetUnlockedFuels(Parent);
 
 	
@@ -82,6 +84,10 @@ void FEquipmentStats::UnlockFuels(UEquipmentModuleComponent* Parent, TArray<TSub
 		{
 			Parent->FuelModule->nAllowedFuels.Add(i);
 			nUnlockedAllowedFuels.Add(i);
+		}
+		else
+		{
+			nSkippedAllowedFuels.Add(i);
 		}
 	}
 
@@ -112,6 +118,20 @@ void FEquipmentStats::ForgetUnlockedFuels(UEquipmentModuleComponent* Parent)
 		}
 	}
 	nUnlockedAllowedFuels.Empty();
+
+	for(auto & RememberedItem : Parent->InventoryModule->ItemsRemembered)
+	{
+		TArray<TSubclassOf<class UFGItemDescriptor>> SkippedAllowedFuels = RememberedItem.Value.nSkippedAllowedFuels;
+		for(auto FuelClass: SkippedAllowedFuels)
+		{
+			if (!Parent->FuelModule->nAllowedFuels.Contains(FuelClass))
+			{
+				Parent->FuelModule->nAllowedFuels.Add(FuelClass);
+				RememberedItem.Value.nUnlockedAllowedFuels.Add(FuelClass);
+				RememberedItem.Value.nSkippedAllowedFuels.Remove(FuelClass);
+			}
+		}
+	}
 }
 
 FEquipmentStats FEquipmentStats::operator+(const FEquipmentStats& OtherStruct)
@@ -188,7 +208,7 @@ FEquipmentStats FEquipmentStats::operator+(const FEquipmentStats& OtherStruct)
 				RemoveSuitFlags += static_cast<ESuitFlag>(i);
 	}
 
-	for (int32 i = 1; i < ESuitFlagAdvanced::SuitFlagAdvanced_Null; i = static_cast<ESuitFlagAdvanced>(i + i))
+	for (int32 i = 1; i < ESuitFlagAdvanced::SuitFlagAdvanced_END; i = static_cast<ESuitFlagAdvanced>(i + i))
 	{
 		if (OtherStruct.HasAdvancedFlag(i))
 			if (!(HasAdvancedFlag(i)))
@@ -196,7 +216,7 @@ FEquipmentStats FEquipmentStats::operator+(const FEquipmentStats& OtherStruct)
 	}
 
 
-	for (int32 i = 1; i < ESuitFlagAdvanced::SuitFlagAdvanced_Null; i = static_cast<ESuitFlagAdvanced>(i + i))
+	for (int32 i = 1; i < ESuitFlagAdvanced::SuitFlagAdvanced_END; i = static_cast<ESuitFlagAdvanced>(i + i))
 	{
 		if (OtherStruct.HasAdvancedRemoveFlag(i))
 			if (!(HasAdvancedRemoveFlag(i)))
