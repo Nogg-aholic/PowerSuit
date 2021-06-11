@@ -36,6 +36,8 @@ private:
 
 	void SubtractModuleStats(TSubclassOf<class UEquipmentModuleDescriptor> Item, int32 Index);
 
+	bool CheckCreateModuleStats(const FInventoryStack Stack, const int32 Ind);
+
 	friend class UEquipmentModuleComponent;
 	friend class UEMC_PowerModule;
 	friend class UEMC_AttachmentModule;
@@ -70,7 +72,7 @@ public:
 
 	// GC should stay away
 	UPROPERTY() 
-	TMap< TSubclassOf<class UFGItemDescriptor>, FEquipmentStatStack> ItemsRemembered;
+	TMap< int32, FEquipmentStats> ItemsRemembered;
 	UPROPERTY()
 	TArray<TSubclassOf<class UEquipmentModuleDescriptor>> UniquesActive;
 };

@@ -190,10 +190,10 @@ void UEMC_StateModule::UpdateSuitState()
 		out Consumption/Production Logic
 	*/
 
-	
+	const bool Controlled = UFGBlueprintFunctionLibrary::IsLocallyHumanControlled(Parent->EquipmentParent->GetInstigator());
 	if (!Parent->EquipmentParent->HasAuthority())
 	{
-		if (!UFGBlueprintFunctionLibrary::IsLocallyHumanControlled(Parent->EquipmentParent->GetInstigator()))
+		if (!Controlled)
 		{
 			// server and not humanly controlled doesnt need to update Hotkeys
 			return;
@@ -304,7 +304,8 @@ void UEMC_StateModule::UpdateSuitState()
 	}
 	else if (Parent->nMovementMode == EMovementMode::MOVE_Falling)
 	{
-		Parent->FallingTime = Parent->FallingTime + Parent->Delta;
+		if(Controlled)
+			Parent->FallingTime = Parent->FallingTime + Parent->Delta;
 
 		// if we want to fly and are in the Air we allow if Unlocked
 		if (Parent->TKey_Fly && Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked) && Parent->nCurrentPower > 0.1f &&  !Parent->MoveC->IsInHyperPipe())

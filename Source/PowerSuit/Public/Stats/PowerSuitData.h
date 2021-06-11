@@ -791,10 +791,14 @@ public:
 
 
 	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule | Inventory")
-	int32 mCachedInventorySlot = -1;
+		int32 mCachedInventorySlot = -1;
 
 	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule | Inventory")
-	APowerSuitModuleAttachment* mCachedAttachment;
+		APowerSuitModuleAttachment* mCachedAttachment;
+
+
+	UPROPERTY(BlueprintReadOnly, Category = "EquipmentModule | Inventory")
+		TSubclassOf<class UFGItemDescriptor> mCachedDescriptor = nullptr;
 
 	/**
 	* Allow the suit to refill its Fuel by consuming these items from the inventory.

@@ -167,6 +167,13 @@ FEquipmentStats FEquipmentStats::operator+(const FEquipmentStats& OtherStruct)
 				DamageShieldAbsorption += static_cast<ENDamageType>(i);
 	}
 
+	for (int32 i = 1; i < ENDamageType::DamageTypeMAX; i = static_cast<ENDamageType>(i + i))
+	{
+		if (OtherStruct.HasRemoveDamageMask(i))
+			if (!(HasRemoveDamageMask(i)))
+				RemoveDamageShieldAbsorption += static_cast<ENDamageType>(i);
+	}
+
 	for (int32 i = 1; i < ESuitFlag::SuitFlag_END; i = static_cast<ESuitFlag>(i + i))
 	{
 		if (OtherStruct.HasFlag(i))
@@ -174,17 +181,10 @@ FEquipmentStats FEquipmentStats::operator+(const FEquipmentStats& OtherStruct)
 				SuitFlags += static_cast<ESuitFlag>(i);
 	}
 
-	for (int32 i = 1; i < ENDamageType::DamageTypeMAX; i = static_cast<ENDamageType>(i + i))
-	{
-		if (OtherStruct.HasRemoveDamageMask(i))
-			if (!(HasDamageMask(i)))
-				RemoveDamageShieldAbsorption += static_cast<ENDamageType>(i);
-	}
-
 	for (int32 i = 1; i < ESuitFlag::SuitFlag_END; i = static_cast<ESuitFlag>(i + i))
 	{
 		if (OtherStruct.HasRemoveFlag(i))
-			if (!(HasFlag(i)))
+			if (!(HasRemoveFlag(i)))
 				RemoveSuitFlags += static_cast<ESuitFlag>(i);
 	}
 
@@ -199,7 +199,7 @@ FEquipmentStats FEquipmentStats::operator+(const FEquipmentStats& OtherStruct)
 	for (int32 i = 1; i < ESuitFlagAdvanced::SuitFlagAdvanced_Null; i = static_cast<ESuitFlagAdvanced>(i + i))
 	{
 		if (OtherStruct.HasAdvancedRemoveFlag(i))
-			if (!(HasAdvancedFlag(i)))
+			if (!(HasAdvancedRemoveFlag(i)))
 				RemoveSuitFlagsAdvanced += static_cast<ESuitFlagAdvanced>(i);
 	}
 
@@ -208,13 +208,11 @@ FEquipmentStats FEquipmentStats::operator+(const FEquipmentStats& OtherStruct)
 	{
 		TArray<TSubclassOf<class UFGDamageType>> DamageTypeArray;
 		OtherStruct.nDamageResistance.GetKeys(DamageTypeArray);
-		for (int32 i = 0; i < DamageTypeArray.Num(); i++)
-			if (nDamageResistance.Contains(DamageTypeArray[i]))
-				nDamageResistance.Add(DamageTypeArray[i],
-				                      *nDamageResistance.Find(DamageTypeArray[i]) % OtherStruct.nDamageResistance[
-					                      DamageTypeArray[i]]);
+		for (auto i : DamageTypeArray)
+			if (nDamageResistance.Contains(i))
+				nDamageResistance.Add(i,  *nDamageResistance.Find(i) % OtherStruct.nDamageResistance[i]);
 			else
-				nDamageResistance.Add(DamageTypeArray[i], OtherStruct.nDamageResistance[DamageTypeArray[i]]);
+				nDamageResistance.Add(i, OtherStruct.nDamageResistance[i]);
 	}
 
 
@@ -284,10 +282,9 @@ FEquipmentStats FEquipmentStats::operator-(const FEquipmentStats& OtherStruct)
 	{
 		TArray<TEnumAsByte<ENDamageType>> arr;
 		OtherStruct.nDamageTypeResistance.GetKeys(arr);
-		for (int32 i = 0; i < arr.Num(); i++)
+		for (auto i : arr)
 		{
-			nDamageTypeResistance.Add(
-				arr[i], *nDamageTypeResistance.Find(arr[i]) - OtherStruct.nDamageTypeResistance[arr[i]]);
+			nDamageTypeResistance.Add(i, *nDamageTypeResistance.Find(i) - *OtherStruct.nDamageTypeResistance.Find(i));
 		}
 	}
 
@@ -296,6 +293,13 @@ FEquipmentStats FEquipmentStats::operator-(const FEquipmentStats& OtherStruct)
 		if (OtherStruct.HasDamageMask(i))
 			if (!(HasDamageMask(i)))
 				DamageShieldAbsorption -= static_cast<ENDamageType>(i);
+	}
+
+	for (int32 i = 1; i < ENDamageType::DamageTypeMAX; i = static_cast<ENDamageType>(i + i))
+	{
+		if (OtherStruct.HasRemoveDamageMask(i))
+			if (!(HasRemoveDamageMask(i)))
+				RemoveDamageShieldAbsorption -= static_cast<ENDamageType>(i);
 	}
 
 	for (int32 i = 1; i < ESuitFlag::SuitFlag_END; i = static_cast<ESuitFlag>(i + i))
@@ -317,14 +321,14 @@ FEquipmentStats FEquipmentStats::operator-(const FEquipmentStats& OtherStruct)
 	{
 		if (OtherStruct.HasAdvancedFlag(i))
 			if ((HasAdvancedFlag(i)))
-				SuitFlagsAdvanced -= static_cast<ESuitFlag>(i);
+				SuitFlagsAdvanced -= static_cast<ESuitFlagAdvanced>(i);
 	}
 
 	for (int32 i = 1; i < ESuitFlagAdvanced::SuitFlagAdvanced_END; i = static_cast<ESuitFlagAdvanced>(i + i))
 	{
 		if (OtherStruct.HasAdvancedRemoveFlag(i))
 			if (!(HasAdvancedRemoveFlag(i)))
-				RemoveSuitFlagsAdvanced -= static_cast<ESuitFlag>(i);
+				RemoveSuitFlagsAdvanced -= static_cast<ESuitFlagAdvanced>(i);
 	}
 
 	if (OtherStruct.nDamageResistance.Num() > 0)
@@ -342,20 +346,17 @@ FEquipmentStats FEquipmentStats::operator-(const FEquipmentStats& OtherStruct)
 	{
 		TArray<FName> nNamedPropertiesArray;
 		OtherStruct.nNamedProperties.GetKeys(nNamedPropertiesArray);
-		for (int32 i = 0; i < nNamedPropertiesArray.Num(); i++)
+		for (auto i : nNamedPropertiesArray)
 		{
-			if (nNamedProperties.Contains(nNamedPropertiesArray[i]))
+			if (nNamedProperties.Contains(i))
 			{
-				if ((*nNamedProperties.Find(nNamedPropertiesArray[i]) - OtherStruct.
-					nNamedProperties[nNamedPropertiesArray[i]]).value() != 0.f)
+				if ((*nNamedProperties.Find(i) - OtherStruct.nNamedProperties[i]).value() != 0.f)
 				{
-					nNamedProperties.Add(nNamedPropertiesArray[i],
-						*nNamedProperties.Find(nNamedPropertiesArray[i]) - OtherStruct.
-						nNamedProperties[nNamedPropertiesArray[i]]);
+					nNamedProperties.Add(i, *nNamedProperties.Find(i) - OtherStruct.nNamedProperties[i]);
 				}
 				else
 				{
-					nNamedProperties.Remove(nNamedPropertiesArray[i]);
+					nNamedProperties.Remove(i);
 				}
 			}
 		}

@@ -69,41 +69,6 @@ void UEquipmentModuleComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 
 
 
-void UEquipmentModuleComponent::RemoteInventoryRefresh_Implementation(bool IsAdd, TSubclassOf<UFGItemDescriptor> Class, int32 Amount)
-{
-	if (!EquipmentParent)
-	{
-		return;
-	}
-	if (!EquipmentParent->GetInstigator())
-	{
-		return;
-	}
-	if (EquipmentParent->GetInstigator()->HasAuthority())
-	{
-		return;
-	}
-	FTimerDelegate TimerDel;
-	FTimerHandle TimerHandle;
-	if (IsAdd)
-	{
-		TimerDel.BindUFunction(InventoryModule, FName("RefreshInventoryAdd"), Class, Amount);
-
-		UE_LOG(PowerSuit_Log, Display, TEXT("Remote with Refresh Add : true"));
-	}
-	else
-	{
-		TimerDel.BindUFunction(InventoryModule, FName("RefreshInventoryRemove"), Class, Amount);
-		UE_LOG(PowerSuit_Log, Display, TEXT("Remote with Refresh Add : false"));
-
-
-	}
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 1.f, false);
-	
-}
-
-
-
 
 // Called every frame
 // Handle suit Fuse and Active timers, power and fuel consumption, shields, health regen, etc.
@@ -294,6 +259,40 @@ float UEquipmentModuleComponent::CalculateDamage(float DmgIn, int32 Type, TSubcl
 
 
 
+void UEquipmentModuleComponent::RemoteInventoryRefresh_Implementation(bool IsAdd, TSubclassOf<UFGItemDescriptor> Class, int32 Amount)
+{
+	if (!EquipmentParent)
+	{
+		return;
+	}
+	if (!EquipmentParent->GetInstigator())
+	{
+		return;
+	}
+	if (EquipmentParent->GetInstigator()->HasAuthority())
+	{
+		return;
+	}
+	FTimerDelegate TimerDel;
+	FTimerHandle TimerHandle;
+	if (IsAdd)
+	{
+		TimerDel.BindUFunction(InventoryModule, FName("RefreshInventoryAdd"), Class, Amount);
+
+		UE_LOG(PowerSuit_Log, Display, TEXT("Remote with Refresh Add : true"));
+	}
+	else
+	{
+		TimerDel.BindUFunction(InventoryModule, FName("RefreshInventoryRemove"), Class, Amount);
+		UE_LOG(PowerSuit_Log, Display, TEXT("Remote with Refresh Add : false"));
+
+
+	}
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 1.f, false);
+
+}
+
+
 FModMultProperty UEquipmentModuleComponent::GetSuitPropertySafe(ESuitProperty prop) const
 {
 	if(!Stats.nSuitProperties.Contains(prop))
@@ -396,7 +395,13 @@ bool UEquipmentModuleComponent::NeedTransform_Implementation()
 bool UEquipmentModuleComponent::VerifyItem(TSubclassOf< UFGItemDescriptor > ItemClass, int32 Amount)
 {
 	if (ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()))
+	{
+		if (InventoryModule->UniquesActive.Contains(ItemClass))
+		{
+			return false;
+		}
 		return true;
+	}
 	else
 		return false;
 }
