@@ -12,6 +12,24 @@
 - You can hover over a labeled region of the screen to see what fuels your Suit accepts
 - New suit material coloration, also - colors for the hoverpack on your back!
 
+Early Release 2
+
+- Gravity flight in Multiplayer should be less jumpy now. If you still have problems with this, it is likely because your host's FPS is low compared to the client.
+- Now only Modules can be stored in a PowerSuit's inventory. This is to prevent you from storing your suit within itself, making it permanently inaccessible.
+- New system of widgets that modules can control
+- Overlay Module Widgets
+	- These can render above the PowerSuit HUD
+- Attachment Module Widgets
+	- These already existed, but now have a name
+	- Attachments can set an AMW to appear inside the Suit Inventory's 'Module Configuration' section
+- Inventory Module Widgets
+	- Show up on the right side of the inventory pane
+
+- By default, you can no longer open the Suit Inventory window with your regular inventory open. The new Inventory Module Widget section takes up a lot of space. (TODO) You can re-enable this in the Config if you'd like.
+- By default, if you try to open your regular inventory with the Suit Inventory window open, it will open out to the side of the regular Inventory window.
+
+- Fuel unlocks should work more consistently in multiplayer and be faster to calculate
+
 ## Bugfixes
 
 - Numerous multiplayer client related bugfixes
@@ -26,6 +44,7 @@
 - Fuel HUD display now actually matches stored fuel
 - Air Refuel flag works again
 - Fixed display of flags in Debug Stats
+- Fixed suits not being able to receive fuel produced by Modules until they had refueled at least once from inventory items.
 
 ## For Developers
 

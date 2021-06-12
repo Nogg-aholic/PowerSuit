@@ -516,7 +516,7 @@ bool UEMC_InventoryModule::CheckCreateModuleStats(const FInventoryStack Stack, c
 				}
 				else
 				{
-					UE_LOG(PowerSuit_Log, Error, TEXT("Remote should not End up here ! ItemState is not Replciated for %s"), *ItemObj->mDisplayName.ToString());
+					UE_LOG(PowerSuit_Log, Error, TEXT("Remote should not End up here ! ItemState is not Replicated for %s"), *ItemObj->mDisplayName.ToString());
 				}
 			}
 			else
@@ -528,7 +528,9 @@ bool UEMC_InventoryModule::CheckCreateModuleStats(const FInventoryStack Stack, c
 			if (Equipment)
 			{
 				Equipment->ParentModule = Parent;
-				FEquipmentStats Obj = ItemObj->EquipmentStats;
+				// If an attachment does not have its 'Condition met' it falls back to the module's default stats instead of those offered by ReceiveModuleStats
+				// This allows, for example, a jetpack to disable flight but still offer a fuel tank size bonus while disabled.
+				FEquipmentStats Obj = ItemObj->EquipmentStats; 
 				if (Equipment->GetIsConditionMet())
 				{
 					Obj = Equipment->ReceiveModuleStats(ItemObj->EquipmentStats);
@@ -540,7 +542,7 @@ bool UEMC_InventoryModule::CheckCreateModuleStats(const FInventoryStack Stack, c
 			}
 			else
 			{
-				UE_LOG(PowerSuit_Log, Error, TEXT("This should have an Attachment but its Invalid here, Falling back to DescriptorStats %s"), *ItemObj->mDisplayName.ToString());
+				UE_LOG(PowerSuit_Log, Error, TEXT("This should have an Attachment, but it's Invalid here. Falling back to DescriptorStats %s"), *ItemObj->mDisplayName.ToString());
 				FEquipmentStats Obj = ItemObj->EquipmentStats;
 				Obj.mCachedInventorySlot = Ind;
 				Obj.mCachedDescriptor = Item;
