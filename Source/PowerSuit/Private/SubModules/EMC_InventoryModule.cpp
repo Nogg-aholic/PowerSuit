@@ -466,6 +466,8 @@ void  UEMC_InventoryModule::SubtractModuleStats(const TSubclassOf< class UEquipm
 			Equipment->AttachmentUnInstalled();
 			Equipment->ParentModule = nullptr;
 		}
+
+		ItemsRemembered.Remove(Index);
 	}
 }
 
