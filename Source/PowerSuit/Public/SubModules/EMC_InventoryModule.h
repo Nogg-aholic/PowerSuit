@@ -67,8 +67,17 @@ public:
 		void RefreshInventory();
 	UFUNCTION()
 		void RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> ItemClass, int32 NumAdded);
+	
+	
+	UFUNCTION()
+		void RefreshInventoryAdd_Latent(TSubclassOf<UFGItemDescriptor> ItemClass, int32 NumAdded);
+	
+	
 	UFUNCTION()
 		void RefreshInventoryRemove(TSubclassOf<UFGItemDescriptor> ItemClass, int32 NumAdded);
+	
+	UFUNCTION()
+		void RefreshInventoryRemove_Latent(TSubclassOf<UFGItemDescriptor> ItemClass, int32 NumAdded);
 
 	// GC should stay away
 	UPROPERTY() 

@@ -142,7 +142,7 @@ FEquipmentStats FEquipmentStats::operator+(const FEquipmentStats& OtherStruct)
 	{
 		TArray<TEnumAsByte<ESuitMovementProperty>> MovementProperties;
 		OtherStruct.nMovementProperties.GetKeys(MovementProperties);
-		for (auto i : MovementProperties)
+		for (TEnumAsByte<ESuitMovementProperty> i : MovementProperties)
 		{
 			nMovementProperties.Add(i, *nMovementProperties.Find(i) % *OtherStruct.nMovementProperties.Find(i));
 		}
@@ -152,7 +152,7 @@ FEquipmentStats FEquipmentStats::operator+(const FEquipmentStats& OtherStruct)
 	{
 		TArray<TEnumAsByte<ESuitFlightProperty>> FlightProperties;
 		OtherStruct.nFlightProperties.GetKeys(FlightProperties);
-		for (auto i : FlightProperties)
+		for (TEnumAsByte<ESuitFlightProperty> i : FlightProperties)
 		{
 			nFlightProperties.Add(i, *nFlightProperties.Find(i) % *OtherStruct.nFlightProperties.Find(i));
 		}
@@ -162,7 +162,7 @@ FEquipmentStats FEquipmentStats::operator+(const FEquipmentStats& OtherStruct)
 	{
 		TArray<TEnumAsByte<ESuitProperty>> SuitProps;
 		OtherStruct.nSuitProperties.GetKeys(SuitProps);
-		for (auto i : SuitProps)
+		for (TEnumAsByte<ESuitProperty> i : SuitProps)
 		{
 			nSuitProperties.Add(i, *nSuitProperties.Find(i) % *OtherStruct.nSuitProperties.Find(i));
 		}

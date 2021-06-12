@@ -308,7 +308,7 @@ FModMultProperty UEquipmentModuleComponent::GetMovementPropertySafe(ESuitMovemen
 	{
 		return FModMultProperty();
 	}
-	return *Stats.nMovementProperties.Find(prop);
+	return Stats.nMovementProperties[prop];
 }
 
 FModMultProperty UEquipmentModuleComponent::GetFlightPropertySafe(ESuitFlightProperty prop) const
@@ -316,14 +316,14 @@ FModMultProperty UEquipmentModuleComponent::GetFlightPropertySafe(ESuitFlightPro
 	if (!Stats.nFlightProperties.Contains(prop))
 		return FModMultProperty();
 
-	return *Stats.nFlightProperties.Find(prop);
+	return Stats.nFlightProperties[prop];
 
 }
 
-FModMultProperty UEquipmentModuleComponent::GetNamedPropertySafe(FName property) const
+FModMultProperty UEquipmentModuleComponent::GetNamedPropertySafe(FName prop) const
 {
-	if (Stats.nNamedProperties.Contains(property))
-		return *Stats.nNamedProperties.Find(property);
+	if (Stats.nNamedProperties.Contains(prop))
+		return Stats.nNamedProperties[prop];
 	else
 		return FModMultProperty();
 }
@@ -344,9 +344,7 @@ void UEquipmentModuleComponent::ResetStats()
 	UE_LOG(PowerSuit_Log, Display, TEXT("Resetting Stats"));
 
 	// Reset everything
-	FEquipmentStats Fill = FEquipmentStats();
-	Fill.SetupDefaults();
-	Stats = DefaultStats + Fill;
+	Stats = DefaultStats + FEquipmentStats();
 	if(EquipmentParent->HasAuthority())
 		nCurrentShield = 0.f;
 
