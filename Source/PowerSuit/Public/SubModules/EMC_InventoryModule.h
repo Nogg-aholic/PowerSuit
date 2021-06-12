@@ -56,7 +56,7 @@ private:
 
 	void MergeStats(FInventoryStack Stack, FEquipmentStats& StatsRef);
 
-	FEquipmentStats GetModuleStats(FInventoryStack Stack, int32 Ind);
+	FEquipmentStats& GetModuleStats(FInventoryStack Stack, int32 Ind);
 
 public:
 

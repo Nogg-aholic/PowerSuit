@@ -361,8 +361,7 @@ bool UEMC_InventoryModule::MergeOnIndex(const int32 Ind, const bool Safe)
 		if (Stack.Item.ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()))
 		{
 			CheckCreateModuleStats(Stack, Ind);
-			FEquipmentStats StatsRef = GetModuleStats(Stack, Ind);
-			MergeStats(Stack, StatsRef);
+			MergeStats(Stack, GetModuleStats(Stack, Ind));
 		}
 		return true;
 	}
@@ -401,8 +400,7 @@ bool UEMC_InventoryModule::UpdateOnIndex(const int32 Index)
 
 				SubtractModuleStats(item,Index);
 				CheckCreateModuleStats(Stack, Index);
-				FEquipmentStats StatsRef = GetModuleStats(Stack, Index);
-				MergeStats(Stack, StatsRef);
+				MergeStats(Stack, GetModuleStats(Stack, Index));
 				UPowerSuitBPLibrary::UpdateAllNoRefresh(Parent->EquipmentParent);
 				return true;
 				
@@ -537,6 +535,7 @@ bool UEMC_InventoryModule::CheckCreateModuleStats(const FInventoryStack Stack, c
 				{
 					Obj = Equipment->ReceiveModuleStats(ItemObj->EquipmentStats);
 				}
+				Equipment->InventorySlot = Ind;
 				Obj.mCachedAttachment = Equipment;
 				Obj.mCachedInventorySlot = Ind;
 				Obj.mCachedDescriptor = Item;
@@ -564,7 +563,7 @@ bool UEMC_InventoryModule::CheckCreateModuleStats(const FInventoryStack Stack, c
 }
 
 
-FEquipmentStats UEMC_InventoryModule::GetModuleStats(const FInventoryStack Stack, const int32 Ind)
+FEquipmentStats& UEMC_InventoryModule::GetModuleStats(const FInventoryStack Stack, const int32 Ind)
 {
 	if (ItemsRemembered.Contains(Ind))
 	{
@@ -580,8 +579,11 @@ FEquipmentStats UEMC_InventoryModule::GetModuleStats(const FInventoryStack Stack
 	else
 	{
 		UE_LOG(PowerSuit_Log, Error, TEXT("No Stats Found for %s"), *ItemsRemembered.Find(Ind)->mCachedDescriptor->GetName())
+		FEquipmentStats StatObject = FEquipmentStats();
+		StatObject.mCachedInventorySlot = Ind;
+		ItemsRemembered.Add(Ind,StatObject);
 	}
-	return FEquipmentStats();
+	return ItemsRemembered[Ind];
 }
 
 APowerSuitModuleAttachment* UEMC_InventoryModule::CreateAttachmentStateIfNeeded(const FInventoryStack Stack, const UEquipmentModuleDescriptor* ItemObj, const TSubclassOf< class UEquipmentModuleDescriptor> Item, const int32 Index)
