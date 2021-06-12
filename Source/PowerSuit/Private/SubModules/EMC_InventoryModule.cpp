@@ -528,7 +528,7 @@ bool UEMC_InventoryModule::CheckCreateModuleStats(const FInventoryStack Stack, c
 			if (Equipment)
 			{
 				Equipment->ParentModule = Parent;
-				FEquipmentStats Obj = FEquipmentStats();
+				FEquipmentStats Obj = ItemObj->EquipmentStats;
 				if (Equipment->GetIsConditionMet())
 				{
 					Obj = Equipment->ReceiveModuleStats(ItemObj->EquipmentStats);
