@@ -207,7 +207,7 @@ void UEMC_InventoryModule::RefreshInventoryRemove_Latent(TSubclassOf<UFGItemDesc
 
 	UPowerSuitBPLibrary::UpdateAllNoRefresh(Parent->EquipmentParent);
 
-	if (Parent->EquipmentParent->HasAuthority())
+	if (Parent->EquipmentParent->HasAuthority() && !Parent->EquipmentParent->GetInstigator()->IsLocallyControlled())
 	{
 		Parent->RemoteInventoryRefresh(false, ItemClass, NumAdded);
 		UE_LOG(PowerSuit_Log, Display, TEXT("Calling Remote with Refresh Remove"));
