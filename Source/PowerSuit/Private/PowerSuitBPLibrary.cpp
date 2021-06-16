@@ -9,6 +9,8 @@
 #include "FGCharacterMovementComponent.h"
 
 #include "PowerSuit.h"
+#include "Patching/BlueprintHookHelper.h"
+#include "Patching/BlueprintHookManager.h"
 
 UPowerSuitBPLibrary::UPowerSuitBPLibrary(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -465,3 +467,28 @@ void UPowerSuitBPLibrary::SetSuitFlag(FEquipmentStats& Stats, ESuitFlag Flag, bo
 	}
 }
 
+
+
+void UPowerSuitBPLibrary::BindOnWidgetConstruct(const TSubclassOf<UUserWidget> WidgetClass,FOnWidgetConstruct Binding) {
+	if(!WidgetClass)
+		return;
+	UFunction* ConstructFunction = WidgetClass->FindFunctionByName(TEXT("Construct"));
+	if(!ConstructFunction)
+		return;
+	UBlueprintHookManager* HookManager = GEngine->GetEngineSubsystem<UBlueprintHookManager>();
+	HookManager->HookBlueprintFunction(ConstructFunction, [Binding](FBlueprintHookHelper& HookHelper) {
+		Binding.ExecuteIfBound(Cast<UUserWidget>(HookHelper.GetContext()));
+	}, EPredefinedHookOffset::Return);
+}
+
+void UPowerSuitBPLibrary::BindOnActorConstruct(const TSubclassOf<AActor> ActorClass,FOnObjectConstruct Binding) {
+	if(!ActorClass)
+		return;
+	UFunction* ConstructFunction = ActorClass->FindFunctionByName(TEXT("Construct"));
+	if(!ConstructFunction)
+		return;
+	UBlueprintHookManager* HookManager = GEngine->GetEngineSubsystem<UBlueprintHookManager>();
+	HookManager->HookBlueprintFunction(ConstructFunction, [Binding](FBlueprintHookHelper& HookHelper) {
+        Binding.ExecuteIfBound(Cast<AActor>(HookHelper.GetContext()));
+    }, EPredefinedHookOffset::Return);
+}

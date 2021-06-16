@@ -8,6 +8,10 @@
 #include "Attachment/PowerSuitModuleAttachment.h"
 #include "PowerSuitBPLibrary.generated.h"
 
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnObjectConstruct,AActor* , Actor);
+
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnWidgetConstruct,UUserWidget* , Widget);
+
 UCLASS()
 class UPowerSuitBPLibrary : public UBlueprintFunctionLibrary
 {
@@ -117,4 +121,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 		static void SetSuitFlag(UPARAM(ref) FEquipmentStats& Stats, ESuitFlag Flag, bool Enabled);
 
+	UFUNCTION(BlueprintCallable)
+	static void BindOnWidgetConstruct(TSubclassOf<UUserWidget> WidgetClass, FOnWidgetConstruct Binding);
+
+	UFUNCTION(BlueprintCallable)
+	static void BindOnActorConstruct(TSubclassOf<AActor> ActorClass, FOnObjectConstruct Binding);
+
+	static FOnWidgetConstruct OnWidgetConstruct;
+
+	static FOnObjectConstruct OnObjectConstruct;
 };

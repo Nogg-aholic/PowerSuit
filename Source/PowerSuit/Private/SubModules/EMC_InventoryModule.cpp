@@ -148,19 +148,9 @@ void UEMC_InventoryModule::RefreshInventoryRemove(TSubclassOf<UFGItemDescriptor>
 	
 	FTimerDelegate TimerDel;
 	FTimerHandle TimerHandle;
-
-	TimerDel.BindUFunction(this, FName("RefreshInventoryRemove_Latent"), ItemClass, NumAdded);
-
-	Parent->EquipmentParent->GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, .1f, false);
-}
-
-void UEMC_InventoryModule::RefreshInventoryRemove_Latent(TSubclassOf<UFGItemDescriptor> ItemClass, int32 NumAdded)
-{
-	if (!Parent->EquipmentParent->GetInstigator())
-		return;
-
-	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventoryRemove_Latent"));
-
+	
+	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventoryRemove Called from Binding with Class %s and Amount %i"), *ItemClass->GetName(), NumAdded);
+	
 	TArray<TSubclassOf<UFGItemDescriptor>> RelevantClasses; RelevantClasses.Add(UEquipmentModuleDescriptor::StaticClass());
 	TArray<int32> RelevantSlotIndexes = Parent->nInventory->GetRelevantStackIndexes(RelevantClasses);
 	TArray<int32> CachedIndexes; ItemsRemembered.GetKeys(CachedIndexes);
@@ -212,6 +202,21 @@ void UEMC_InventoryModule::RefreshInventoryRemove_Latent(TSubclassOf<UFGItemDesc
 		Parent->RemoteInventoryRefresh(false, ItemClass, NumAdded);
 		UE_LOG(PowerSuit_Log, Display, TEXT("Calling Remote with Refresh Remove"));
 	}
+	
+	
+	TimerDel.BindUFunction(this, FName("RefreshInventoryRemove_Latent"), ItemClass, NumAdded);
+
+	Parent->EquipmentParent->GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, .1f, false);
+}
+
+void UEMC_InventoryModule::RefreshInventoryRemove_Latent(TSubclassOf<UFGItemDescriptor> ItemClass, int32 NumAdded)
+{
+	if (!Parent->EquipmentParent->GetInstigator())
+		return;
+
+	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventoryRemove_Latent Called from Timer with Class %s and Amount %i"), *ItemClass->GetName(), NumAdded);
+
+	
 }
 
 
@@ -220,6 +225,8 @@ void UEMC_InventoryModule::RefreshInventory()
 {
 	if (!Parent->EquipmentParent->GetInstigator())
 		return;
+	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventory"));
+
 
 	if (Parent->EquipmentParent && Parent->nInventory)
 		BulkUpdateStats(Parent->nInventory);
@@ -236,20 +243,7 @@ void UEMC_InventoryModule::RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> It
 
 	FTimerDelegate TimerDel;
 	FTimerHandle TimerHandle;
-	
-	TimerDel.BindUFunction(this, FName("RefreshInventoryAdd_Latent"), ItemClass, NumAdded);
-
-	Parent->EquipmentParent->GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, .1f, false);
-}
-
-
-void UEMC_InventoryModule::RefreshInventoryAdd_Latent(TSubclassOf<UFGItemDescriptor> ItemClass, int32 NumAdded)
-{
-
-	if (!Parent->EquipmentParent->GetInstigator())
-		return;
-
-	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventoryAdd_Latent"));
+	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventoryAdd Called from Binding with Class %s and Amount %i"), *ItemClass->GetName(), NumAdded);
 
 	int32 NewIndex = -1; int32 ItemsLeft = NumAdded;
 	TArray<TSubclassOf<UFGItemDescriptor>> RelevantClasses; RelevantClasses.Add(UEquipmentModuleDescriptor::StaticClass());
@@ -263,19 +257,13 @@ void UEMC_InventoryModule::RefreshInventoryAdd_Latent(TSubclassOf<UFGItemDescrip
 		}
 	}
 
-	if (RelevantSlotIndexes.Num() != 1)
+	if (RelevantSlotIndexes.Num() == 0)
 	{
-		UE_LOG(PowerSuit_Log, Error, TEXT("Cant find added Item in the Inventory.. Doing a Full Update"));
-		RefreshInventory();
-		return;
-	}
-	else if(RelevantSlotIndexes.Num() == 0)
-	{
-		UE_LOG(PowerSuit_Log, Error, TEXT("No new Slot used Found this means the Old Item must have been replaced with a new on in this Slot"));
-		RefreshInventory();
+		UE_LOG(PowerSuit_Log, Error, TEXT("No New Item !?"));
+		//RefreshInventory();
 
 	}
-	else
+	else if (RelevantSlotIndexes.Num() == 1)
 	{
 		if (!MergeOnIndex(RelevantSlotIndexes[0]))
 		{
@@ -284,12 +272,35 @@ void UEMC_InventoryModule::RefreshInventoryAdd_Latent(TSubclassOf<UFGItemDescrip
 			return;
 		}
 	}
+	else
+	{
+		UE_LOG(PowerSuit_Log, Error, TEXT("More than 1 Relevant Indexes missing in Cache, Updating All"));
+		RefreshInventory();
+		return;
+	}
 
 	UPowerSuitBPLibrary::UpdateAllNoRefresh(Parent->EquipmentParent);
 	if (Parent->EquipmentParent->GetInstigator()->HasAuthority() && !Parent->EquipmentParent->GetInstigator()->IsLocallyControlled())
 	{
 		Parent->RemoteInventoryRefresh(true, ItemClass, NumAdded);
 	}
+
+
+	TimerDel.BindUFunction(this, FName("RefreshInventoryAdd_Latent"), ItemClass, NumAdded);
+
+	Parent->EquipmentParent->GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, .1f, false);
+}
+
+
+void UEMC_InventoryModule::RefreshInventoryAdd_Latent(TSubclassOf<UFGItemDescriptor> ItemClass, int32 NumAdded)
+{
+
+	if (!Parent->EquipmentParent->GetInstigator())
+		return;
+
+	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventoryAdd_Latent Called from Timer with Class %s and Amount %i"), *ItemClass->GetName(), NumAdded);
+
+
 
 }
 

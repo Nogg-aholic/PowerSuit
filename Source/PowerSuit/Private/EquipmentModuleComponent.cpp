@@ -277,14 +277,14 @@ void UEquipmentModuleComponent::RemoteInventoryRefresh_Implementation(bool IsAdd
 	FTimerHandle TimerHandle;
 	if (IsAdd)
 	{
-		TimerDel.BindUFunction(InventoryModule, FName("RefreshInventoryAdd"), Class, Amount);
+		TimerDel.BindUFunction(InventoryModule, FName("RefreshInventory"));
 
-		UE_LOG(PowerSuit_Log, Display, TEXT("Remote with Refresh Add : true"));
+		UE_LOG(PowerSuit_Log, Display, TEXT("Remote with RefreshInventoryAdd"));
 	}
 	else
 	{
-		TimerDel.BindUFunction(InventoryModule, FName("RefreshInventoryRemove"), Class, Amount);
-		UE_LOG(PowerSuit_Log, Display, TEXT("Remote with Refresh Add : false"));
+		TimerDel.BindUFunction(InventoryModule, FName("RefreshInventory"));
+		UE_LOG(PowerSuit_Log, Display, TEXT("Remote with RefreshInventoryRemove"));
 
 
 	}

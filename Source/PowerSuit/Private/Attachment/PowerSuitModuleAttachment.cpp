@@ -38,6 +38,11 @@ bool APowerSuitModuleAttachment::NeedTransform_Implementation()
 	return false;
 }
 
+float APowerSuitModuleAttachment::ReceiveDamage_Implementation(float DmgIn)
+{
+	return DmgIn;
+}
+
 
 
 

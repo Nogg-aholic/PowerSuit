@@ -118,7 +118,7 @@ void UEMC_PowerModule::TryRestart() const
 		Parent->nCurrentPower = 0.01f;
 
 		Parent->nProducing = true; // restart power production
-
+		Parent->OnFuseTriggered.Broadcast(Parent->nProducing, Parent->nFuseBreak);
 		Parent->InventoryModule->BulkUpdateStats(Parent->nInventory);
 	}
 }

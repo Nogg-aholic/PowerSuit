@@ -41,6 +41,12 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 		FEquipmentStats ReceiveModuleStats(FEquipmentStats DefaultStats);
 
+
+	// This is called before an Attachment is Installed and gives the Opportunity
+// to overwrite Default assigned Stats before they are accounted for
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+		float ReceiveDamage(float DmgIn);
+
 	// This will Attach the Attachment to the Suit, overwrite to do something else
 	UFUNCTION(BlueprintNativeEvent)
 	void AttachToSuit(AFGEquipment * EquipmentParent);
