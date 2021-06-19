@@ -495,3 +495,16 @@ void UPowerSuitBPLibrary::BindOnActorConstruct(const TSubclassOf<AActor> ActorCl
         Binding.ExecuteIfBound(Cast<AActor>(HookHelper.GetContext()));
     }, EPredefinedHookOffset::Return);
 }
+
+void UPowerSuitBPLibrary::SetUseDistanceOnPlayer(AFGCharacterPlayer* Player, float Distance)
+{
+	if(Player)
+	{
+#ifdef FOR_MODSHIPPING
+		Player->mUseDistance = Distance;
+#else
+		float & Mod = Player->*get(steal_mUseDistance());
+		Mod = Distance;
+#endif
+	}
+}

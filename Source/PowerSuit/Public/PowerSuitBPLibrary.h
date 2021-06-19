@@ -126,6 +126,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	static void BindOnActorConstruct(TSubclassOf<AActor> ActorClass, FOnObjectConstruct Binding);
+	
+	UFUNCTION(BlueprintCallable)
+	static void SetUseDistanceOnPlayer(AFGCharacterPlayer* Player, float Distance);
+	
 
 	static FOnWidgetConstruct OnWidgetConstruct;
 

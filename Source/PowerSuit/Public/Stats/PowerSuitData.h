@@ -6,6 +6,7 @@
 #include "Equipment/FGHoverPack.h"
 #include "FGInventoryComponent.h"
 #include "FGCharacterMovementComponent.h"
+#include "FGCharacterPlayer.h"
 #include "FGHealthComponent.h"
 #include "Misc/AssertionMacros.h"
 #include "DamageTypes/FGDamageType.h"
@@ -165,6 +166,11 @@ DECLARE_LOG_CATEGORY_EXTERN(PowerSuit_Log, Log, Log);
 		friend type get(steal_mCostToUse);
 	};
 
+	struct steal_mUseDistance {
+		typedef float AFGCharacterPlayer::* type;
+		friend type get(steal_mUseDistance);
+	};
+
 	template struct Steal<steal_mSlideTime, &UFGCharacterMovementComponent::mSlideTime>;
 	template struct Steal<steal_mMaxSlideAngle, &UFGCharacterMovementComponent::mMaxSlideAngle>;
 	template struct Steal<steal_mBoostJumpZMultiplier, &UFGCharacterMovementComponent::mBoostJumpZMultiplier>;
@@ -198,6 +204,7 @@ DECLARE_LOG_CATEGORY_EXTERN(PowerSuit_Log, Log, Log);
 	template struct Steal<steal_mCurrentPowerLevel, &AFGHoverPack::mCurrentPowerLevel>;
 
 	template struct Steal<steal_mCostToUse, &AFGEquipment::mCostToUse>;
+	template struct Steal<steal_mUseDistance, &AFGCharacterPlayer::mUseDistance>;
 
 	
 #endif
