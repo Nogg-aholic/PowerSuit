@@ -11,6 +11,7 @@
 #include "PowerSuit.h"
 #include "Patching/BlueprintHookHelper.h"
 #include "Patching/BlueprintHookManager.h"
+#include "Patching/NativeHookManager.h"
 
 UPowerSuitBPLibrary::UPowerSuitBPLibrary(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -473,8 +474,10 @@ void UPowerSuitBPLibrary::BindOnWidgetConstruct(const TSubclassOf<UUserWidget> W
 	if(!WidgetClass)
 		return;
 	UFunction* ConstructFunction = WidgetClass->FindFunctionByName(TEXT("Construct"));
-	if(!ConstructFunction)
+	if (!ConstructFunction || ConstructFunction->IsNative())
+	{
 		return;
+	}
 	UBlueprintHookManager* HookManager = GEngine->GetEngineSubsystem<UBlueprintHookManager>();
 	HookManager->HookBlueprintFunction(ConstructFunction, [Binding](FBlueprintHookHelper& HookHelper) {
 		Binding.ExecuteIfBound(Cast<UUserWidget>(HookHelper.GetContext()));
