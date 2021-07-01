@@ -338,7 +338,6 @@ void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & S
 				UE_LOG(PowerSuit_Log, Display, TEXT("Merged Attachment Stats from : %s"), *StatsRef.mCachedAttachment->GetName());
 
 				Parent->Stats + StatsRef;
-				const TSubclassOf< class UEquipmentModuleDescriptor> Item = Stack.Item.ItemClass;
 				StatsRef.UnlockFuels(Parent, Item.GetDefaultObject()->nAllowedFuels);
 			}
 			else
@@ -351,7 +350,6 @@ void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & S
 				
 				
 				Parent->Stats + StatsRef;
-				const TSubclassOf< class UEquipmentModuleDescriptor> Item = Stack.Item.ItemClass;
 				StatsRef.UnlockFuels(Parent, Item.GetDefaultObject()->nAllowedFuels);
 				
 				UE_LOG(PowerSuit_Log, Display, TEXT("Skipped Merging Attachment Stats from : %s. Condition is not Met"), *StatsRef.mCachedAttachment->GetName());
@@ -362,8 +360,7 @@ void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & S
 	{
 		UE_LOG(PowerSuit_Log, Display, TEXT("Merged Stats from : %s"), *Stack.Item.ItemClass->GetName());
 		Parent->Stats + StatsRef;
-		const TSubclassOf< class UEquipmentModuleDescriptor> item = Stack.Item.ItemClass;
-		StatsRef.UnlockFuels(Parent, item.GetDefaultObject()->nAllowedFuels);
+		StatsRef.UnlockFuels(Parent, Item.GetDefaultObject()->nAllowedFuels);
 		
 	}
 
