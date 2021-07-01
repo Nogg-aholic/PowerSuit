@@ -308,7 +308,9 @@ void UEMC_InventoryModule::RefreshInventoryAdd_Latent(TSubclassOf<UFGItemDescrip
 
 void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & StatsRef)
 {
-	if (!Stack.Item.ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()))
+	const TSubclassOf< class UEquipmentModuleDescriptor> Item = Stack.Item.ItemClass;
+	const bool Unique = Item.GetDefaultObject()->GetnUniqueUsage(Item);
+	if (!Stack.Item.ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()) || (Unique && UniquesActive.Contains(Item)))
 	{
 		return;
 	}
