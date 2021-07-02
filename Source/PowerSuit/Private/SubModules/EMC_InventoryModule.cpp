@@ -485,8 +485,7 @@ void  UEMC_InventoryModule::SubtractModuleStats(const TSubclassOf< class UEquipm
 		APowerSuitModuleAttachment* Equipment = nullptr;
 		UE_LOG(PowerSuit_Log, Display, TEXT("Subtraced Stats from Item: %s"), *Item->GetName());
 
-		if (ItemObj->GetnUniqueUsage(Item) && UniquesActive.Contains(Item))
-			UniquesActive.Remove(Item);
+		
 
 		if (ItemObj->GetnUniqueUsage(Item) && !UniquesActive.Contains(Item))
 		{
@@ -494,6 +493,9 @@ void  UEMC_InventoryModule::SubtractModuleStats(const TSubclassOf< class UEquipm
 		}
 		else
 		{
+			if (ItemObj->GetnUniqueUsage(Item) && UniquesActive.Contains(Item))
+				UniquesActive.Remove(Item);
+			
 			Parent->Stats - i;
 			i.ForgetUnlockedFuels(Parent);
 			Equipment = i.mCachedAttachment;
