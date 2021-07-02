@@ -299,9 +299,6 @@ void UEMC_InventoryModule::RefreshInventoryAdd_Latent(TSubclassOf<UFGItemDescrip
 		return;
 
 	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventoryAdd_Latent Called from Timer with Class %s and Amount %i"), *ItemClass->GetName(), NumAdded);
-
-
-
 }
 
 
@@ -488,14 +485,21 @@ void  UEMC_InventoryModule::SubtractModuleStats(const TSubclassOf< class UEquipm
 		APowerSuitModuleAttachment* Equipment = nullptr;
 		UE_LOG(PowerSuit_Log, Display, TEXT("Subtraced Stats from Item: %s"), *Item->GetName());
 
-		Parent->Stats - i;
-		i.ForgetUnlockedFuels(Parent);
-		Equipment = i.mCachedAttachment;
-
 		if (ItemObj->GetnUniqueUsage(Item) && UniquesActive.Contains(Item))
 			UniquesActive.Remove(Item);
 
+		if (ItemObj->GetnUniqueUsage(Item) && !UniquesActive.Contains(Item))
+		{
 			
+		}
+		else
+		{
+			Parent->Stats - i;
+			i.ForgetUnlockedFuels(Parent);
+			Equipment = i.mCachedAttachment;
+		}
+		
+		
 		if (Equipment)
 		{
 			if (Parent->AttachmentModule->InactiveAttachments.Contains(Equipment))
