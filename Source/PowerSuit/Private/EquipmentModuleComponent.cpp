@@ -394,12 +394,17 @@ bool UEquipmentModuleComponent::VerifyItem(TSubclassOf< UFGItemDescriptor > Item
 {
 	if (ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()))
 	{
-		if (InventoryModule->UniquesActive.Contains(ItemClass))
+		TSubclassOf< UEquipmentModuleDescriptor> Item = ItemClass;
+		if (!UEquipmentModuleDescriptor::IsAllowedByUnique(Item,InventoryModule->UniquesActive))
 		{
+			OnInventoryDropFail.Broadcast(ItemClass, Amount);
 			return false;
 		}
 		return true;
 	}
 	else
+	{
+		OnInventoryDropFail.Broadcast(ItemClass, Amount);
 		return false;
+	}
 }

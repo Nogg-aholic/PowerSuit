@@ -37,3 +37,20 @@ FEquipmentStats UEquipmentModuleDescriptor::GetEquipmentStats(TSubclassOf<UEquip
 	if (InClass) return InClass.GetDefaultObject()->EquipmentStats;
 	else return FEquipmentStats();
 }
+
+bool UEquipmentModuleDescriptor::IsAllowedByUnique(TSubclassOf<UEquipmentModuleDescriptor> InClass, TArray<TSubclassOf<UEquipmentModuleDescriptor>> Uniques)
+{
+	if (InClass.GetDefaultObject()->nUniqueUsage)
+	{
+		if (Uniques.Contains(InClass))
+			return false;
+		for (auto i : InClass.GetDefaultObject()->nUniqueCounted)
+		{
+			if (Uniques.Contains(i))
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}

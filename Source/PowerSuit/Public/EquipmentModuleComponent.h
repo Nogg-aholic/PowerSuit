@@ -62,6 +62,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 		FOnBufferRefuel OnBufferRefuel;
 
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInventoryDropFail, TSubclassOf<class UFGItemDescriptor>, Item, int32, Amount);
+	UPROPERTY(BlueprintAssignable, Category = "EquipmentModule")
+		FOnInventoryDropFail OnInventoryDropFail;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnFuseTriggered, bool, FuseState, FDateTime, Datefloat);
 	UPROPERTY(BlueprintAssignable, Category = "EquipmentModule")

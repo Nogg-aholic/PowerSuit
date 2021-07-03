@@ -307,7 +307,7 @@ void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & S
 {
 	const TSubclassOf< class UEquipmentModuleDescriptor> Item = Stack.Item.ItemClass;
 	const bool Unique = Item.GetDefaultObject()->GetnUniqueUsage(Item);
-	if (!Stack.Item.ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()) || (Unique && UniquesActive.Contains(Item)))
+	if (!Stack.Item.ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()) || (Unique && !UEquipmentModuleDescriptor::IsAllowedByUnique(Item,UniquesActive)))
 	{
 		return;
 	}
