@@ -313,6 +313,8 @@ void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & S
 	}
 	if (Stack.Item.HasState() || StatsRef.mCachedAttachment)
 	{
+		UniquesActive.Add(Item);
+
 		APowerSuitModuleAttachment* Attachment = StatsRef.mCachedAttachment ? StatsRef.mCachedAttachment : Cast< APowerSuitModuleAttachment>(Stack.Item.ItemState.Get());
 		if (Attachment)
 		{
@@ -440,6 +442,7 @@ bool UEMC_InventoryModule::UpdateOnIndex(const int32 Index)
 				SubtractModuleStats(item,Index);
 				CheckCreateModuleStats(Stack, Index);
 				MergeStats(Stack, GetModuleStats(Stack, Index));
+
 				UPowerSuitBPLibrary::UpdateAllNoRefresh(Parent->EquipmentParent);
 				return true;
 				
@@ -485,21 +488,13 @@ void  UEMC_InventoryModule::SubtractModuleStats(const TSubclassOf< class UEquipm
 		APowerSuitModuleAttachment* Equipment = nullptr;
 		UE_LOG(PowerSuit_Log, Display, TEXT("Subtraced Stats from Item: %s"), *Item->GetName());
 
+		if (UniquesActive.Contains(Item))
+			UniquesActive.Remove(Item);
+			
+		Parent->Stats - i;
+		i.ForgetUnlockedFuels(Parent);
+		Equipment = i.mCachedAttachment;
 		
-
-		if (ItemObj->GetnUniqueUsage(Item) && !UniquesActive.Contains(Item))
-		{
-			
-		}
-		else
-		{
-			if (ItemObj->GetnUniqueUsage(Item) && UniquesActive.Contains(Item))
-				UniquesActive.Remove(Item);
-			
-			Parent->Stats - i;
-			i.ForgetUnlockedFuels(Parent);
-			Equipment = i.mCachedAttachment;
-		}
 		
 		
 		if (Equipment)
@@ -544,15 +539,6 @@ bool UEMC_InventoryModule::CheckCreateModuleStats(const FInventoryStack Stack, c
 		const TSubclassOf< class UEquipmentModuleDescriptor> Item = Stack.Item.ItemClass;
 		const UEquipmentModuleDescriptor* ItemObj = Item.GetDefaultObject();
 
-		if (ItemObj->GetnUniqueUsage(Item))
-			if (UniquesActive.Contains(Item))
-			{
-				UE_LOG(PowerSuit_Log, Warning, TEXT("Ignored Item %s because of an Already active Unique Item"), *ItemObj->mDisplayName.ToString())
-					return false;
-			}
-			else
-				UniquesActive.Add(Item);
-
 
 		if (ItemObj->GetnAttachment(Item))
 		{
@@ -571,7 +557,6 @@ bool UEMC_InventoryModule::CheckCreateModuleStats(const FInventoryStack Stack, c
 			else
 			{
 				Equipment = Cast< APowerSuitModuleAttachment>(Stack.Item.ItemState.Get());
-
 			}
 
 			if (Equipment)
@@ -593,7 +578,7 @@ bool UEMC_InventoryModule::CheckCreateModuleStats(const FInventoryStack Stack, c
 			}
 			else
 			{
-				UE_LOG(PowerSuit_Log, Error, TEXT("This should have an Attachment, but it's Invalid here. Falling back to DescriptorStats %s"), *ItemObj->mDisplayName.ToString());
+				UE_LOG(PowerSuit_Log, Error, TEXT("This should have an Attachment, but it's Invalid here. Falling back to DescriptorStats %s <--- FIX ME "), *ItemObj->mDisplayName.ToString());
 				FEquipmentStats Obj = ItemObj->EquipmentStats;
 				Obj.mCachedInventorySlot = Ind;
 				Obj.mCachedDescriptor = Item;
