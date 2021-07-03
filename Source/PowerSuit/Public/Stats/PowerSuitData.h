@@ -270,12 +270,12 @@ enum ESuitFlag
 	SuitFlag_Null = 0x00 UMETA(hidden, Displayname = "Invalid value!", Tooltip = "Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change."),
 	SuitFlag_HasPipeAccel = 1 << 0 UMETA(Tooltip = "Allows hotkey-bound accelerating and decelerating in hypertubes"),
 	SuitFlag_HasFlightUnlocked = 1 << 1 UMETA(Tooltip = "Allows flight. Be sure to also set flight speed properties and such"),
-	SuitFlag_FuseNeverBreaksWhenFueled = 1 << 2 UMETA(Tooltip = "If the suit has fuel available, using too much power will never result in the suit fuse breaking. Works well with EmptyPowerFuelPenalty"),
+	SuitFlag_FuseNeverBreaksWhenFueled = 1 << 2 UMETA(Tooltip = "If the suit has fuel available, using too much power will never result in the suit fuse breaking. You should probably write custom logic for what to do when this is the case."),
 	SuitFlag_AllowsToggleGravityMode = 1 << 3 UMETA(Tooltip = "HoverPack's flight has no Gravity (results in hover flight) - can Gravity be enabled by the user with the mod's keybind?"),
-	SuitFlag_ForceGravityMode = 1 << 4 UMETA(Tooltip = "Force the Suit to use Gravity Mode - it's on by default, but this overwrites toggle"),
+	SuitFlag_ForceGravityMode = 1 << 4 UMETA(Tooltip = "Force the Suit to use Gravity Mode on equip. The suit has Hover Flight by default, but this overwrites toggle"),
 	SuitFlag_HasAirReFuel = 1 << 5 UMETA(Tooltip = "Allow refilling the fuel tank while in flight-related movement states"),
 	SuitFlag_HasInfiniteSlide = 1 << 6 UMETA(Tooltip = "Allows the user to slide forever as long as the angle is acceptable (continually resets their slide timer"),
-	SuitFlag_HasNoFrictionMode = 1 << 7 UMETA(Tooltip = "Toggle Hotkey for Friction SuitValue or 0 "),
+	SuitFlag_HasNoFrictionMode = 1 << 7 UMETA(Displayname = "Suit Flag Allows Toggle Friction Mode", Tooltip = "Allows user to use the mod's Frictionless Flight Toggle keybind. Switches between suit's calculated value (no hud icon), or 0 (hud icon shown)"),
 	SuitFlag_END = 1 << 8 UMETA(hidden, Displayname = "Invalid value!", Tooltip = "Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change.")
 
 };
@@ -284,14 +284,14 @@ UENUM(Blueprinttype, meta = (Bitflags, UseEnumValuesAsMaskValuesInEditor = "true
 enum ESuitFlagAdvanced
 {
 	SuitFlagAdvanced_Null = 0x00 UMETA(hidden, Displayname = "Invalid value!", Tooltip = "Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change."),
-	SuitFlagAdvanced_NoRefuel = 1 << 0 UMETA(Tooltip = "No Refueling"),
-	SuitFlagAdvanced_Temp1 = 1 << 1 UMETA(Tooltip = ""),
-	SuitFlagAdvanced_Temp2 = 1 << 2 UMETA(Tooltip = ""),
-	SuitFlagAdvanced_Temp3 = 1 << 3 UMETA(Tooltip = ""),
-	SuitFlagAdvanced_Temp4 = 1 << 4 UMETA(Tooltip = ""),
-	SuitFlagAdvanced_Temp5 = 1 << 5 UMETA(Tooltip = ""),
-	SuitFlagAdvanced_Temp6 = 1 << 6 UMETA(Tooltip = ""),
-	SuitFlagAdvanced_Temp7 = 1 << 7 UMETA(Tooltip = ""),
+	SuitFlagAdvanced_NoRefuel = 1 << 0 UMETA(Tooltip = "With this on, the suit will not follow its normal refueling logic (eat item at 0 to full fill). It is up to a custom implementation to manage refueling instead."),
+	SuitFlagAdvanced_Temp1 = 1 << 1 UMETA(Tooltip = "Placeholder for future implementation"),
+	SuitFlagAdvanced_Temp2 = 1 << 2 UMETA(Tooltip = "Placeholder for future implementation"),
+	SuitFlagAdvanced_Temp3 = 1 << 3 UMETA(Tooltip = "Placeholder for future implementation"),
+	SuitFlagAdvanced_Temp4 = 1 << 4 UMETA(Tooltip = "Placeholder for future implementation"),
+	SuitFlagAdvanced_Temp5 = 1 << 5 UMETA(Tooltip = "Placeholder for future implementation"),
+	SuitFlagAdvanced_Temp6 = 1 << 6 UMETA(Tooltip = "Placeholder for future implementation"),
+	SuitFlagAdvanced_Temp7 = 1 << 7 UMETA(Tooltip = "Placeholder for future implementation"),
 	SuitFlagAdvanced_END = 1 << 8 UMETA(hidden, Displayname = "Invalid value!", Tooltip = "Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change.")
 
 };
