@@ -298,7 +298,7 @@ FModMultProperty UEquipmentModuleComponent::GetSuitPropertySafe(ESuitProperty pr
 	if(!Stats.nSuitProperties.Contains(prop))
 		return FModMultProperty();
 	else
-		return Stats.nSuitProperties[prop];
+		return *Stats.nSuitProperties.Find(prop);
 	
 }
 
@@ -308,7 +308,7 @@ FModMultProperty UEquipmentModuleComponent::GetMovementPropertySafe(ESuitMovemen
 	{
 		return FModMultProperty();
 	}
-	return Stats.nMovementProperties[prop];
+	return *Stats.nMovementProperties.Find(prop);
 }
 
 FModMultProperty UEquipmentModuleComponent::GetFlightPropertySafe(ESuitFlightProperty prop) const
@@ -316,14 +316,13 @@ FModMultProperty UEquipmentModuleComponent::GetFlightPropertySafe(ESuitFlightPro
 	if (!Stats.nFlightProperties.Contains(prop))
 		return FModMultProperty();
 
-	return Stats.nFlightProperties[prop];
-
+	return *Stats.nFlightProperties.Find(prop);
 }
 
 FModMultProperty UEquipmentModuleComponent::GetNamedPropertySafe(FName prop) const
 {
 	if (Stats.nNamedProperties.Contains(prop))
-		return Stats.nNamedProperties[prop];
+		return *Stats.nNamedProperties.Find(prop);
 	else
 		return FModMultProperty();
 }

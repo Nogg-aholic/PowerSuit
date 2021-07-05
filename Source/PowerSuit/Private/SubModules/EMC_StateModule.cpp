@@ -228,7 +228,7 @@ void UEMC_StateModule::UpdateSuitState()
 		else if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_Zipline)
 		{
 			// Accel and De-Accel both need Power and we use only 1 State 
-			if ((HKey_Accel || HKey_Down) ) // && Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasZiplineAccel)) // Is pipe accelerating or decelerating
+			if ((HKey_Accel || HKey_Down) && Parent->Stats.HasAdvancedFlag(ESuitFlagAdvanced::SuitFlagAdvanced_ZipLineAccel)) // Is pipe accelerating or decelerating
 				Parent->SuitState = EPowerSuitState::PS_ZIPLINE_SPRINT;
 			else
 				Parent->SuitState = EPowerSuitState::PS_ZIPLINE;
@@ -277,6 +277,10 @@ void UEMC_StateModule::UpdateSuitState()
 				Parent->SuitState = EPowerSuitState::PS_FALLING;
 				UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight"));
 			}
+		}
+		else if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_Ladder)
+		{
+			Parent->SuitState = EPowerSuitState::PS_WALKING;
 		}
 	}
 	else if (Parent->nMovementMode == EMovementMode::MOVE_Walking)

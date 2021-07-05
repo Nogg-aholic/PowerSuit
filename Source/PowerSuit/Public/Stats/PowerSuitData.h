@@ -285,8 +285,8 @@ enum ESuitFlagAdvanced
 {
 	SuitFlagAdvanced_Null = 0x00 UMETA(hidden, Displayname = "Invalid value!", Tooltip = "Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change."),
 	SuitFlagAdvanced_NoRefuel = 1 << 0 UMETA(Tooltip = "With this on, the suit will not follow its normal refueling logic (eat item at 0 to full fill). It is up to a custom implementation to manage refueling instead."),
-	SuitFlagAdvanced_Temp1 = 1 << 1 UMETA(Tooltip = "Placeholder for future implementation"),
-	SuitFlagAdvanced_Temp2 = 1 << 2 UMETA(Tooltip = "Placeholder for future implementation"),
+	SuitFlagAdvanced_IgnoreBelts = 1 << 1 UMETA(Tooltip = "Placeholder for future implementation"),
+	SuitFlagAdvanced_ZipLineAccel = 1 << 2 UMETA(Tooltip = "Placeholder for future implementation"),
 	SuitFlagAdvanced_Temp3 = 1 << 3 UMETA(Tooltip = "Placeholder for future implementation"),
 	SuitFlagAdvanced_Temp4 = 1 << 4 UMETA(Tooltip = "Placeholder for future implementation"),
 	SuitFlagAdvanced_Temp5 = 1 << 5 UMETA(Tooltip = "Placeholder for future implementation"),
@@ -650,13 +650,13 @@ public:
 	}
 	// since + is already in use for Modifier Adding you can use % to add Both Mult and Mod together
 	FModMultProperty operator%(const FModMultProperty& Input) {
-		Modifier = Input.Modifier + Modifier;
-		Multiplier = Input.Multiplier + Multiplier;
+		Modifier += Input.Modifier;
+		Multiplier += Input.Multiplier;
 		return *this;
 	}
 	FModMultProperty operator-(const FModMultProperty& Input) {
-		Modifier = Modifier - Input.Modifier;
-		Multiplier = Multiplier - Input.Multiplier;
+		Modifier -= Input.Modifier;
+		Multiplier -= Input.Multiplier;
 		return *this;
 	}
 	~FModMultProperty() = default;

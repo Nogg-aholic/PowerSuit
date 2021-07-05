@@ -34,7 +34,7 @@ bool UPowerSuitBPLibrary::EnableHover(UEquipmentModuleComponent* Component)
 
 
 // Reset momvement component to player defaults
-void UPowerSuitBPLibrary::ResetMovementComponent(UFGCharacterMovementComponent* MovementComponent)
+void UPowerSuitBPLibrary::ResetMovementComponent(UFGCharacterMovementComponent* MovementComponent, bool Notify)
 {
 	// this was added because of vehicle logic etc , TODO: Confirm this is actually needed & add vehicle movement stats etc
 	if (!MovementComponent)
@@ -82,10 +82,11 @@ void UPowerSuitBPLibrary::ResetMovementComponent(UFGCharacterMovementComponent* 
 	MovementComponent->*get(steal_mZiplineSpeedMultiplierDown()) = MovementCDO->*get(steal_mZiplineSpeedMultiplierDown());//1.29999995231628;
 
 #endif
+
 }
 
 
-void UPowerSuitBPLibrary::UpdateMovementComponent(APowerSuit * EquipmentParent)
+void UPowerSuitBPLibrary::UpdateMovementComponent(APowerSuit * EquipmentParent, bool Notify)
 {
 	if (!EquipmentParent)
 		return;
@@ -190,14 +191,14 @@ void UPowerSuitBPLibrary::UpdateMovementComponent(APowerSuit * EquipmentParent)
 	MovementComponent->*get(steal_mZiplineSpeedMultiplierDown()) *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mZiplineSpeedMultiplierDown).ClampMult();
 #endif
 
-
-	EquipmentParent->OnPowerSuitStatUpdate.Broadcast(0);
+	if(Notify)
+		EquipmentParent->OnPowerSuitStatUpdate.Broadcast(0);
 
 }
 
 
 
-void UPowerSuitBPLibrary::ResetFlightStats(APowerSuit * EquipmentParent) {
+void UPowerSuitBPLibrary::ResetFlightStats(APowerSuit * EquipmentParent, bool Notify) {
 	if (!EquipmentParent)
 		return;
 	// this was added because of vehicle logic etc , TODO: Confirm this is actually needed & add vehicle movement stats etc
@@ -240,11 +241,12 @@ void UPowerSuitBPLibrary::ResetFlightStats(APowerSuit * EquipmentParent) {
 	EquipmentParent->*get(steal_mPowerCapacity()) = MovementCDO->*get(steal_mPowerCapacity());
 #endif
 
-
+	if (Notify)
+		EquipmentParent->OnPowerSuitStatUpdate.Broadcast(1);
 }
 
 
-void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent) {
+void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent, bool Notify) {
 	if (!EquipmentParent)
 		return;
 	ResetFlightStats(EquipmentParent);
@@ -328,11 +330,12 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent) {
 	EquipmentParent->*get(steal_mPowerCapacity()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerCapacity).ClampMult();
 #endif
 
-	EquipmentParent->OnPowerSuitStatUpdate.Broadcast(1);
+	if(Notify)
+		EquipmentParent->OnPowerSuitStatUpdate.Broadcast(1);
 
 }
 
-void UPowerSuitBPLibrary::UpdateFlags(APowerSuit* EquipmentParent)
+void UPowerSuitBPLibrary::UpdateFlags(APowerSuit* EquipmentParent, bool Notify )
 {
 	for (int32 i = 1; i < ENDamageType::DamageTypeMAX; i = static_cast<ENDamageType>(i + i))
 	{
@@ -355,12 +358,13 @@ void UPowerSuitBPLibrary::UpdateFlags(APowerSuit* EquipmentParent)
 				EquipmentParent->Module->Stats.RemoveSuitFlagsAdvanced -= static_cast<ESuitFlagAdvanced>(i);
 	}
 
-	EquipmentParent->OnPowerSuitStatUpdate.Broadcast(3);
+	if(Notify)
+		EquipmentParent->OnPowerSuitStatUpdate.Broadcast(3);
 
 }
 
 
-void UPowerSuitBPLibrary::UpdateInventorySize(APowerSuit* EquipmentParent)
+void UPowerSuitBPLibrary::UpdateInventorySize(APowerSuit* EquipmentParent, bool Notify)
 {
 	if (!EquipmentParent)
 		return;
@@ -376,7 +380,8 @@ void UPowerSuitBPLibrary::UpdateInventorySize(APowerSuit* EquipmentParent)
 	for (int32 i = 0; i < EquipmentParent->Module->Stats.InventorySlots; i++)
 		EquipmentParent->Module->nInventory->AddArbitrarySlotSize(i, 1);
 
-	EquipmentParent->OnPowerSuitStatUpdate.Broadcast(2);
+	if(Notify)
+		EquipmentParent->OnPowerSuitStatUpdate.Broadcast(2);
 
 }
 
@@ -384,13 +389,15 @@ void UPowerSuitBPLibrary::UpdateInventorySize(APowerSuit* EquipmentParent)
 
 
 
-void UPowerSuitBPLibrary::UpdateAllNoRefresh(APowerSuit* EquipmentParent)
+void UPowerSuitBPLibrary::UpdateAllNoRefresh(APowerSuit* EquipmentParent, bool Notify)
 {
+	UE_LOG(PowerSuit_Log, Error, TEXT("UpdateAllNoRefresh"));
 	UpdateInventorySize(EquipmentParent);
 	UpdateFlags(EquipmentParent);
 	UpdateFlightStats(EquipmentParent);
 	UpdateMovementComponent(EquipmentParent);
 	EquipmentParent->Module->HealthModule->SetMaxHealth();
+	EquipmentParent->OnPowerSuitStatUpdate.Broadcast(0);
 }
 
 

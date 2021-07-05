@@ -7,7 +7,7 @@
 DEFINE_LOG_CATEGORY(PowerSuit_Log);
 
 
-FEquipmentStats::FEquipmentStats(): mCachedAttachment(nullptr)
+FEquipmentStats::FEquipmentStats(): SuitFlagsAdvanced(0), RemoveSuitFlagsAdvanced(0), mCachedAttachment(nullptr)
 {
 	nMovementProperties = {};
 	nFlightProperties = {};
@@ -30,28 +30,6 @@ FModMultProperty::FModMultProperty() {
 
 void FEquipmentStats::SetupDefaults()
 {
-
-	if (nFlightProperties.Num() != static_cast<int32>(ESuitFlightProperty::EFP_MAX))
-	{
-		for (int32 i = 0; i < ESuitFlightProperty::EFP_MAX; ++i)
-			if (!nFlightProperties.Contains(static_cast<ESuitFlightProperty>(i)))
-				nFlightProperties.Add(static_cast<ESuitFlightProperty>(i), FModMultProperty());
-	}
-
-	if (nMovementProperties.Num() != static_cast<int32>(ESuitMovementProperty::ESMC_MAX))
-	{
-		for (int32 i = 0; i < ESuitMovementProperty::ESMC_MAX; ++i)
-			if (!nMovementProperties.Contains(static_cast<ESuitMovementProperty>(i)))
-				nMovementProperties.Add(static_cast<ESuitMovementProperty>(i), FModMultProperty());
-	}
-
-	if (nSuitProperties.Num() != static_cast<int32>(ESuitProperty::SuitPropertyMAX))
-	{
-		for (int32 i = 0; i < ESuitProperty::SuitPropertyMAX; ++i)
-			if (!nSuitProperties.Contains(static_cast<ESuitProperty>(i)))
-				nSuitProperties.Add(static_cast<ESuitProperty>(i), FModMultProperty());
-	}
-
 	if (nDamageTypeResistance.Num() != 5)
 	{
 		if (!nDamageTypeResistance.Contains(DamageTypePhysical))
@@ -67,7 +45,6 @@ void FEquipmentStats::SetupDefaults()
 		if (!nDamageTypeResistance.Contains(DamageTypeHeat))
 			nDamageTypeResistance.Add(DamageTypeHeat, FModMultProperty());
 	}
-
 }
 
 void FEquipmentStats::UnlockFuels(UEquipmentModuleComponent* Parent, TArray<TSubclassOf<class UFGItemDescriptor>> FuelsToUnlock)
@@ -140,43 +117,55 @@ FEquipmentStats FEquipmentStats::operator+(const FEquipmentStats& OtherStruct)
 
 	if (OtherStruct.nMovementProperties.Num() > 0)
 	{
-		TArray<TEnumAsByte<ESuitMovementProperty>> MovementProperties;
-		OtherStruct.nMovementProperties.GetKeys(MovementProperties);
-		for (TEnumAsByte<ESuitMovementProperty> i : MovementProperties)
+		for(auto i : OtherStruct.nMovementProperties)
 		{
-			nMovementProperties.Add(i, *nMovementProperties.Find(i) % *OtherStruct.nMovementProperties.Find(i));
+			if(nMovementProperties.Contains(i.Key))
+				nMovementProperties.Add(i.Key, *nMovementProperties.Find(i.Key) % *OtherStruct.nMovementProperties.Find(i.Key));
+			else
+				nMovementProperties.Add(i.Key,*OtherStruct.nMovementProperties.Find(i.Key));
 		}
 	}
 
 	if (OtherStruct.nFlightProperties.Num() > 0)
 	{
-		TArray<TEnumAsByte<ESuitFlightProperty>> FlightProperties;
-		OtherStruct.nFlightProperties.GetKeys(FlightProperties);
-		for (TEnumAsByte<ESuitFlightProperty> i : FlightProperties)
+		for(auto i : OtherStruct.nFlightProperties)
 		{
-			nFlightProperties.Add(i, *nFlightProperties.Find(i) % *OtherStruct.nFlightProperties.Find(i));
+			if(nFlightProperties.Contains(i.Key))
+				nFlightProperties.Add(i.Key, *nFlightProperties.Find(i.Key) % *OtherStruct.nFlightProperties.Find(i.Key));
+			else
+				nFlightProperties.Add(i.Key,*OtherStruct.nFlightProperties.Find(i.Key));	
 		}
 	}
-
 	if (OtherStruct.nSuitProperties.Num() > 0)
 	{
-		TArray<TEnumAsByte<ESuitProperty>> SuitProps;
-		OtherStruct.nSuitProperties.GetKeys(SuitProps);
-		for (TEnumAsByte<ESuitProperty> i : SuitProps)
+		for(auto i : OtherStruct.nSuitProperties)
 		{
-			nSuitProperties.Add(i, *nSuitProperties.Find(i) % *OtherStruct.nSuitProperties.Find(i));
+			if(nSuitProperties.Contains(i.Key))
+				nSuitProperties.Add(i.Key, *nSuitProperties.Find(i.Key) % *OtherStruct.nSuitProperties.Find(i.Key));
+			else
+				nSuitProperties.Add(i.Key,*OtherStruct.nSuitProperties.Find(i.Key));	
 		}
 	}
 
 	if (OtherStruct.nDamageTypeResistance.Num() > 0)
 	{
-		TArray<TEnumAsByte<ENDamageType>> nDamageTypeArray;
-		OtherStruct.nDamageTypeResistance.GetKeys(nDamageTypeArray);
-		for (int32 i = 0; i < nDamageTypeArray.Num(); i++)
+		for(auto i : OtherStruct.nDamageTypeResistance)
 		{
-			nDamageTypeResistance.Add(nDamageTypeArray[i],
-			                          *nDamageTypeResistance.Find(nDamageTypeArray[i]) % OtherStruct.
-			                          nDamageTypeResistance[nDamageTypeArray[i]]);
+			if(nDamageTypeResistance.Contains(i.Key))
+				nDamageTypeResistance.Add(i.Key, *nDamageTypeResistance.Find(i.Key) % *OtherStruct.nDamageTypeResistance.Find(i.Key));
+			else
+				nDamageTypeResistance.Add(i.Key,*OtherStruct.nDamageTypeResistance.Find(i.Key));	
+		}
+	}
+
+	if (OtherStruct.nNamedProperties.Num() > 0)
+	{
+		for(auto i : OtherStruct.nNamedProperties)
+		{
+			if(nNamedProperties.Contains(i.Key))
+				nNamedProperties.Add(i.Key, *nNamedProperties.Find(i.Key) % *OtherStruct.nNamedProperties.Find(i.Key));
+			else
+				nNamedProperties.Add(i.Key,*OtherStruct.nNamedProperties.Find(i.Key));	
 		}
 	}
 
@@ -237,74 +226,65 @@ FEquipmentStats FEquipmentStats::operator+(const FEquipmentStats& OtherStruct)
 
 
 	InventorySlots = InventorySlots + OtherStruct.InventorySlots;
-
-
-	if (OtherStruct.nNamedProperties.Num() > 0)
-	{
-		TArray<FName> nNamedPropertiesArray;
-		OtherStruct.nNamedProperties.GetKeys(nNamedPropertiesArray);
-		for (int32 i = 0; i < nNamedPropertiesArray.Num(); i++)
-		{
-			if (nNamedProperties.Contains(nNamedPropertiesArray[i]))
-			{
-				nNamedProperties.Add(nNamedPropertiesArray[i],
-					*nNamedProperties.Find(nNamedPropertiesArray[i]) % OtherStruct.
-					nNamedProperties[nNamedPropertiesArray[i]]);
-			}
-			else
-			{
-				nNamedProperties.Add(nNamedPropertiesArray[i], OtherStruct.nNamedProperties[nNamedPropertiesArray[i]]);
-			}
-		}
-	}
-
 	
-
 	return *this;
 }
 
 FEquipmentStats FEquipmentStats::operator-(const FEquipmentStats& OtherStruct)
 {
 	SetupDefaults();
-
-	// Power
+	
 	if (OtherStruct.nMovementProperties.Num() > 0)
 	{
-		TArray<TEnumAsByte<ESuitMovementProperty>> MovementProperties;
-		OtherStruct.nMovementProperties.GetKeys(MovementProperties);
-		for (auto i : MovementProperties)
+		for(auto i : OtherStruct.nMovementProperties)
 		{
-			nMovementProperties.Add(i, *nMovementProperties.Find(i) - *OtherStruct.nMovementProperties.Find(i));
+			if(nMovementProperties.Contains(i.Key))
+				nMovementProperties.Add(i.Key, *nMovementProperties.Find(i.Key) - *OtherStruct.nMovementProperties.Find(i.Key));
+			else
+				nMovementProperties.Add(i.Key,FModMultProperty() - *OtherStruct.nMovementProperties.Find(i.Key));	
 		}
 	}
 
 	if (OtherStruct.nFlightProperties.Num() > 0)
 	{
-		TArray<TEnumAsByte<ESuitFlightProperty>> FlightProperties;
-		OtherStruct.nFlightProperties.GetKeys(FlightProperties);
-		for (auto i : FlightProperties)
+		for(auto i : OtherStruct.nFlightProperties)
 		{
-			nFlightProperties.Add(i, *nFlightProperties.Find(i) - *OtherStruct.nFlightProperties.Find(i));
+			if(nFlightProperties.Contains(i.Key))
+				nFlightProperties.Add(i.Key, *nFlightProperties.Find(i.Key) - *OtherStruct.nFlightProperties.Find(i.Key));
+			else
+				nFlightProperties.Add(i.Key,FModMultProperty() - *OtherStruct.nFlightProperties.Find(i.Key));	
 		}
 	}
 
 	if (OtherStruct.nSuitProperties.Num() > 0)
 	{
-		TArray<TEnumAsByte<ESuitProperty>> SuitProps;
-		OtherStruct.nSuitProperties.GetKeys(SuitProps);
-		for (auto i : SuitProps)
+		for(auto i : OtherStruct.nSuitProperties)
 		{
-			nSuitProperties.Add(i, *nSuitProperties.Find(i) - *OtherStruct.nSuitProperties.Find(i));
+			if(nSuitProperties.Contains(i.Key))
+				nSuitProperties.Add(i.Key, *nSuitProperties.Find(i.Key) - *OtherStruct.nSuitProperties.Find(i.Key));
+			else
+				nSuitProperties.Add(i.Key,FModMultProperty() - *OtherStruct.nSuitProperties.Find(i.Key));	
+		}
+	}
+	if (OtherStruct.nDamageTypeResistance.Num() > 0)
+	{
+		for(auto i : OtherStruct.nDamageTypeResistance)
+		{
+			if(nDamageTypeResistance.Contains(i.Key))
+				nDamageTypeResistance.Add(i.Key, *nDamageTypeResistance.Find(i.Key) - *OtherStruct.nDamageTypeResistance.Find(i.Key));
+			else
+				nDamageTypeResistance.Add(i.Key,FModMultProperty() - *OtherStruct.nDamageTypeResistance.Find(i.Key));	
 		}
 	}
 
-	if (OtherStruct.nDamageTypeResistance.Num() > 0)
+	if (OtherStruct.nNamedProperties.Num() > 0)
 	{
-		TArray<TEnumAsByte<ENDamageType>> arr;
-		OtherStruct.nDamageTypeResistance.GetKeys(arr);
-		for (auto i : arr)
+		for(auto i : OtherStruct.nNamedProperties)
 		{
-			nDamageTypeResistance.Add(i, *nDamageTypeResistance.Find(i) - *OtherStruct.nDamageTypeResistance.Find(i));
+			if(nNamedProperties.Contains(i.Key))
+				nNamedProperties.Add(i.Key, *nNamedProperties.Find(i.Key) - *OtherStruct.nNamedProperties.Find(i.Key));
+			else
+				nNamedProperties.Add(i.Key,FModMultProperty() - *OtherStruct.nNamedProperties.Find(i.Key));	
 		}
 	}
 
@@ -362,55 +342,36 @@ FEquipmentStats FEquipmentStats::operator-(const FEquipmentStats& OtherStruct)
 	
 	InventorySlots = InventorySlots - OtherStruct.InventorySlots;
 
-	if (OtherStruct.nNamedProperties.Num() > 0)
-	{
-		TArray<FName> nNamedPropertiesArray;
-		OtherStruct.nNamedProperties.GetKeys(nNamedPropertiesArray);
-		for (auto i : nNamedPropertiesArray)
-		{
-			if (nNamedProperties.Contains(i))
-			{
-				if ((*nNamedProperties.Find(i) - OtherStruct.nNamedProperties[i]).value() != 0.f)
-				{
-					nNamedProperties.Add(i, *nNamedProperties.Find(i) - OtherStruct.nNamedProperties[i]);
-				}
-				else
-				{
-					nNamedProperties.Remove(i);
-				}
-			}
-		}
-	}
 	return *this;
 }
 
-bool FEquipmentStats::HasFlag(int32 Bitmask) const
+bool FEquipmentStats::HasFlag(const int32 Bitmask) const
 {
 	return (Bitmask & SuitFlags) == Bitmask;
 }
-bool FEquipmentStats::HasAdvancedFlag(int32 Bitmask) const
+bool FEquipmentStats::HasAdvancedFlag(const int32 Bitmask) const
 {
 	return (Bitmask & SuitFlagsAdvanced) == Bitmask;
 }
 
 
-bool FEquipmentStats::HasDamageMask(int32 Bitmask) const
+bool FEquipmentStats::HasDamageMask(const int32 Bitmask) const
 {
 	return (Bitmask & DamageShieldAbsorption) == Bitmask;
 }
 
-bool FEquipmentStats::HasRemoveFlag(int32 Bitmask) const
+bool FEquipmentStats::HasRemoveFlag(const int32 Bitmask) const
 {
 	return (Bitmask & RemoveSuitFlags) == Bitmask;
 }
 
 
-bool FEquipmentStats::HasAdvancedRemoveFlag(int32 Bitmask) const
+bool FEquipmentStats::HasAdvancedRemoveFlag(const int32 Bitmask) const
 {
 	return (Bitmask & RemoveSuitFlagsAdvanced) == Bitmask;
 }
 
-bool FEquipmentStats::HasRemoveDamageMask(int32 Bitmask) const
+bool FEquipmentStats::HasRemoveDamageMask(const int32 Bitmask) const
 {
 	return (Bitmask & RemoveDamageShieldAbsorption) == Bitmask;
 }

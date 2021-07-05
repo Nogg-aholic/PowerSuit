@@ -30,7 +30,7 @@ void UEMC_HealthModule::PostTick()
 				HealthBuffer = 0.f;
 			}
 			else
-				HealthBuffer = HealthBuffer + (Parent->Stats.nSuitProperties[ESuitProperty::nHealthRegen].value() * Parent->Delta);
+				HealthBuffer = HealthBuffer + (Parent->GetSuitPropertySafe(ESuitProperty::nHealthRegen).value() * Parent->Delta);
 	}
 }
 // Server Only
@@ -52,6 +52,6 @@ void UEMC_HealthModule::SetMaxHealth() const
 
 float UEMC_HealthModule::GetNewMaxHealth() const
 {
-	return FMath::Clamp(100.f + Parent->Stats.nSuitProperties[ESuitProperty::nHealth].value(), 1.f, 1000000.f); 
+	return FMath::Clamp(100.f + Parent->GetSuitPropertySafe(ESuitProperty::nHealth).value(), 1.f, 1000000.f); 
 }
 

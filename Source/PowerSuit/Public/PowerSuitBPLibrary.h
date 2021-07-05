@@ -20,8 +20,7 @@ class UPowerSuitBPLibrary : public UBlueprintFunctionLibrary
 
 public:
 	UFUNCTION(BlueprintPure)
-		static float GetPropertyResult(FModMultProperty prop) { return prop.value();
-	};
+		static float GetPropertyResult(FModMultProperty prop) { return prop.value();};
 
 	UFUNCTION(BlueprintCallable)
 		static void ToggleCameraMode(UFGCheatManager * manager, APlayerController* PlayerController) {
@@ -53,46 +52,46 @@ public:
 	// this is used by the Inventory Component
 	// Only use this if you know what you are doing
 	UFUNCTION(BlueprintCallable)
-		static void ResetMovementComponent(UFGCharacterMovementComponent * MovementComponent);
+		static void ResetMovementComponent(UFGCharacterMovementComponent * MovementComponent, bool Notify = false);
 
 	// NOT REPLICATED ! and rarely should be used manually!
 	// this is used by the Inventory Component
 	// Only use this if you know what you are doing
 	UFUNCTION(BlueprintCallable)
-		static void UpdateMovementComponent(APowerSuit * EquipmentParent);
+		static void UpdateMovementComponent(APowerSuit * EquipmentParent, bool Notify = false);
 
 	// NOT REPLICATED ! and rarely should be used manually!
 	// this is used by the Inventory Component
 	// Only use this if you know what you are doing
 	UFUNCTION(BlueprintCallable)
-		static void ResetFlightStats(APowerSuit * EquipmentParent);
+		static void ResetFlightStats(APowerSuit * EquipmentParent, bool Notify = false);
 
 
 	// NOT REPLICATED ! and rarely should be used manually!
 	// this is used by the Inventory Component
 	// Only use this if you know what you are doing
 	UFUNCTION(BlueprintCallable)
-		static void UpdateFlightStats(APowerSuit * EquipmentParent);
+		static void UpdateFlightStats(APowerSuit * EquipmentParent, bool Notify = false);
 	
 
 	// NOT REPLICATED ! and rarely should be used manually!
 	// this is used by the Inventory Component
 	// Only use this if you know what you are doing
 	UFUNCTION(BlueprintCallable)
-		static void UpdateFlags(APowerSuit* EquipmentParent);
+		static void UpdateFlags(APowerSuit* EquipmentParent, bool Notify = false);
 	
 
 	// NOT REPLICATED ! and rarely should be used manually!
 	// this is used by the Inventory Component
 	// Only use this if you know what you are doing
 	UFUNCTION(BlueprintCallable)
-		static void UpdateInventorySize(APowerSuit * EquipmentParent);
+		static void UpdateInventorySize(APowerSuit * EquipmentParent, bool Notify = false);
 	
 	// NOT REPLICATED ! and rarely should be used manually!
 	// this is used by the Inventory Component
 	// Only use this if you know what you are doing
 	UFUNCTION(BlueprintCallable)
-		static void UpdateAllNoRefresh(APowerSuit * EquipmentParent);
+		static void UpdateAllNoRefresh(APowerSuit * EquipmentParent, bool Notify = false);
 
 	UFUNCTION(BlueprintPure, Category = "EquipmentStats")
 		static bool HasSuitFlag(ESuitFlag Flag, FEquipmentStats Stats)  { return Stats.HasFlag(Flag); };

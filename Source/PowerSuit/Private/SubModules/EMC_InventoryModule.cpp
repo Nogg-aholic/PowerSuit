@@ -145,10 +145,6 @@ void UEMC_InventoryModule::RefreshInventoryRemove(TSubclassOf<UFGItemDescriptor>
 {
 	if (!Parent->EquipmentParent->GetInstigator())
 		return;
-	
-	FTimerDelegate TimerDel;
-	FTimerHandle TimerHandle;
-	
 	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventoryRemove Called from Binding with Class %s and Amount %i"), *ItemClass->GetName(), NumAdded);
 	
 	TArray<TSubclassOf<UFGItemDescriptor>> RelevantClasses; RelevantClasses.Add(UEquipmentModuleDescriptor::StaticClass());
@@ -178,6 +174,7 @@ void UEMC_InventoryModule::RefreshInventoryRemove(TSubclassOf<UFGItemDescriptor>
 				const TSubclassOf<class UEquipmentModuleDescriptor> Item = ItemClass;
 				SubtractModuleStats(Item, CachedIndexes[0]);
 			}
+			UPowerSuitBPLibrary::UpdateAllNoRefresh(Parent->EquipmentParent);
 		}
 		else
 		{
@@ -195,28 +192,11 @@ void UEMC_InventoryModule::RefreshInventoryRemove(TSubclassOf<UFGItemDescriptor>
 		UE_LOG(PowerSuit_Log, Error, TEXT("Slots did not change ?! Direct Replacement ?! Doing Nothing !!"));
 	}
 
-	UPowerSuitBPLibrary::UpdateAllNoRefresh(Parent->EquipmentParent);
-
 	if (Parent->EquipmentParent->HasAuthority() && !Parent->EquipmentParent->GetInstigator()->IsLocallyControlled())
 	{
 		Parent->RemoteInventoryRefresh(false, ItemClass, NumAdded);
 		UE_LOG(PowerSuit_Log, Display, TEXT("Calling Remote with Refresh Remove"));
 	}
-	
-	
-	TimerDel.BindUFunction(this, FName("RefreshInventoryRemove_Latent"), ItemClass, NumAdded);
-
-	Parent->EquipmentParent->GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, .1f, false);
-}
-
-void UEMC_InventoryModule::RefreshInventoryRemove_Latent(TSubclassOf<UFGItemDescriptor> ItemClass, int32 NumAdded)
-{
-	if (!Parent->EquipmentParent->GetInstigator())
-		return;
-
-	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventoryRemove_Latent Called from Timer with Class %s and Amount %i"), *ItemClass->GetName(), NumAdded);
-
-	
 }
 
 
@@ -241,11 +221,8 @@ void UEMC_InventoryModule::RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> It
 	if (!Parent->EquipmentParent->GetInstigator())
 		return; 
 
-	FTimerDelegate TimerDel;
-	FTimerHandle TimerHandle;
 	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventoryAdd Called from Binding with Class %s and Amount %i"), *ItemClass->GetName(), NumAdded);
 
-	int32 NewIndex = -1; int32 ItemsLeft = NumAdded;
 	TArray<TSubclassOf<UFGItemDescriptor>> RelevantClasses; RelevantClasses.Add(UEquipmentModuleDescriptor::StaticClass());
 	TArray<int32> RelevantSlotIndexes = Parent->nInventory->GetRelevantStackIndexes(RelevantClasses);
 
@@ -260,8 +237,6 @@ void UEMC_InventoryModule::RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> It
 	if (RelevantSlotIndexes.Num() == 0)
 	{
 		UE_LOG(PowerSuit_Log, Error, TEXT("No New Item !?"));
-		//RefreshInventory();
-
 	}
 	else if (RelevantSlotIndexes.Num() == 1)
 	{
@@ -269,8 +244,9 @@ void UEMC_InventoryModule::RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> It
 		{
 			UE_LOG(PowerSuit_Log, Error, TEXT("Logic failed to resolve Stack index doing Re-Evaluation"));
 			RefreshInventory();
-			return;
 		}
+		else
+			UPowerSuitBPLibrary::UpdateAllNoRefresh(Parent->EquipmentParent);
 	}
 	else
 	{
@@ -279,28 +255,11 @@ void UEMC_InventoryModule::RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> It
 		return;
 	}
 
-	UPowerSuitBPLibrary::UpdateAllNoRefresh(Parent->EquipmentParent);
 	if (Parent->EquipmentParent->GetInstigator()->HasAuthority() && !Parent->EquipmentParent->GetInstigator()->IsLocallyControlled())
 	{
 		Parent->RemoteInventoryRefresh(true, ItemClass, NumAdded);
 	}
-
-
-	TimerDel.BindUFunction(this, FName("RefreshInventoryAdd_Latent"), ItemClass, NumAdded);
-
-	Parent->EquipmentParent->GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, .1f, false);
 }
-
-
-void UEMC_InventoryModule::RefreshInventoryAdd_Latent(TSubclassOf<UFGItemDescriptor> ItemClass, int32 NumAdded)
-{
-
-	if (!Parent->EquipmentParent->GetInstigator())
-		return;
-
-	UE_LOG(PowerSuit_Log, Display, TEXT("RefreshInventoryAdd_Latent Called from Timer with Class %s and Amount %i"), *ItemClass->GetName(), NumAdded);
-}
-
 
 
 void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & StatsRef)
