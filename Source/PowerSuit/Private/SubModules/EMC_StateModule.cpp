@@ -211,7 +211,6 @@ void UEMC_StateModule::UpdateSuitState()
 			Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive);
 			Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
 			Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
-			Parent->SuitState = EPowerSuitState::PS_FALLING;
 			UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight"));
 		}
 	}
