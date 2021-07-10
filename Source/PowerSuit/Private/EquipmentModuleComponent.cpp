@@ -341,6 +341,7 @@ void UEquipmentModuleComponent::ResetStats()
 	if (!EquipmentParent ||EquipmentParent->IsPendingKill() || !EquipmentParent->GetInstigator() || EquipmentParent->GetInstigator()->IsPendingKill())
 		return;
 	UE_LOG(PowerSuit_Log, Display, TEXT("Resetting Stats"));
+	AttachmentModule->ResetAttachments();
 
 	// Reset everything
 	Stats = DefaultStats + FEquipmentStats();
@@ -348,7 +349,6 @@ void UEquipmentModuleComponent::ResetStats()
 		nCurrentShield = 0.f;
 
 
-	AttachmentModule->ResetAttachments();
 	InventoryModule->ResetInventoryStats();
 
 	UPowerSuitBPLibrary::UpdateAllNoRefresh(EquipmentParent);
