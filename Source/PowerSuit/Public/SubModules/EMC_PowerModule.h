@@ -27,21 +27,30 @@ private:
 
 	void RegenPower() const;
 
-	
+	FTimespan TimeSinceFuseBreak() const;
+
 	void TryRestart() const;
 
-	void BreakFuse();
+	void TryBreakFuse();
 
 public:
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-	float GetPowerCapacity() const;
+		float GetPowerCapacity() const;
 
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-	float GetFuseTimerDuration() const;
+		float GetFuseTimerDuration() const;
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
 		float GetOverDrawDuration() const;
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
 		bool IsFuseIntact() const;
+
+	// Forcefully break the suit fuse regardless of power levels and overdraw time, triggering a restart
+	UFUNCTION(BlueprintCallable, Category = "EquipmentModule")
+		void ForcefullyBreakFuse(bool drainPower);
+
+	// How many seconds until the restart happens? If negative, restart has already taken place
+	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
+		float RemainingSecondsUntilFuseRestart() const;
 
 	// Power Draw in MW including External
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")

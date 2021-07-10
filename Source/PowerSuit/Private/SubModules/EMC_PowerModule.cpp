@@ -29,7 +29,7 @@ float UEMC_PowerModule::GetPowerDraw() const
 	return Parent->PowerConsumption;
 }
 
-// Calculate current power production/consumption factoring in AddedDeltaPower
+// Get current power capacity from parent
 float UEMC_PowerModule::GetPowerCapacity() const
 {
 	if (!Parent->EquipmentParent)
@@ -49,7 +49,7 @@ float UEMC_PowerModule::GetOverDrawDuration() const
 
 bool UEMC_PowerModule::IsFuseIntact() const
 {
-	// ... and the suit has been overdrawn for more than the suit's max overdraw time ...
+	// If the suit has been overdrawn for more than the suit's max overdraw time ...
 	if (FTimespan(FDateTime::Now() - Parent->nFuseBreakOverDraw).GetTotalSeconds() > Parent->GetSuitPropertySafe(ESuitProperty::nFuseTimeOverDraw).value())
 	{
 		// ... then suit should stop producing because it has exceeded the overdraw timeframe
@@ -107,13 +107,21 @@ void UEMC_PowerModule::RegenPower() const
 
 }
 
+// How long has it been since the fuse break event (not the overdraw, which started before the fuse break)
+FTimespan UEMC_PowerModule::TimeSinceFuseBreak() const
+{
+	return FDateTime::Now() - Parent->nFuseBreak;
+}
 
+float UEMC_PowerModule::RemainingSecondsUntilFuseRestart() const
+{
+	return GetFuseTimerDuration() - TimeSinceFuseBreak().GetTotalSeconds();
+}
 
 void UEMC_PowerModule::TryRestart() const
 {
-	const FTimespan timeSinceFuseBreak = FDateTime::Now() - Parent->nFuseBreak;
-	// ... and the FuseTimer has ran out ...
-	if (timeSinceFuseBreak.GetTotalSeconds() > GetFuseTimerDuration())
+	// If the FuseTimer has ran out ...
+	if (RemainingSecondsUntilFuseRestart() <= 0.0f)
 	{
 		Parent->nCurrentPower = 0.01f;
 
@@ -123,22 +131,31 @@ void UEMC_PowerModule::TryRestart() const
 	}
 }
 
-void UEMC_PowerModule::BreakFuse()
+void UEMC_PowerModule::ForcefullyBreakFuse(bool drainPower)
 {
-	// we already failed to Produce but arent Rebooting yet 
-		// sanity check .. we havnt just done this right?
+	// Shut down the suit since the fuse has blown, starting the restart process
+
+	if (drainPower)
+		Parent->nCurrentPower = 0.0f;
+
+	Parent->SuitState = EPowerSuitState::PS_REBOOTING;
+	Parent->ResetStats(); // Reset movement stats back to player default
+	Parent->nFuseBreak = FDateTime::Now();
+	Parent->OnFuseTriggered.Broadcast(Parent->nProducing, Parent->nFuseBreak);
+	Parent->nShieldDmg = FDateTime::Now();
+}
+
+void UEMC_PowerModule::TryBreakFuse()
+{
+	// we already failed to Produce but aren't Rebooting yet 
+		// sanity check ... we haven't just done this right?
 	if (FTimespan(FDateTime::Now() - Parent->nFuseBreak).GetTotalSeconds() > GetFuseTimerDuration())
 	{
-		// Restart the suit since the fuse has reset
-		Parent->SuitState = EPowerSuitState::PS_REBOOTING;
-		Parent->ResetStats(); // Reset movement stats back to player default
-		Parent->nFuseBreak = FDateTime::Now();
-		Parent->OnFuseTriggered.Broadcast(Parent->nProducing, Parent->nFuseBreak);
-		Parent->nShieldDmg = FDateTime::Now();
+		ForcefullyBreakFuse(false);
 	}
 	else
 	{
-		UE_LOG(PowerSuit_Log, Error, TEXT(" IF you see this, Dubug me. Something Toggled Suit State while Fuse was broken"));
+		UE_LOG(PowerSuit_Log, Error, TEXT(" IF you see this, Debug me. Something Toggled Suit State while Fuse was broken"));
 	}
 }
 
@@ -152,7 +169,7 @@ void UEMC_PowerModule::PreTick() {
 	}
 	else if (!Parent->nProducing)
 	{
-		BreakFuse();
+		TryBreakFuse();
 	}
 	
 
