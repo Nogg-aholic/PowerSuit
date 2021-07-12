@@ -59,8 +59,10 @@ AFGCharacterPlayer* UEMC_InventoryModule::InitInventory()
 
 	if (Parent->EquipmentParent->HasAuthority())
 	{
-		Parent->nInventory->OnItemAddedDelegate.AddDynamic(this, &UEMC_InventoryModule::RefreshInventoryAdd);
-		Parent->nInventory->OnItemRemovedDelegate.AddDynamic(this, &UEMC_InventoryModule::RefreshInventoryRemove);
+		if (!Parent->nInventory->OnItemAddedDelegate.IsAlreadyBound(this, &UEMC_InventoryModule::RefreshInventoryAdd))
+			Parent->nInventory->OnItemAddedDelegate.AddDynamic(this, &UEMC_InventoryModule::RefreshInventoryAdd);
+		if (!Parent->nInventory->OnItemRemovedDelegate.IsAlreadyBound(this, &UEMC_InventoryModule::RefreshInventoryRemove))
+			Parent->nInventory->OnItemRemovedDelegate.AddDynamic(this, &UEMC_InventoryModule::RefreshInventoryRemove);
 
 		// maybe redundant but incase the BP fails to compile , maybe we dont want to crash bc of it
 		if (Parent->Stats.InventorySlots == 0)
@@ -268,12 +270,14 @@ void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & S
 	const bool Unique = Item.GetDefaultObject()->GetnUniqueUsage(Item);
 	if (!Stack.Item.ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()) || (Unique && !UEquipmentModuleDescriptor::IsAllowedByUnique(Item,UniquesActive)))
 	{
+		if(Unique)
+			UE_LOG(PowerSuit_Log,Fatal,TEXT("Unique wasnt Filtered!"))
 		return;
 	}
+	if(Unique)
+		UniquesActive.Add(Item);
 	if (Stack.Item.HasState() || StatsRef.mCachedAttachment)
 	{
-		UniquesActive.Add(Item);
-
 		APowerSuitModuleAttachment* Attachment = StatsRef.mCachedAttachment ? StatsRef.mCachedAttachment : Cast< APowerSuitModuleAttachment>(Stack.Item.ItemState.Get());
 		if (Attachment)
 		{

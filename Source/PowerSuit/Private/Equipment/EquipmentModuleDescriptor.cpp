@@ -2,6 +2,10 @@
 
 #include "Equipment/EquipmentModuleDescriptor.h"
 
+UEquipmentModuleDescriptor::UEquipmentModuleDescriptor()
+{
+}
+
 bool UEquipmentModuleDescriptor::IsAllowed(TSubclassOf<UEquipmentModuleDescriptor> InClass, AFGEquipment* Equipment)
 {
 	if (InClass && Equipment) return InClass.GetDefaultObject()->nAllowedUsage.Contains(Equipment->GetClass());
@@ -38,19 +42,25 @@ FEquipmentStats UEquipmentModuleDescriptor::GetEquipmentStats(TSubclassOf<UEquip
 	else return FEquipmentStats();
 }
 
-bool UEquipmentModuleDescriptor::IsAllowedByUnique(TSubclassOf<UEquipmentModuleDescriptor> InClass, TArray<TSubclassOf<UEquipmentModuleDescriptor>> Uniques)
+bool UEquipmentModuleDescriptor::IsAllowedByUnique(TSubclassOf<UEquipmentModuleDescriptor> InClass, TArray<TSubclassOf<class UEquipmentModuleDescriptor>> Uniques)
 {
-	if (InClass.GetDefaultObject()->nUniqueUsage)
+	if (InClass)
 	{
-		if (Uniques.Contains(InClass))
-			return false;
-		for (auto i : InClass.GetDefaultObject()->nUniqueCounted)
+		auto* Obj = InClass.GetDefaultObject();
+		if (Obj->nUniqueUsage)
 		{
-			if (Uniques.Contains(i))
-			{
+			if (Uniques.Contains(InClass))
 				return false;
+			for (TSubclassOf<class UEquipmentModuleDescriptor> i : Obj->nUniqueCounted)
+			{
+				if (Uniques.Contains(i))
+				{
+					return false;
+				}
 			}
 		}
 	}
+
+
 	return true;
 }

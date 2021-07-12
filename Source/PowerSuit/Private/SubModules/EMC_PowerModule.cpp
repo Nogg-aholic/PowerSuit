@@ -41,6 +41,11 @@ float UEMC_PowerModule::GetFuseTimerDuration() const
 {
 	return FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuseTime).value(), 0.f, 10000.f);
 }
+
+void UEMC_PowerModule::CacheFuseTimerDuration()
+{
+	CachedFuseTime = GetFuseTimerDuration();
+}
 float UEMC_PowerModule::GetOverDrawDuration() const
 {
 	return FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuseTimeOverDraw).value(), 0.f, 10000.f);
@@ -74,19 +79,13 @@ void UEMC_PowerModule::UpdateProductionState() const
 		if (Parent->nFuelAmount > 0)
 		{
 			// ... and the suit/modules does NOT prevent fuse breaking when there is fuel ...
-			if (!Parent->Stats.HasFlag(ESuitFlag::SuitFlag_FuseNeverBreaksWhenFueled))
-			{
-				Parent->nProducing = IsFuseIntact();
-			}
-			else 
-			{
-				// ... then the suit is fuel-fuse-break-protected and should be producing
-				Parent->nProducing = true;
-			}
+			if (!Parent->Stats.HasFlag(ESuitFlag::SuitFlag_FuseNeverBreaksWhenFueled) && !IsFuseIntact())
+					Parent->nProducing = false;
 		}
 		else 
 		{
-			Parent->nProducing = IsFuseIntact();
+			if(!IsFuseIntact())
+				Parent->nProducing = false;
 		}
 	}
 }
@@ -115,17 +114,17 @@ FTimespan UEMC_PowerModule::TimeSinceFuseBreak() const
 
 float UEMC_PowerModule::RemainingSecondsUntilFuseRestart() const
 {
-	return GetFuseTimerDuration() - TimeSinceFuseBreak().GetTotalSeconds();
+	return CachedFuseTime - TimeSinceFuseBreak().GetTotalSeconds();
 }
 
 void UEMC_PowerModule::TryRestart() const
 {
 	// If the FuseTimer has ran out ...
-	if (RemainingSecondsUntilFuseRestart() <= 0.0f)
+	if (CachedFuseTime - TimeSinceFuseBreak().GetTotalSeconds() <= 0.0f)
 	{
 		Parent->nCurrentPower = 0.01f;
-
 		Parent->nProducing = true; // restart power production
+		Parent->SuitState = EPowerSuitState::PS_NONE;
 		Parent->OnFuseTriggered.Broadcast(Parent->nProducing, Parent->nFuseBreak);
 		Parent->InventoryModule->BulkUpdateStats(Parent->nInventory);
 	}
@@ -139,8 +138,10 @@ void UEMC_PowerModule::ForcefullyBreakFuse(bool drainPower)
 		Parent->nCurrentPower = 0.0f;
 
 	Parent->SuitState = EPowerSuitState::PS_REBOOTING;
+	CacheFuseTimerDuration();
 	Parent->ResetStats(); // Reset movement stats back to player default
 	Parent->nFuseBreak = FDateTime::Now();
+	Parent->nFuseBreakOverDraw = FDateTime::Now();
 	Parent->OnFuseTriggered.Broadcast(Parent->nProducing, Parent->nFuseBreak);
 	Parent->nShieldDmg = FDateTime::Now();
 }
@@ -203,10 +204,10 @@ void UEMC_PowerModule::Tick() const
 void UEMC_PowerModule::PostTick() const
 {
 	// Check if producing power now (suit is on) *after* seeing if it should be re-enabled (now that FuseTimer reboot checking has been done)
-	UpdateProductionState();
 	if (Parent->nProducing)
 	{
-		// adjust this frame's power state
-		RegenPower();
+		UpdateProductionState();
+		if (Parent->nProducing)
+			RegenPower();
 	}
 }

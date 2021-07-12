@@ -38,8 +38,8 @@ UEquipmentModuleComponent::UEquipmentModuleComponent()
 	PowerConsumption = 0;
 	nProducing = false;
 	nCurrentPower = 0;
-	nFuseBreak = FDateTime();
-	nFuseBreakOverDraw = FDateTime();
+	nFuseBreak = FDateTime::Now();
+	nFuseBreakOverDraw = FDateTime::Now();
 	nShieldRegenCooldown = false;
 	nCurrentShield = 0;
 	nFuelConsumption = 0;
@@ -159,6 +159,7 @@ void UEquipmentModuleComponent::SetupSubModules()
 	ShieldModule->Parent = this;  // 7 
 	ZiplineModule->Parent = this; // 8
 	HealthModule->Parent = this; // 9
+	PowerModule->CacheFuseTimerDuration();
 
 	RCO = Cast< UPowerSuitRCO>(Controller->GetRemoteCallObjectOfClass(UPowerSuitRCO::StaticClass()));
 
@@ -389,11 +390,15 @@ bool UEquipmentModuleComponent::NeedTransform_Implementation()
 
 
 
-bool UEquipmentModuleComponent::VerifyItem(TSubclassOf< UFGItemDescriptor > ItemClass, int32 Amount)
+bool UEquipmentModuleComponent::VerifyItem(TSubclassOf< UFGItemDescriptor > ItemClass, int32 Amount) const
 {
+	if(SuitState == EPowerSuitState::PS_REBOOTING)
+		return false;
+	
 	if (ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()))
 	{
-		TSubclassOf< UEquipmentModuleDescriptor> Item = ItemClass;
+		// ReSharper disable once CppMsExtDoubleUserConversionInCopyInit
+		const TSubclassOf<class UEquipmentModuleDescriptor> Item = ItemClass;
 		if (!UEquipmentModuleDescriptor::IsAllowedByUnique(Item,InventoryModule->UniquesActive))
 		{
 			OnInventoryDropFail.Broadcast(ItemClass, Amount);

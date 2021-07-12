@@ -202,7 +202,6 @@ void UEMC_StateModule::UpdateSuitState()
 
 	if (!Parent->nProducing)
 	{
-		Parent->SuitState = EPowerSuitState::PS_REBOOTING;
 		Parent->TKey_Fly = false;
 		Parent->TKey_NoGravity = false;
 		Parent->TKey_NoFriction = false;

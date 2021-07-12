@@ -15,7 +15,7 @@ class POWERSUIT_API UEquipmentModuleDescriptor : public UFGItemDescriptor
 	GENERATED_BODY()
 
 
-
+	UEquipmentModuleDescriptor();
 public:
 	UFUNCTION(BlueprintPure, Category = "FactoryGame|Descriptor|Item")
 	static bool IsAllowed(TSubclassOf<UEquipmentModuleDescriptor> InClass, AFGEquipment* Equipment);
@@ -34,7 +34,7 @@ public:
 	static FEquipmentStats GetEquipmentStats(TSubclassOf<UEquipmentModuleDescriptor> InClass);
 
 	UFUNCTION(BlueprintPure, Category = "FactoryGame|Descriptor|Item")
-		static bool IsAllowedByUnique(TSubclassOf<UEquipmentModuleDescriptor> InClass,TArray< TSubclassOf<UEquipmentModuleDescriptor>> Uniques);
+		static bool IsAllowedByUnique(TSubclassOf<UEquipmentModuleDescriptor> InClass,TArray< TSubclassOf<class UEquipmentModuleDescriptor>> Uniques);
 
 	UPROPERTY(EditDefaultsOnly, Category = "EquipmentModule")
 		FEquipmentStats EquipmentStats UMETA(Displayname = "Equipment Stats - Hover over things and read tooltip for descriptions!", Tooltip = "Module properties");

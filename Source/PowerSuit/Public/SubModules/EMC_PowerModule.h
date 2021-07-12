@@ -40,7 +40,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
 		float GetFuseTimerDuration() const;
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-		float GetOverDrawDuration() const;
+	float GetOverDrawDuration() const;
+
+	void CacheFuseTimerDuration();
+
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
 		bool IsFuseIntact() const;
 
@@ -55,5 +58,8 @@ public:
 	// Power Draw in MW including External
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
 		float GetPowerDraw() const;
+
+
+	float CachedFuseTime = 0.f;
 
 };
