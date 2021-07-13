@@ -230,7 +230,7 @@ void UEMC_InventoryModule::RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> It
 
 	for (auto i : ItemsRemembered)
 	{
-		if (RelevantSlotIndexes.Contains(i.Key))
+		if (RelevantSlotIndexes.Contains(i.Key) && i.Value.mCachedDescriptor != ItemClass)
 		{
 			RelevantSlotIndexes.Remove(i.Key);
 		}
@@ -239,6 +239,7 @@ void UEMC_InventoryModule::RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> It
 	if (RelevantSlotIndexes.Num() == 0)
 	{
 		UE_LOG(PowerSuit_Log, Error, TEXT("No New Item !?"));
+		RefreshInventory();
 	}
 	else if (RelevantSlotIndexes.Num() == 1)
 	{
