@@ -181,8 +181,11 @@ DECLARE_LOG_CATEGORY_EXTERN(PowerSuit_Log, Log, Log);
 		friend type get(steal_mCurrentPowerConnection);
 	};
 
+	struct steal_mCurrentConnectionLocation {
+		typedef FVector AFGHoverPack::* type;
+		friend type get(steal_mCurrentConnectionLocation);
+	};
 	
-
 	
 	template struct Steal<steal_mSlideTime, &UFGCharacterMovementComponent::mSlideTime>;
 	template struct Steal<steal_mMaxSlideAngle, &UFGCharacterMovementComponent::mMaxSlideAngle>;
@@ -220,7 +223,9 @@ DECLARE_LOG_CATEGORY_EXTERN(PowerSuit_Log, Log, Log);
 	template struct Steal<steal_mUseDistance, &AFGCharacterPlayer::mUseDistance>;
 	template struct Steal<steal_mHasConnection, &AFGHoverPack::mHasConnection>;
 	template struct Steal<steal_mCurrentPowerConnection, &AFGHoverPack::mCurrentPowerConnection>;
+	template struct Steal<steal_mCurrentConnectionLocation, &AFGHoverPack::mCurrentConnectionLocation>;
 
+	
 	
 #endif
 

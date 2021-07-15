@@ -20,7 +20,10 @@ class UPowerSuitBPLibrary : public UBlueprintFunctionLibrary
 
 public:
 	UFUNCTION(BlueprintPure)
-		static float GetPropertyResult(FModMultProperty prop) { return prop.value();};
+		static float GetPropertyResult(FModMultProperty prop) { return prop.value();	};
+
+	UFUNCTION(BlueprintCallable)
+	static void UpdateInnerConnectionRange(APowerSuit* Suit);
 
 	UFUNCTION(BlueprintCallable)
 		static void ToggleCameraMode(UFGCheatManager * manager, APlayerController* PlayerController) {

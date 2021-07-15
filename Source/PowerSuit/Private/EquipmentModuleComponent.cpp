@@ -115,7 +115,8 @@ void UEquipmentModuleComponent::EquippedTick(float DeltaTime)
 	ZiplineModule->PostTick(); // 8
 	HealthModule->PostTick(); // 9
 
-	
+	UPowerSuitBPLibrary::UpdateInnerConnectionRange(EquipmentParent);
+
 }
 
 
@@ -173,7 +174,7 @@ void UEquipmentModuleComponent::SetupSubModules()
 			return;
 		}
 	}
-	
+
 };
 
 void UEquipmentModuleComponent::Init( APowerSuit * Parent)

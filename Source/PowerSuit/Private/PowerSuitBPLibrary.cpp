@@ -521,19 +521,29 @@ void UPowerSuitBPLibrary::SetInnerConnection(APowerSuit * Suit, UFGPowerConnecti
 	if (!Suit)
 		return;
 #ifdef FOR_MODSHIPPING
-	Suit->*get(steal_mCurrentPowerConnection()) = Connection;
+	Suit->mCurrentPowerConnection() = Connection;
 	if (Suit->mCurrentPowerConnection)
 		Suit->mHasConnection = true;
 	else
 		Suit->mHasConnection = false; 
 #else
-	UFGPowerConnectionComponent* Mod = Suit->*get(steal_mCurrentPowerConnection());
-	Mod = Connection;
+	Suit->*get(steal_mCurrentPowerConnection()) = Connection;
 
-	if (Mod)
+	if (Suit->*get(steal_mCurrentPowerConnection()))
 		Suit->*get(steal_mHasConnection()) = true;
 	else
 		Suit->*get(steal_mHasConnection()) = false;
 #endif
 
+
+}
+
+void UPowerSuitBPLibrary::UpdateInnerConnectionRange(APowerSuit* Suit)
+{
+#ifdef FOR_MODSHIPPING
+	Suit->mCurrentConnectionLocation = Suit->GetActorLocation();
+#else
+	FVector& Mod = Suit->*get(steal_mCurrentConnectionLocation());
+	Mod = Suit->GetInstigator()->GetActorLocation();
+#endif
 }
