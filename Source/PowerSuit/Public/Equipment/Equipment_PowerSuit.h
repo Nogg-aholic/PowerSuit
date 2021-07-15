@@ -91,4 +91,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 		float BeltVelocityAcceptanceAngle = 35.f;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Movement")
+	UFGPowerConnectionComponent* InnerBattery;
 };

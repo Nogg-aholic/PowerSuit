@@ -541,9 +541,41 @@ void UPowerSuitBPLibrary::SetInnerConnection(APowerSuit * Suit, UFGPowerConnecti
 void UPowerSuitBPLibrary::UpdateInnerConnectionRange(APowerSuit* Suit)
 {
 #ifdef FOR_MODSHIPPING
-	Suit->mCurrentConnectionLocation = Suit->GetActorLocation();
+	if (Suit->Module->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked))
+	{
+		Suit->mCurrentConnectionLocation = Suit->GetActorLocation();
+		if (Suit->InnerBattery && !Suit->mHasConnection())
+		{
+			SetInnerConnection(Suit, Suit->InnerBattery);
+		}
+	}
+	else
+	{
+		if (Suit->mHasConnection() && Suit->mCurrentPowerConnection == Suit->InnerBattery)
+		{
+			SetInnerConnection(Suit, nullptr);
+		}
+	}
 #else
-	FVector& Mod = Suit->*get(steal_mCurrentConnectionLocation());
-	Mod = Suit->GetInstigator()->GetActorLocation();
+	if (Suit->Module->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked))
+	{
+		FVector& Mod = Suit->*get(steal_mCurrentConnectionLocation());
+		Mod = Suit->GetInstigator()->GetActorLocation();
+		bool& State = Suit->*get(steal_mHasConnection());
+		if (Suit->InnerBattery && !State)
+		{
+			SetInnerConnection(Suit, Suit->InnerBattery);
+		}
+	}
+	else
+	{
+		bool& State = Suit->*get(steal_mHasConnection());
+
+		if (State && Suit->*get(steal_mCurrentPowerConnection()) == Suit->InnerBattery)
+		{
+			SetInnerConnection(Suit, nullptr);
+		}
+	}
+
 #endif
 }
