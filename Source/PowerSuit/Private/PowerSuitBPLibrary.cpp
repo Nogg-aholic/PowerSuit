@@ -515,3 +515,25 @@ void UPowerSuitBPLibrary::SetUseDistanceOnPlayer(AFGCharacterPlayer* Player, flo
 #endif
 	}
 }
+
+void UPowerSuitBPLibrary::SetInnerConnection(APowerSuit * Suit, UFGPowerConnectionComponent* Connection)
+{
+	if (!Suit)
+		return;
+#ifdef FOR_MODSHIPPING
+	Suit->*get(steal_mCurrentPowerConnection()) = Connection;
+	if (Suit->mCurrentPowerConnection)
+		Suit->mHasConnection = true;
+	else
+		Suit->mHasConnection = false; 
+#else
+	UFGPowerConnectionComponent* Mod = Suit->*get(steal_mCurrentPowerConnection());
+	Mod = Connection;
+
+	if (Mod)
+		Suit->*get(steal_mHasConnection()) = true;
+	else
+		Suit->*get(steal_mHasConnection()) = false;
+#endif
+
+}

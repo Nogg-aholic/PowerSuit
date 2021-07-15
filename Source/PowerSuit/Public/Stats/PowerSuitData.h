@@ -171,6 +171,19 @@ DECLARE_LOG_CATEGORY_EXTERN(PowerSuit_Log, Log, Log);
 		friend type get(steal_mUseDistance);
 	};
 
+	struct steal_mHasConnection {
+		typedef bool AFGHoverPack::* type;
+		friend type get(steal_mHasConnection);
+	};
+
+	struct steal_mCurrentPowerConnection {
+		typedef UFGPowerConnectionComponent* AFGHoverPack::* type;
+		friend type get(steal_mCurrentPowerConnection);
+	};
+
+	
+
+	
 	template struct Steal<steal_mSlideTime, &UFGCharacterMovementComponent::mSlideTime>;
 	template struct Steal<steal_mMaxSlideAngle, &UFGCharacterMovementComponent::mMaxSlideAngle>;
 	template struct Steal<steal_mBoostJumpZMultiplier, &UFGCharacterMovementComponent::mBoostJumpZMultiplier>;
@@ -205,6 +218,8 @@ DECLARE_LOG_CATEGORY_EXTERN(PowerSuit_Log, Log, Log);
 
 	template struct Steal<steal_mCostToUse, &AFGEquipment::mCostToUse>;
 	template struct Steal<steal_mUseDistance, &AFGCharacterPlayer::mUseDistance>;
+	template struct Steal<steal_mHasConnection, &AFGHoverPack::mHasConnection>;
+	template struct Steal<steal_mCurrentPowerConnection, &AFGHoverPack::mCurrentPowerConnection>;
 
 	
 #endif

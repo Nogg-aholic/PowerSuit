@@ -84,6 +84,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnPlayAirBreakSound();
 
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 		UEquipmentModuleComponent * Module;
 

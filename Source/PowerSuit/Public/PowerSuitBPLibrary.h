@@ -133,4 +133,8 @@ public:
 	static FOnWidgetConstruct OnWidgetConstruct;
 
 	static FOnObjectConstruct OnObjectConstruct;
+
+	UFUNCTION(BlueprintCallable)
+		static void SetInnerConnection(APowerSuit* Suit, UFGPowerConnectionComponent* Connection);
+	
 };

@@ -232,4 +232,3 @@ void APowerSuit::AddEquipmentActionBindings()
 	Module->KB_Toggle2 = TogKey.Key;
 	Module->KB_UI = UIgKey.Key;
 }
-
