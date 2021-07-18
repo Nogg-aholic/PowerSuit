@@ -68,6 +68,13 @@ void  APowerSuit::Equip(class AFGCharacterPlayer* character){
 				Module->Init(this);
 			}
 		}
+		else
+		{
+			if (Module)
+			{
+				Module->InventoryModule->RefreshInventory();
+			}
+		}
 	}
 };
 
@@ -166,6 +173,29 @@ void APowerSuit::Tick(float DeltaSeconds)
 
 	Module->EquippedTick(DeltaSeconds);
 	
+
+	if (Module->TKey_Fly && Module->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked) && Module->nProducing)
+	{
+		mCurrentConnectionLocation = GetInstigator()->GetActorLocation();
+		if (InnerBattery && !mHasConnection)
+		{
+			UE_LOG(LogTemp, Error, TEXT("NO CON"));
+			mCurrentPowerConnection = InnerBattery;
+			mHasConnection = true;
+		}
+	}
+	else
+	{
+		if (mHasConnection && mCurrentPowerConnection == InnerBattery)
+		{
+			UE_LOG(LogTemp, Error, TEXT("CON Removed"));
+			mHasConnection = false;
+		}
+	}
+	
+	
+	//Module->MoveC->UpdateHoverPack(DeltaSeconds);
+
 	Super::Tick(DeltaSeconds);
 }
 
@@ -231,4 +261,16 @@ void APowerSuit::AddEquipmentActionBindings()
 	Module->KB_Toggle = GravityKey.Key;
 	Module->KB_Toggle2 = TogKey.Key;
 	Module->KB_UI = UIgKey.Key;
+}
+
+void APowerSuit::OnCharacterMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode, EMovementMode NewMovementMode, uint8 NewCustomMode)
+{
+	if (PreviousCustomMode == 4 && NewCustomMode == 0)
+	{
+		Module->MoveC->mMaxSprintSpeed = Cast< UFGCharacterMovementComponent>(Module->MoveC->GetClass()->GetDefaultObject())->mMaxSprintSpeed;//900.f;
+		Module->MoveC->mMaxSprintSpeed += Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSprintSpeed).value(); //ESMC_mMaxSprintSpeed
+		Module->MoveC->mMaxSprintSpeed *= Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSprintSpeed).ClampMult(); //ESMC_mMaxSprintSpeed
+	}
+	UE_LOG(LogTemp, Error, TEXT("	Module->MoveC->MaxWalkSpeed %f mMaxSprintSpeed %f MaxFlySpeed %f"), Module->MoveC->MaxWalkSpeed, Module->MoveC->mMaxSprintSpeed, Module->MoveC->MaxFlySpeed);
+	UE_LOG(LogTemp, Error, TEXT("PreviousMovementMode %i PreviousCustomMode %i NewMovementMode %i NewCustomMode %i"), PreviousMovementMode, PreviousCustomMode, NewMovementMode, NewCustomMode);
 }

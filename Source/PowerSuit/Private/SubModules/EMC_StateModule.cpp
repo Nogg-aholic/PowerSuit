@@ -210,7 +210,7 @@ void UEMC_StateModule::UpdateSuitState()
 			Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive);
 			Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
 			Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
-			UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight"));
+			UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight about to Reboot!"));
 		}
 	}
 	else if (Parent->nMovementMode == EMovementMode::MOVE_Custom)
@@ -251,7 +251,8 @@ void UEMC_StateModule::UpdateSuitState()
 					Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
 					Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
 					Parent->SuitState = EPowerSuitState::PS_FALLING;
-					UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight"));
+					Parent->TKey_Fly = false;
+					UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight - FlyUpKey Released"));
 				}
 				else
 				{
@@ -273,7 +274,7 @@ void UEMC_StateModule::UpdateSuitState()
 				Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
 				Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
 				Parent->SuitState = EPowerSuitState::PS_FALLING;
-				UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight"));
+				UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight, cannot fly or doesnt want to"));
 			}
 		}
 		else if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_Ladder)
@@ -356,6 +357,11 @@ void UEMC_StateModule::ReplicateStates()
 	if (Parent->nMovementMode == EMovementMode::MOVE_Walking && Parent->TKey_Fly)
 	{
 		UE_LOG(PowerSuit_Log, Display, TEXT("Ground Flight Disable"));
+		if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_Hover || Parent->nCustomMovementMode == ECustomMovementMode::CMM_HoverSlowFall)
+		{
+			Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive);
+			Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
+		}
 		Parent->TKey_Fly = false;
 		if (Controlled)
 			Parent->EquipmentParent->OnFlyingChanged(false);

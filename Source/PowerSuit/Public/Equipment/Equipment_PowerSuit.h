@@ -37,6 +37,7 @@ class POWERSUIT_API APowerSuit : public AFGHoverPack
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 	virtual bool ShouldSaveState() const override;
 	virtual void AddEquipmentActionBindings() override;
+	virtual void OnCharacterMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode, EMovementMode NewMovementMode, uint8 NewCustomMode) override;
 
 	UFUNCTION()
 	void OnConnectionStatusUpdatedReplacement(bool HasConnection);

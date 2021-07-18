@@ -115,7 +115,6 @@ void UEquipmentModuleComponent::EquippedTick(float DeltaTime)
 	ZiplineModule->PostTick(); // 8
 	HealthModule->PostTick(); // 9
 
-	UPowerSuitBPLibrary::UpdateInnerConnectionRange(EquipmentParent);
 
 }
 
@@ -202,6 +201,7 @@ void UEquipmentModuleComponent::Init( APowerSuit * Parent)
 	SetupSubModules();
 
 	InventoryModule->InitInventory();
+
 }
 // Calculate damage while factoring in damage resistances
 float UEquipmentModuleComponent::CalculateDamage(float DmgIn, int32 Type, TSubclassOf<class UFGDamageType>  BpType)
@@ -263,33 +263,19 @@ float UEquipmentModuleComponent::CalculateDamage(float DmgIn, int32 Type, TSubcl
 
 void UEquipmentModuleComponent::RemoteInventoryRefresh_Implementation(bool IsAdd, TSubclassOf<UFGItemDescriptor> Class, int32 Amount)
 {
-	if (!EquipmentParent)
-	{
+	if (!EquipmentParent || !EquipmentParent->GetInstigator() || EquipmentParent->GetInstigator()->HasAuthority())
 		return;
-	}
-	if (!EquipmentParent->GetInstigator())
-	{
-		return;
-	}
-	if (EquipmentParent->GetInstigator()->HasAuthority())
-	{
-		return;
-	}
+	
 	FTimerDelegate TimerDel;
 	FTimerHandle TimerHandle;
-	if (IsAdd)
-	{
-		TimerDel.BindUFunction(InventoryModule, FName("RefreshInventory"));
 
-		UE_LOG(PowerSuit_Log, Display, TEXT("Remote with RefreshInventoryAdd"));
-	}
+	if (IsAdd)
+		UE_LOG(PowerSuit_Log, Display, TEXT("Remote with RefreshInventoryAdd"))
 	else
-	{
-		TimerDel.BindUFunction(InventoryModule, FName("RefreshInventory"));
 		UE_LOG(PowerSuit_Log, Display, TEXT("Remote with RefreshInventoryRemove"));
 
+	TimerDel.BindUFunction(InventoryModule, FName("RefreshInventory"));
 
-	}
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 1.f, false);
 
 }

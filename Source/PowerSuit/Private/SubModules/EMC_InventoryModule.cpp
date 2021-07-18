@@ -397,20 +397,17 @@ bool UEMC_InventoryModule::UpdateOnIndex(const int32 Index)
 		Parent->nInventory->GetStackFromIndex(Index, Stack);
 		if (Stack.HasItems())
 		{
-			{
+			FEquipmentStats& OldStatsRef = *ItemsRemembered.Find(Index);
+			// found
+			TSubclassOf< class UEquipmentModuleDescriptor> item = Stack.Item.ItemClass;
 
-				FEquipmentStats& OldStatsRef = *ItemsRemembered.Find(Index);
-				// found
-				TSubclassOf< class UEquipmentModuleDescriptor> item = Stack.Item.ItemClass;
+			SubtractModuleStats(item,Index);
+			CheckCreateModuleStats(Stack, Index);
+			MergeStats(Stack, GetModuleStats(Stack, Index));
 
-				SubtractModuleStats(item,Index);
-				CheckCreateModuleStats(Stack, Index);
-				MergeStats(Stack, GetModuleStats(Stack, Index));
-
-				UPowerSuitBPLibrary::UpdateAllNoRefresh(Parent->EquipmentParent);
-				return true;
-				
-			}
+			UPowerSuitBPLibrary::UpdateAllNoRefresh(Parent->EquipmentParent);
+			return true;
+			
 		}
 	}
 	return false;

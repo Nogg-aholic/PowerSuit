@@ -290,7 +290,6 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent, bool N
 #endif
 
 
-
 #ifdef FOR_MODSHIPPING
 
 	EquipmentParent->mHoverSpeed *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverSpeed).ClampMult();
@@ -330,6 +329,8 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent, bool N
 	EquipmentParent->*get(steal_mPowerCapacity()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerCapacity).ClampMult();
 #endif
 
+	UE_LOG(LogTemp, Error, TEXT("HoverSpeed is : %f"), EquipmentParent->*get(steal_mHoverSpeed()));
+	UE_LOG(LogTemp, Error, TEXT("mHoverAccelerationSpeed is : %f"), EquipmentParent->*get(steal_mHoverAccelerationSpeed()));
 	if(Notify)
 		EquipmentParent->OnPowerSuitStatUpdate.Broadcast(1);
 
