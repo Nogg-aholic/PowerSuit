@@ -72,7 +72,7 @@ void  APowerSuit::Equip(class AFGCharacterPlayer* character){
 		{
 			if (Module)
 			{
-				Module->InventoryModule->RefreshInventory();
+				// Module->InventoryModule->RefreshInventory(); // REDUNDANT
 			}
 		}
 	}
