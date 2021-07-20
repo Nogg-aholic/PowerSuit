@@ -30,15 +30,27 @@ void FPowerSuitModule::StartupModule()
 					{
 						if (Suit->Module->Stats.HasAdvancedFlag(ESuitFlagAdvanced::SuitFlagAdvanced_IgnoreBelts))
 						{
-							
-								FVector A = basedActor->GetRootComponent()->GetForwardVector();
-		                        FVector B = Scope(Obj,basedActor,baseComponent);
-		                        const float Angle = FMath::Abs(FQuat::FindBetween(A, B).Rotator().Yaw);
-		                        if(FMath::Abs(Angle) > Cast<APowerSuit>(i)->BeltVelocityAcceptanceAngle || !Suit->Module->StateModule->HKey_Accel)
-		                        {
-		                            FVector NewValue = FVector(0,0,0);
-		                            Scope.Override(NewValue);
-		                        }
+							FVector A = basedActor->GetRootComponent()->GetForwardVector();
+		                    FVector B = Scope(Obj,basedActor,baseComponent);
+		                    const float Angle = FMath::Abs(FQuat::FindBetween(A, B).Rotator().Yaw);
+							const bool LookingWithinAcceptedAngle = FMath::Abs(Angle) <= Cast<APowerSuit>(i)->BeltVelocityAcceptanceAngle;
+							const bool PressingAccel = Suit->Module->StateModule->HKey_Accel;
+		                    if (!LookingWithinAcceptedAngle || !PressingAccel)
+		                    {
+								// Prevent movement by belt
+		                        FVector NewValue = FVector(0,0,0);
+		                        Scope.Override(NewValue);
+		                    }
+							else if (LookingWithinAcceptedAngle && PressingAccel)
+							{
+								// Increase the applied belt speed
+								// TODO consider cleaning up later with a real property instead of a named property
+								if (Suit->Module->Stats.nNamedProperties.Contains("nBeltSpeedMultiplier")) {
+									FModMultProperty& speedProp = *Suit->Module->Stats.nNamedProperties.Find("nBeltSpeedMultiplier");
+									FVector NewValue = speedProp.ClampAdd(1) * B;
+									Scope.Override(NewValue);
+								}
+							}
 							
 						}
 					}

@@ -68,10 +68,6 @@ void  APowerSuit::Equip(class AFGCharacterPlayer* character){
 				Module->Init(this);
 			}
 		}
-		else
-		{
-	
-		}
 	}
 };
 
