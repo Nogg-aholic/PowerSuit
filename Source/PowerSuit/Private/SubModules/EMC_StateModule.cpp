@@ -237,6 +237,7 @@ void UEMC_StateModule::UpdateSuitState()
 			Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
 			Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
 			Parent->SuitState = EPowerSuitState::PS_FALLING;
+			Parent->TKey_Fly = false;
 			UE_LOG(PowerSuit_Log, Display, TEXT("Disabled SlowFall"));
 		}
 		else if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_Hover || Parent->nCustomMovementMode == ECustomMovementMode::CMM_HoverSlowFall)
@@ -274,6 +275,7 @@ void UEMC_StateModule::UpdateSuitState()
 				Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
 				Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
 				Parent->SuitState = EPowerSuitState::PS_FALLING;
+				Parent->TKey_Fly = false;
 				UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight, cannot fly or doesnt want to"));
 			}
 		}
