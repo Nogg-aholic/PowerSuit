@@ -185,6 +185,7 @@ void APowerSuit::Tick(float DeltaSeconds)
 		if (mHasConnection && mCurrentPowerConnection == InnerBattery)
 		{
 			UE_LOG(LogTemp, Error, TEXT("CON Removed"));
+			DisconnectFromCurrentPowerConnection();
 			mHasConnection = false;
 		}
 	}
