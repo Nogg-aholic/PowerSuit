@@ -392,6 +392,8 @@ void UPowerSuitBPLibrary::UpdateInventorySize(APowerSuit* EquipmentParent, bool 
 
 void UPowerSuitBPLibrary::UpdateAllNoRefresh(APowerSuit* EquipmentParent, bool Notify)
 {
+	if (!EquipmentParent)
+		return;
 	UE_LOG(PowerSuit_Log, Error, TEXT("UpdateAllNoRefresh"));
 	UpdateInventorySize(EquipmentParent);
 	UpdateFlags(EquipmentParent);
@@ -522,7 +524,7 @@ void UPowerSuitBPLibrary::SetInnerConnection(APowerSuit * Suit, UFGPowerConnecti
 	if (!Suit)
 		return;
 #ifdef FOR_MODSHIPPING
-	Suit->mCurrentPowerConnection() = Connection;
+	Suit->mCurrentPowerConnection = Connection;
 	if (Suit->mCurrentPowerConnection)
 		Suit->mHasConnection = true;
 	else
@@ -545,14 +547,14 @@ void UPowerSuitBPLibrary::UpdateInnerConnectionRange(APowerSuit* Suit)
 	if (Suit->Module->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked))
 	{
 		Suit->mCurrentConnectionLocation = Suit->GetActorLocation();
-		if (Suit->InnerBattery && !Suit->mHasConnection())
+		if (Suit->InnerBattery && !Suit->mHasConnection)
 		{
 			SetInnerConnection(Suit, Suit->InnerBattery);
 		}
 	}
 	else
 	{
-		if (Suit->mHasConnection() && Suit->mCurrentPowerConnection == Suit->InnerBattery)
+		if (Suit->mHasConnection && Suit->mCurrentPowerConnection == Suit->InnerBattery)
 		{
 			SetInnerConnection(Suit, nullptr);
 		}
