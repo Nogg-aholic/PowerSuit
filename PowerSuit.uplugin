@@ -1,8 +1,8 @@
 {
 	"FileVersion": 3,
 	"Version": 0,
-	"VersionName": "0.6.0",
-	"SemVersion": "0.6.0",
+	"VersionName": "0.6.2",
+	"SemVersion": "0.6.2",
 	"FriendlyName": "EARLY RELEASE PowerSuit",
 	"Description": "Library mod that allows creating PowerSuit body equipment with special properties and an internal inventory. Modules can be installed in the internal inventory to change the suit's behavior and properties.",
 	"Category": "Modding",
