@@ -5,7 +5,7 @@
 #include "Buildables/FGBuildableConveyorBelt.h"
 #include "Buildables/FGBuildableRailroadTrack.h"
 #include "FGPowerConnectionComponent.h"
-
+#include "FGPowerInfoComponent.h"
 #include "FGCharacterMovementComponent.h"
 #include "SubModules/EMC_FuelModule.h"
 #include "SubModules/EMC_ShieldModule.h"
@@ -171,8 +171,21 @@ void APowerSuit::Tick(float DeltaSeconds)
 	if (Module->TKey_Fly && Module->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked) && Module->nProducing)
 	{
 		mCurrentConnectionLocation = GetInstigator()->GetActorLocation();
+		mCurrentPowerLevel = 1.f;
 		if (InnerBattery && !mHasConnection)
 		{
+			if (!InnerBattery->HasPower() && InnerBattery->GetPowerInfo() && HasAuthority())
+			{
+				if (!InnerBattery->GetPowerInfo()->GetBatteryInfo())
+					InnerBattery->GetPowerInfo()->InitializeBatteryInfo(1000.f, 1000.f);
+				InnerBattery->SetHasPower(true);
+				InnerBattery->GetPowerInfo()->SetHasPower(true);
+				InnerBattery->GetPowerInfo()->GetBatteryInfo()->SetActive(true);
+				InnerBattery->GetPowerInfo()->GetBatteryInfo()->SetPowerStore(1000.f);
+				UE_LOG(LogTemp, Error, TEXT("SetBattery Storage"));
+
+			}
+			
 			UE_LOG(LogTemp, Error, TEXT("NO CON"));
 			ConnectToPowerConnection(mCurrentPowerConnection);
 			mCurrentPowerConnection = InnerBattery;
@@ -262,6 +275,8 @@ void APowerSuit::AddEquipmentActionBindings()
 
 void APowerSuit::OnCharacterMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode, EMovementMode NewMovementMode, uint8 NewCustomMode)
 {
+	if (!Module || !Module->MoveC)
+		return;
 	if (NewCustomMode == 0)
 	{
 		UE_LOG(LogTemp, Error, TEXT(" GroundSpeed Before : Module->MoveC->MaxWalkSpeed %f mMaxSprintSpeed %f MaxFlySpeed %f"), Module->MoveC->MaxWalkSpeed, Module->MoveC->mMaxSprintSpeed, Module->MoveC->MaxFlySpeed);

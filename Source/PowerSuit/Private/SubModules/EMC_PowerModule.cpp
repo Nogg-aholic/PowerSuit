@@ -76,11 +76,10 @@ void UEMC_PowerModule::UpdateProductionState() const
 	if (Parent->nCurrentPower <= 0.f)
 	{
 		// ... and the suit has fuel ...
-		if (Parent->nFuelAmount > 0)
+		if (Parent->Stats.HasFlag(ESuitFlag::SuitFlag_FuseNeverBreaksWhenFueled)  && Parent->nFuelAmount > 0)
 		{
 			// ... and the suit/modules does NOT prevent fuse breaking when there is fuel ...
-			if (!Parent->Stats.HasFlag(ESuitFlag::SuitFlag_FuseNeverBreaksWhenFueled) && !IsFuseIntact())
-					Parent->nProducing = false;
+			
 		}
 		else 
 		{
@@ -136,6 +135,9 @@ void UEMC_PowerModule::ForcefullyBreakFuse(bool drainPower)
 
 	if (drainPower)
 		Parent->nCurrentPower = 0.0f;
+
+	if (Parent->nProducing)
+		Parent->nProducing = false;
 
 	Parent->SuitState = EPowerSuitState::PS_REBOOTING;
 	CacheFuseTimerDuration();
