@@ -210,17 +210,8 @@ void UPowerSuitRCO::ServerUpdateCurrentHoverMode_Implementation(UEquipmentModule
 		return;
 	if (!Component->EquipmentParent)
 		return;
-#ifdef MODDING_SHIPPING
-	int32 Value = int32(Component->EquipmentParent->mCurrentHoverMode);
-
-#else
-	int32 Value = static_cast<int32>(Component->EquipmentParent->*get(steal_mCurrentHoverMode()));
-
-#endif
-	int32 ValueNew = static_cast<int32>(Index);
 
 	Component->EquipmentParent->SetHoverMode(Index, false);
 	UE_LOG(PowerSuit_Log, Display, TEXT("RCO  SetHoverMode : %i "),Index);
-
 }
 

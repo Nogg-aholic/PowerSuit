@@ -61,9 +61,8 @@ void UPowerSuitBPLibrary::ResetMovementComponent(UFGCharacterMovementComponent* 
 	MovementComponent->mMaxSlideAngle = MovementCDO->mMaxSlideAngle;//1.64999997615814f;
 	MovementComponent->mBoostJumpZMultiplier = MovementCDO->mBoostJumpZMultiplier;// 1.5f;
 	MovementComponent->mBoostJumpVelocityMultiplier = MovementCDO->mBoostJumpVelocityMultiplier;// 1.29999995231628f;
-	MovementComponent->mSprintMinDotResult = MovementCDO->mSprintMinDotResult;// 0.75;
-	MovementComponent->mJumpOffLadderVelocity = MovementCDO->mJumpOffLadderVelocity;// 300;
 	MovementComponent->mBoostJumpTimeWindow = MovementCDO->mBoostJumpTimeWindow;// 0.150000005960464;
+
 	MovementComponent->mZiplineSpeed = MovementCDO->mZiplineSpeed;// 1200;
 	MovementComponent->mZiplineCorrectionSpeedMultiplier = MovementCDO->mZiplineCorrectionSpeedMultiplier; //ESMC_mZiplineCorrectionSpeedMultiplier
 	MovementComponent->mZiplineVelocityInterpolationSpeed = MovementCDO->mZiplineVelocityInterpolationSpeed;// 1
@@ -75,6 +74,7 @@ void UPowerSuitBPLibrary::ResetMovementComponent(UFGCharacterMovementComponent* 
 	MovementComponent->*get(steal_mBoostJumpZMultiplier()) = MovementCDO->*get(steal_mBoostJumpZMultiplier());// 1.5f;
 	MovementComponent->*get(steal_mBoostJumpVelocityMultiplier()) = MovementCDO->*get(steal_mBoostJumpVelocityMultiplier());// 1.29999995231628f;
 	MovementComponent->*get(steal_mBoostJumpTimeWindow()) = MovementCDO->*get(steal_mBoostJumpTimeWindow());// 0.150000005960464;
+
 	MovementComponent->*get(steal_mZiplineSpeed()) = MovementCDO->*get(steal_mZiplineSpeed());// 1200;
 	MovementComponent->*get(steal_mZiplineCorrectionSpeedMultiplier()) = MovementCDO->*get(steal_mZiplineCorrectionSpeedMultiplier()); //ESMC_mZiplineCorrectionSpeedMultiplier
 	MovementComponent->*get(steal_mZiplineVelocityInterpolationSpeed()) = MovementCDO->*get(steal_mZiplineVelocityInterpolationSpeed());// 1
@@ -112,6 +112,7 @@ void UPowerSuitBPLibrary::UpdateMovementComponent(APowerSuit * EquipmentParent, 
 	MovementComponent->*get(steal_mBoostJumpZMultiplier()) +=  EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mBoostJumpZMultiplier).value(); // ESMC_mBoostJumpZMultiplier 
 	MovementComponent->*get(steal_mBoostJumpVelocityMultiplier()) +=  EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mBoostJumpVelocityMultiplier).value(); // ESMC_mBoostJumpVelocityMultiplier
 #endif
+
 	MovementComponent->GroundFriction +=  EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_GroundFriction).value(); // ESMC_GroundFriction
 	MovementComponent->MaxWalkSpeed +=  EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_MaxWalkSpeed).value(); //ESMC_MaxWalkSpeed
 	MovementComponent->MaxWalkSpeedCrouched +=  EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_MaxWalkSpeedCrouched).value(); // ESMC_MaxWalkSpeedCrouched
@@ -138,6 +139,7 @@ void UPowerSuitBPLibrary::UpdateMovementComponent(APowerSuit * EquipmentParent, 
 	MovementComponent->mZiplineSpeedMultiplierDown +=  EquipmentParent->Module->GetMovementPropertySafe(ESMC_mZiplineSpeedMultiplierDown).value();
 #else
 	MovementComponent->*get(steal_mBoostJumpTimeWindow()) +=  EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mBoostJumpTimeWindow).value(); //ESMC_mBoostJumpTimeWindow
+	
 	MovementComponent->*get(steal_mZiplineSpeed()) +=  EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mZiplineSpeed).value(); // ESMC_mZiplineSpeed
 	MovementComponent->*get(steal_mZiplineCorrectionSpeedMultiplier()) +=  EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mZiplineCorrectionSpeedMultiplier).value(); //ESMC_mZiplineCorrectionSpeedMultiplier
 	MovementComponent->*get(steal_mZiplineVelocityInterpolationSpeed()) +=  EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mZiplineVelocityInterpolationSpeed).value();
@@ -184,6 +186,7 @@ void UPowerSuitBPLibrary::UpdateMovementComponent(APowerSuit * EquipmentParent, 
 	MovementComponent->mZiplineSpeedMultiplierDown *= EquipmentParent->Module->GetMovementPropertySafe(ESMC_mZiplineSpeedMultiplierDown).ClampMult();
 #else
 	MovementComponent->*get(steal_mBoostJumpTimeWindow()) *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mBoostJumpTimeWindow).ClampMult(); //ESMC_mBoostJumpTimeWindow
+	
 	MovementComponent->*get(steal_mZiplineSpeed()) *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mZiplineSpeed).ClampMult(); // ESMC_mZiplineSpeed
 	MovementComponent->*get(steal_mZiplineCorrectionSpeedMultiplier()) *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mZiplineCorrectionSpeedMultiplier).ClampMult(); //ESMC_mZiplineCorrectionSpeedMultiplier
 	MovementComponent->*get(steal_mZiplineVelocityInterpolationSpeed()) *= EquipmentParent->Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mZiplineVelocityInterpolationSpeed).ClampMult();
@@ -206,38 +209,48 @@ void UPowerSuitBPLibrary::ResetFlightStats(APowerSuit * EquipmentParent, bool No
 	APowerSuit* MovementCDO = Cast< APowerSuit>(EquipmentParent->GetClass()->GetDefaultObject());
 #ifdef FOR_MODSHIPPING
 
-	EquipmentParent->mHoverSpeed = MovementCDO->mHoverSpeed;
+	EquipmentParent->mHoverSpeed = MovementCDO->mHoverSpeed; 
 	EquipmentParent->mHoverAccelerationSpeed = MovementCDO->mHoverAccelerationSpeed;
 	EquipmentParent->mHoverSprintMultiplier = MovementCDO->mHoverSprintMultiplier;
+
 	EquipmentParent->mRailRoadSurfSpeed = MovementCDO->mRailRoadSurfSpeed;
 	EquipmentParent->mRailroadSurfSensitivity = MovementCDO->mRailroadSurfSensitivity;
 	EquipmentParent->mHoverFriction = MovementCDO->mHoverFriction;
+
 	EquipmentParent->mJumpKeyHoldActivationTime = MovementCDO->mJumpKeyHoldActivationTime;
 	EquipmentParent->mFallSpeedLimitWhenPowered = MovementCDO->mFallSpeedLimitWhenPowered;
 	EquipmentParent->mPowerConnectionSearchRadius = MovementCDO->mPowerConnectionSearchRadius;
+
 	EquipmentParent->mPowerConnectionSearchTickRate = MovementCDO->mPowerConnectionSearchTickRate;
 	EquipmentParent->mPowerConnectionDisconnectionTime = MovementCDO->mPowerConnectionDisconnectionTime;
 	EquipmentParent->mCrouchHoverCancelTime = MovementCDO->mCrouchHoverCancelTime;
+
 	EquipmentParent->mCharacterUseDistanceWhenActive = MovementCDO->mCharacterUseDistanceWhenActive;
 	EquipmentParent->mPowerDrainRate = MovementCDO->mPowerDrainRate;
 	EquipmentParent->mPowerConsumption = MovementCDO->mPowerConsumption;
+
 	EquipmentParent->mPowerCapacity = MovementCDO->mPowerCapacity;
 #else
 	EquipmentParent->*get(steal_mHoverSpeed()) = MovementCDO->*get(steal_mHoverSpeed());
 	EquipmentParent->*get(steal_mHoverAccelerationSpeed()) = MovementCDO->*get(steal_mHoverAccelerationSpeed());
 	EquipmentParent->*get(steal_mHoverSprintMultiplier()) = MovementCDO->*get(steal_mHoverSprintMultiplier());
+
 	EquipmentParent->*get(steal_mRailRoadSurfSpeed()) = MovementCDO->*get(steal_mRailRoadSurfSpeed());
 	EquipmentParent->*get(steal_mRailroadSurfSensitivity()) = MovementCDO->*get(steal_mRailroadSurfSensitivity());
 	EquipmentParent->*get(steal_mHoverFriction()) = MovementCDO->*get(steal_mHoverFriction());
+
 	EquipmentParent->*get(steal_mJumpKeyHoldActivationTime()) = MovementCDO->*get(steal_mJumpKeyHoldActivationTime());
 	EquipmentParent->*get(steal_mFallSpeedLimitWhenPowered()) = MovementCDO->*get(steal_mFallSpeedLimitWhenPowered());
 	EquipmentParent->*get(steal_mPowerConnectionSearchRadius()) = MovementCDO->*get(steal_mPowerConnectionSearchRadius());
+
 	EquipmentParent->*get(steal_mPowerConnectionSearchTickRate()) = MovementCDO->*get(steal_mPowerConnectionSearchTickRate());
 	EquipmentParent->*get(steal_mPowerConnectionDisconnectionTime()) = MovementCDO->*get(steal_mPowerConnectionDisconnectionTime());
 	EquipmentParent->*get(steal_mCrouchHoverCancelTime()) = MovementCDO->*get(steal_mCrouchHoverCancelTime());
+
 	EquipmentParent->*get(steal_mCharacterUseDistanceWhenActive()) = MovementCDO->*get(steal_mCharacterUseDistanceWhenActive());
 	EquipmentParent->*get(steal_mPowerDrainRate()) = MovementCDO->*get(steal_mPowerDrainRate());
 	EquipmentParent->*get(steal_mPowerConsumption()) = MovementCDO->*get(steal_mPowerConsumption());
+
 	EquipmentParent->*get(steal_mPowerCapacity()) = MovementCDO->*get(steal_mPowerCapacity());
 #endif
 
@@ -255,18 +268,23 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent, bool N
 	EquipmentParent->mHoverSpeed +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverSpeed).value();
 	EquipmentParent->mHoverAccelerationSpeed +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverAccelerationSpeed).value();
 	EquipmentParent->mHoverSprintMultiplier +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverSprintMultiplier).value();
+
 	EquipmentParent->mRailRoadSurfSpeed +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mRailRoadSurfSpeed).value();
 	EquipmentParent->mRailroadSurfSensitivity +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mRailroadSurfSensitivity).value();
 	EquipmentParent->mHoverFriction +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverFriction).value();
+
 	EquipmentParent->mJumpKeyHoldActivationTime +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mJumpKeyHoldActivationTime).value();
 	EquipmentParent->mFallSpeedLimitWhenPowered +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mFallSpeedLimitWhenPowered).value();
 	EquipmentParent->mPowerConnectionSearchRadius +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionSearchRadius).value();
+
 	EquipmentParent->mPowerConnectionSearchTickRate +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionSearchTickRate).value();
 	EquipmentParent->mPowerConnectionDisconnectionTime +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionDisconnectionTime).value();
 	EquipmentParent->mCrouchHoverCancelTime +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mCrouchHoverCancelTime).value();
+
 	EquipmentParent->mCharacterUseDistanceWhenActive +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mCharacterUseDistanceWhenActive).value();
 	EquipmentParent->mPowerDrainRate +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerDrainRate).value();
 	EquipmentParent->mPowerConsumption +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConsumption).value();
+
 	EquipmentParent->mPowerCapacity += EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerCapacity).value();
 #else
 
@@ -274,18 +292,23 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent, bool N
 	EquipmentParent->*get(steal_mHoverSpeed()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverSpeed).value();
 	EquipmentParent->*get(steal_mHoverAccelerationSpeed()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverAccelerationSpeed).value();
 	EquipmentParent->*get(steal_mHoverSprintMultiplier()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverSprintMultiplier).value();
+
 	EquipmentParent->*get(steal_mRailRoadSurfSpeed()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mRailRoadSurfSpeed).value();
 	EquipmentParent->*get(steal_mRailroadSurfSensitivity()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mRailroadSurfSensitivity).value();
 	EquipmentParent->*get(steal_mHoverFriction()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverFriction).value();
+
 	EquipmentParent->*get(steal_mJumpKeyHoldActivationTime()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mJumpKeyHoldActivationTime).value();
 	EquipmentParent->*get(steal_mFallSpeedLimitWhenPowered()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mFallSpeedLimitWhenPowered).value();
 	EquipmentParent->*get(steal_mPowerConnectionSearchRadius()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionSearchRadius).value();
+
 	EquipmentParent->*get(steal_mPowerConnectionSearchTickRate()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionSearchTickRate).value();
 	EquipmentParent->*get(steal_mPowerConnectionDisconnectionTime()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionDisconnectionTime).value();
 	EquipmentParent->*get(steal_mCrouchHoverCancelTime()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mCrouchHoverCancelTime).value();
+
 	EquipmentParent->*get(steal_mCharacterUseDistanceWhenActive()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mCharacterUseDistanceWhenActive).value();
 	EquipmentParent->*get(steal_mPowerDrainRate()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerDrainRate).value();
 	EquipmentParent->*get(steal_mPowerConsumption()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConsumption).value();
+
 	EquipmentParent->*get(steal_mPowerCapacity()) += EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerCapacity).value();
 #endif
 
@@ -295,18 +318,23 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent, bool N
 	EquipmentParent->mHoverSpeed *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverSpeed).ClampMult();
 	EquipmentParent->mHoverAccelerationSpeed *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverAccelerationSpeed).ClampMult();
 	EquipmentParent->mHoverSprintMultiplier *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverSprintMultiplier).ClampMult();
+
 	EquipmentParent->mRailRoadSurfSpeed *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mRailRoadSurfSpeed).ClampMult();
 	EquipmentParent->mRailroadSurfSensitivity *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mRailroadSurfSensitivity).ClampMult();
 	EquipmentParent->mHoverFriction *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverFriction).ClampMult();
+
 	EquipmentParent->mJumpKeyHoldActivationTime *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mJumpKeyHoldActivationTime).ClampMult();
 	EquipmentParent->mFallSpeedLimitWhenPowered *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mFallSpeedLimitWhenPowered).ClampMult();
 	EquipmentParent->mPowerConnectionSearchRadius *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionSearchRadius).ClampMult();
+
 	EquipmentParent->mPowerConnectionSearchTickRate *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionSearchTickRate).ClampMult();
 	EquipmentParent->mPowerConnectionDisconnectionTime *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionDisconnectionTime).ClampMult();
 	EquipmentParent->mCrouchHoverCancelTime *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mCrouchHoverCancelTime).ClampMult();
+
 	EquipmentParent->mCharacterUseDistanceWhenActive *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mCharacterUseDistanceWhenActive).ClampMult();
 	EquipmentParent->mPowerDrainRate *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerDrainRate).ClampMult();
 	EquipmentParent->mPowerConsumption *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConsumption).ClampMult();
+
 	EquipmentParent->mPowerCapacity *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerCapacity).ClampMult();
 #else
 
@@ -314,18 +342,23 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent, bool N
 	EquipmentParent->*get(steal_mHoverSpeed()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverSpeed).ClampMult();
 	EquipmentParent->*get(steal_mHoverAccelerationSpeed()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverAccelerationSpeed).ClampMult();
 	EquipmentParent->*get(steal_mHoverSprintMultiplier()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverSprintMultiplier).ClampMult();
+
 	EquipmentParent->*get(steal_mRailRoadSurfSpeed()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mRailRoadSurfSpeed).ClampMult();
 	EquipmentParent->*get(steal_mRailroadSurfSensitivity()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mRailroadSurfSensitivity).ClampMult();
 	EquipmentParent->*get(steal_mHoverFriction()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverFriction).ClampMult();
+
 	EquipmentParent->*get(steal_mJumpKeyHoldActivationTime()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mJumpKeyHoldActivationTime).ClampMult();
 	EquipmentParent->*get(steal_mFallSpeedLimitWhenPowered()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mFallSpeedLimitWhenPowered).ClampMult();
 	EquipmentParent->*get(steal_mPowerConnectionSearchRadius()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionSearchRadius).ClampMult();
+
 	EquipmentParent->*get(steal_mPowerConnectionSearchTickRate()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionSearchTickRate).ClampMult();
 	EquipmentParent->*get(steal_mPowerConnectionDisconnectionTime()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConnectionDisconnectionTime).ClampMult();
 	EquipmentParent->*get(steal_mCrouchHoverCancelTime()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mCrouchHoverCancelTime).ClampMult();
+
 	EquipmentParent->*get(steal_mCharacterUseDistanceWhenActive()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mCharacterUseDistanceWhenActive).ClampMult();
 	EquipmentParent->*get(steal_mPowerDrainRate()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerDrainRate).ClampMult();
 	EquipmentParent->*get(steal_mPowerConsumption()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerConsumption).ClampMult();
+
 	EquipmentParent->*get(steal_mPowerCapacity()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerCapacity).ClampMult();
 #endif
 

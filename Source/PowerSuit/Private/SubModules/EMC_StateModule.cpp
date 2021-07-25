@@ -26,12 +26,9 @@ void UEMC_StateModule::PreTick()
 		Parent->MoveC->*get(steal_mMaxSlideAngle()) = 1.64999997615814f + Parent->GetMovementPropertySafe(ESMC_mMaxSlideAngle).value();
 #endif
 	}
-#ifdef MODDING_SHIPPING
-	EHoverPackMode MM = Component->EquipmentParent->mCurrentHoverMode;
+#ifdef FOR_MODSHIPPING
 	float & Friction = Parent->EquipmentParent->mHoverFriction;
-
 #else
-	const EHoverPackMode MM = Parent->EquipmentParent->*get(steal_mCurrentHoverMode());
 	float & Friction = Parent->EquipmentParent->*get(steal_mHoverFriction());
 #endif
 
@@ -126,8 +123,8 @@ void UEMC_StateModule::CheckHotkeys()
 		{
 			if (Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked))
 			{
-#ifdef MODDING_SHIPPING
-				const float& JumpHoldTime = Component->EquipmentParent->mJumpKeyHoldActivationTime;
+#ifdef FOR_MODSHIPPING
+				const float& JumpHoldTime = Parent->EquipmentParent->mJumpKeyHoldActivationTime;
 #else
 				const float& JumpHoldTime = Parent->EquipmentParent->*get(steal_mJumpKeyHoldActivationTime());
 #endif
@@ -412,19 +409,6 @@ void UEMC_StateModule::HoverModeChange()
 {
 	if (!Parent->EquipmentParent)
 	{
-		// called too early
 		return;
-	}
-	// when ever this changed The last FGHoverpack::Tick() did Reset PowerLevel to 1 or 0 
-	// we dont want that so we overwrite it whenever we have this scenario 
-#ifdef MODDING_SHIPPING
-	EHoverPackMode & mCurrentHoverMode = Parent->EquipmentParent->mCurrentHoverMode;
-#else
-	EHoverPackMode & mCurrentHoverMode = Parent->EquipmentParent->*get(steal_mCurrentHoverMode());
-#endif
-	if (!Parent->EquipmentParent->HasAuthority())
-	{
-		//UE_LOG(PowerSuit_Log, Display, TEXT("Remote ! Hover modo changed  %i"), static_cast<int32>(mCurrentHoverMode));
-		//Parent->RCO->ServerUpdateCurrentHoverMode(Parent,mCurrentHoverMode);
 	}
 }
