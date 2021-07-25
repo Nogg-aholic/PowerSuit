@@ -56,9 +56,6 @@ void UEquipmentModuleComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(UEquipmentModuleComponent, nProducing);
 	DOREPLIFETIME(UEquipmentModuleComponent, nCurrentPower);
 
-	DOREPLIFETIME(UEquipmentModuleComponent, nFuseBreak);
-	DOREPLIFETIME(UEquipmentModuleComponent, nFuseBreakOverDraw);
-
 	DOREPLIFETIME(UEquipmentModuleComponent, nShieldRegenCooldown);
 	DOREPLIFETIME(UEquipmentModuleComponent, nCurrentShield);
 
@@ -76,7 +73,7 @@ void UEquipmentModuleComponent::EquippedTick(float DeltaTime)
 {
 	if (!EquipmentParent)
 		return;
-	if (!EquipmentParent->IsEquipped()|| !PowerModule || !FuelModule || !HyperTubeModule || !HealthModule || !ShieldModule || !RCO)
+	if (!EquipmentParent->IsEquipped()|| !PowerModule || !RCO)
 		return;
 
 	Delta = DeltaTime;
@@ -160,6 +157,8 @@ void UEquipmentModuleComponent::SetupSubModules()
 	ZiplineModule->Parent = this; // 8
 	HealthModule->Parent = this; // 9
 	PowerModule->CacheFuseTimerDuration();
+	nFuseBreak = FDateTime::Now();
+	nFuseBreakOverDraw = FDateTime::Now();
 
 	RCO = Cast< UPowerSuitRCO>(Controller->GetRemoteCallObjectOfClass(UPowerSuitRCO::StaticClass()));
 
@@ -202,6 +201,18 @@ void UEquipmentModuleComponent::Init( APowerSuit * Parent)
 
 	InventoryModule->InitInventory();
 
+}
+void UEquipmentModuleComponent::Client_FuseBreak_Implementation()
+{
+	nFuseBreak = FDateTime::Now();
+}
+void UEquipmentModuleComponent::Client_FuseBreakOverDraw_Implementation()
+{
+	nFuseBreakOverDraw = FDateTime::Now();
+}
+void UEquipmentModuleComponent::Client_ShieldDmg_Implementation()
+{
+	nShieldDmg = FDateTime::Now();
 }
 // Calculate damage while factoring in damage resistances
 float UEquipmentModuleComponent::CalculateDamage(float DmgIn, int32 Type, TSubclassOf<class UFGDamageType>  BpType)

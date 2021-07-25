@@ -224,14 +224,20 @@ public:
 		bool nProducing;
 
 	// Timer for when Fuse was Triggered"
-	UPROPERTY(BlueprintReadOnly, Replicated, SaveGame, Category = "EquipmentModule")
+	UPROPERTY(BlueprintReadOnly, SaveGame, Category = "EquipmentModule")
 		FDateTime nFuseBreak;
+	UFUNCTION(Client, Reliable)
+		void Client_FuseBreak();
 	// Timer for when Fuse was Triggered"
-	UPROPERTY(BlueprintReadOnly, Replicated, SaveGame, Category = "EquipmentModule")
+	UPROPERTY(BlueprintReadOnly, SaveGame, Category = "EquipmentModule")
 		FDateTime nFuseBreakOverDraw;
+	UFUNCTION(Client, Reliable)
+		void Client_FuseBreakOverDraw();
 	// Timer for when we took Shield Damage"
-	UPROPERTY(BlueprintReadOnly, Replicated, SaveGame, Category = "EquipmentModule")
+	UPROPERTY(BlueprintReadOnly, SaveGame, Category = "EquipmentModule")
 		FDateTime nShieldDmg;
+	UFUNCTION(Client, Reliable)
+		void Client_ShieldDmg();
 
 
 	// Took ShieldDamage within the DelayTimer ran out"

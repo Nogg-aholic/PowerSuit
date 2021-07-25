@@ -90,7 +90,6 @@ void  APowerSuit::UnEquip()
 		else
 		{
 			UE_LOG(PowerSuit_Log, Display, TEXT("Valid Inventory %s "), *Module->nInventory->GetName());
-
 		}
 	}
 	else
@@ -99,8 +98,6 @@ void  APowerSuit::UnEquip()
 	}
 	if (Module && !IsPendingKill() && Module->MoveC)
 	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("Module is %s"), *Module->GetName());
-		UE_LOG(PowerSuit_Log, Display, TEXT("MoveC is %s"), *Module->MoveC->GetName());
 		UE_LOG(PowerSuit_Log, Display, TEXT("Called reset stats"));
 		Module->ResetStats();
 	}
@@ -111,46 +108,7 @@ void  APowerSuit::UnEquip()
 		Module->MoveC->MovementMode = EMovementMode::MOVE_Falling;
 		UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight"));
 	}
-	if (GetInstigator())
-	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("Before Super : Instigator is %s"), *GetInstigator()->GetName());
-	}
-	else
-	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("Before Super : Instigator is NULL"));
-	}
-
-	if (GetOwner())
-	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("Before Super : GetOwner is %s"), *GetOwner()->GetName());
-	}
-	else
-	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("Before Super : GetOwner is NULL"));
-	}
 	Super::UnEquip();
-
-	if (GetInstigator())
-	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("After Super : Instigator is %s"), *GetInstigator()->GetName());
-	}
-	else
-	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("After Super : Instigator is NULL"));
-	}
-
-
-	if (GetOwner())
-	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("After Super : GetOwner is %s"), *GetOwner()->GetName());
-	}
-	else
-	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("After Super : GetOwner is NULL"));
-	}
-
-	// SetInstigator(nullptr);
-	// SetOwner(nullptr);
 };
 
 
@@ -202,11 +160,7 @@ void APowerSuit::Tick(float DeltaSeconds)
 			mHasConnection = false;
 		}
 	}
-	
-	//Module->MoveC->UpdateHoverPack(DeltaSeconds);
-
 	Super::Tick(DeltaSeconds);
-	
 }
 
 void APowerSuit::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -277,7 +231,7 @@ void APowerSuit::OnCharacterMovementModeChanged(EMovementMode PreviousMovementMo
 {
 	if (!Module || !Module->MoveC)
 		return;
-	if (NewCustomMode == 0)
+	if (NewCustomMode == 0 || (PreviousMovementMode == MOVE_Swimming && (NewMovementMode == MOVE_Walking || NewMovementMode == MOVE_Falling) ))
 	{
 		UE_LOG(LogTemp, Error, TEXT(" GroundSpeed Before : Module->MoveC->MaxWalkSpeed %f mMaxSprintSpeed %f MaxFlySpeed %f"), Module->MoveC->MaxWalkSpeed, Module->MoveC->mMaxSprintSpeed, Module->MoveC->MaxFlySpeed);
 

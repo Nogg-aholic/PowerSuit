@@ -101,7 +101,10 @@ void UEMC_PowerModule::RegenPower() const
 	// If out of power and the suit has been overdrawn for more than the suit's max overdraw time, set the fusebreak overdraw time to now
 	if (Parent->nCurrentPower == 0.f)
 		if (FTimespan(FDateTime::Now() - Parent->nFuseBreakOverDraw).GetTotalSeconds() > Parent->GetSuitPropertySafe(ESuitProperty::nFuseTimeOverDraw).value() + 1)
+		{
 			Parent->nFuseBreakOverDraw = FDateTime::Now();
+			Parent->Client_FuseBreakOverDraw();
+		}
 
 }
 
@@ -146,6 +149,10 @@ void UEMC_PowerModule::ForcefullyBreakFuse(bool drainPower)
 	Parent->nFuseBreakOverDraw = FDateTime::Now();
 	Parent->OnFuseTriggered.Broadcast(Parent->nProducing, Parent->nFuseBreak);
 	Parent->nShieldDmg = FDateTime::Now();
+
+	Parent->Client_FuseBreak();
+	Parent->Client_FuseBreakOverDraw();
+	Parent->Client_ShieldDmg();
 }
 
 void UEMC_PowerModule::TryBreakFuse()
