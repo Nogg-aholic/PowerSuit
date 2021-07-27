@@ -104,11 +104,10 @@ void UEMC_StateModule::CheckHotkeys()
 			Parent->EquipmentParent->OnPowerSuitUIToggle.Broadcast(Parent->KB_UI);
 		}
 		// Uphotkey mostly mapped to Space
-		if (Controller->IsInputKeyDown(Parent->KB_Up) != HKey_Up)
+		//if (Controller->IsInputKeyDown(Parent->KB_Up) != HKey_Up)
+		if(Parent->MoveC->mIsPressingJump != HKey_Up)
 		{
-
-
-			HKey_Up = Controller->IsInputKeyDown(Parent->KB_Up);
+			HKey_Up = Parent->MoveC->mIsPressingJump;
 			if (!Controller->HasAuthority())
 				Parent->RCO->ServerSetHotKeyUpAccel(Parent, HKey_Up);
 
@@ -119,7 +118,7 @@ void UEMC_StateModule::CheckHotkeys()
 		}
 
 
-		if (Controller->IsInputKeyDown(Parent->KB_Up))
+		if (Parent->MoveC->mIsPressingJump)
 		{
 			if (Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked))
 			{
@@ -160,9 +159,9 @@ void UEMC_StateModule::CheckHotkeys()
 				Parent->RCO->ServerSetHotKeyDownAccel(Parent, HKey_Down);
 		}
 		// Accel Hotkey , this is Sprinting key mostly shift
-		if (Controller->IsInputKeyDown(Parent->KB_Accel) != HKey_Accel)
+		if (Parent->MoveC->mIsSprinting != HKey_Accel)
 		{
-			HKey_Accel = Controller->IsInputKeyDown(Parent->KB_Accel);
+			HKey_Accel = Parent->MoveC->mIsSprinting;
 			if (!Controller->HasAuthority())
 				Parent->RCO->ServerSetHotKeyDirectionalAccel(Parent, HKey_Accel);
 		}

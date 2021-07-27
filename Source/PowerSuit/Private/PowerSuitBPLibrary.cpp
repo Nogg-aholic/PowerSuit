@@ -432,6 +432,7 @@ void UPowerSuitBPLibrary::UpdateAllNoRefresh(APowerSuit* EquipmentParent, bool N
 	UpdateFlags(EquipmentParent);
 	UpdateFlightStats(EquipmentParent);
 	UpdateMovementComponent(EquipmentParent);
+	EquipmentParent->Module->PowerModule->CacheFuseTimerDuration();
 	EquipmentParent->Module->HealthModule->SetMaxHealth();
 	EquipmentParent->OnPowerSuitStatUpdate.Broadcast(0);
 }

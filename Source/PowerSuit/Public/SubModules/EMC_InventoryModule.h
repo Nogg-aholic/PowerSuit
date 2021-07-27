@@ -41,7 +41,7 @@ private:
 	friend class UEquipmentModuleComponent;
 	friend class UEMC_PowerModule;
 	friend class UEMC_AttachmentModule;
-
+	UFUNCTION()
 	AFGCharacterPlayer* InitInventory();
 
 	void UpdateInventorySize();

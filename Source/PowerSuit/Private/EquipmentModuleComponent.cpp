@@ -156,9 +156,6 @@ void UEquipmentModuleComponent::SetupSubModules()
 	ShieldModule->Parent = this;  // 7 
 	ZiplineModule->Parent = this; // 8
 	HealthModule->Parent = this; // 9
-	PowerModule->CacheFuseTimerDuration();
-	nFuseBreak = FDateTime::Now();
-	nFuseBreakOverDraw = FDateTime::Now();
 
 	RCO = Cast< UPowerSuitRCO>(Controller->GetRemoteCallObjectOfClass(UPowerSuitRCO::StaticClass()));
 

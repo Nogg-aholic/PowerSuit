@@ -2,6 +2,7 @@
 #include "SubModules/EMC_HealthModule.h"
 #include "SubModules/EMC_AttachmentModule.h"
 #include "SubModules/EMC_FuelModule.h"
+#include "SubModules/EMC_PowerModule.h"
 
 #include "FGInventoryLibrary.h"
 
@@ -17,7 +18,6 @@ AFGCharacterPlayer* UEMC_InventoryModule::InitInventory()
 	if (Parent->nInventory)
 	{
 		UE_LOG(PowerSuit_Log, Display, TEXT("InitInventory %s"), *Parent->nInventory->GetName());
-
 	}
 	else
 		UE_LOG(PowerSuit_Log, Display, TEXT("InitInventory Invalid"));
@@ -513,6 +513,7 @@ bool UEMC_InventoryModule::CheckCreateModuleStats(const FInventoryStack Stack, c
 				else
 				{
 					UE_LOG(PowerSuit_Log, Error, TEXT("Remote should not End up here ! ItemState is not Replicated for %s"), *ItemObj->mDisplayName.ToString());
+					Parent->EquipmentParent->Server_WaitAndInitRemote();
 				}
 			}
 			else
