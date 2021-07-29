@@ -253,7 +253,7 @@ void UEMC_StateModule::UpdateSuitState()
 				}
 				else
 				{
-					if (HKey_Accel)
+					if (HKey_Accel && Parent->MoveC->Velocity.Size2D() > 0.1f)
 						Parent->SuitState = EPowerSuitState::PS_HOVERSPRINT;
 					else if (HKey_Down)
 						Parent->SuitState = EPowerSuitState::PS_FLYDOWN;

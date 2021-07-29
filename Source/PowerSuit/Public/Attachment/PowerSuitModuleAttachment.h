@@ -118,7 +118,7 @@ public:
 	//
 	// Refresh needs to be Triggered and RecieveModuleStats needs to be overwritten for this to be changed at Runtime
 	// Don't do this frequently since Refreshing causes a lot of overhead
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite, SaveGame)
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite)
 	FEquipmentStats AttachmentStats;
 
 	/** Custom Widget - placed at the bottom of the Suit Widget in the "Module Configuration" section*/
