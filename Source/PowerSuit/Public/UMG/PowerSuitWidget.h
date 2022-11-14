@@ -16,4 +16,7 @@ public:
 		UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 		void WidgetInit(APowerSuit* Suit, FInventoryStack Stack);
 
+
+		UPROPERTY(BlueprintReadWrite)
+			FInventoryStack InventoryStack;
 };

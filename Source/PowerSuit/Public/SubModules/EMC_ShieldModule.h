@@ -40,7 +40,7 @@ public:
 		float GetShieldRechargeDelayDuration() const { return FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nShieldRechargeDelay).value(), 0.f, 10000.f); };
 
 
-	float ApplyShieldDamage(float DmgIn) const;
+	float ApplyShieldDamage(const float DmgIn, FHitResult Impact) const;
 
 
 };

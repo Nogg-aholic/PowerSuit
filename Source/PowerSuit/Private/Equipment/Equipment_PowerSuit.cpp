@@ -37,11 +37,11 @@ void APowerSuit::OnConnectionStatusUpdatedReplacement(bool HasConnection)
 {
 	if (!HasConnection)
 	{
-		if (Module->nProducing)
+		if (Module && Module->MoveC && Module->EquipmentParent  && Module->nProducing)
 		{
 			if (Module->SuitState == EPowerSuitState::PS_HOVER || Module->SuitState == EPowerSuitState::PS_HOVERSPRINT || Module->SuitState == EPowerSuitState::PS_HOVERMOVE || Module->SuitState == EPowerSuitState::PS_SLOWFALL)
 			{
-				UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit Re-Enabling Hover ****************\n %s"), *GetName());
+				UE_LOG(PowerSuit_Log, Warning, TEXT("**************** PowerSuit Re-Enabling Hover ****************\n %s"), *GetName());
 				Module->MoveC->CustomMovementMode = uint8(ECustomMovementMode::CMM_Hover);
 				Module->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Hover);
 			}
@@ -50,43 +50,57 @@ void APowerSuit::OnConnectionStatusUpdatedReplacement(bool HasConnection)
 }
 void APowerSuit::Destroyed()
 {
-	UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit Destroyed ****************\n %s"), *GetName());
+	UE_LOG(PowerSuit_Log, Warning, TEXT("**************** PowerSuit Destroyed ****************\n %s"), *GetName());
 	Super::Destroyed();
 }
 
-void  APowerSuit::Equip(class AFGCharacterPlayer* character){
-	UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit Equip ****************\n %s"), *GetName());
-	Super::Equip(character);;
-	if (character)
-	{
-		if (character->HasAuthority())
+void APowerSuit::Equip(class AFGCharacterPlayer* character){
+	UE_LOG(PowerSuit_Log, Warning, TEXT("**************** PowerSuit Equip ****************\n %s"), *GetName());
+	Super::Equip(character);
+	if (character && character->HasAuthority())
+	{	
+		SetInstigator(character);
+		SetOwner(character->GetController());
+		if (Module)
 		{
-			SetInstigator(character);
-			SetOwner(character->GetController());
-			if (Module)
-			{
-				Module->Init(this);
-			}
+			UE_LOG(PowerSuit_Log, Warning, TEXT("**************** PS EMC Init ****************\n %s"), *GetName());
+			Module->Init(this);
 		}
 	}
 };
 
+void APowerSuit::WasSlottedIn(class AFGCharacterPlayer* holder) {
+	UE_LOG(PowerSuit_Log, Warning, TEXT("**************** PowerSuit SlottedIn ****************\n %s"), *GetName());
+	// Since it's not a hand equipment, this should never be called. Keeping this here in case it does
+	Super::WasSlottedIn(holder);
+}
 
-
-
-
-
-void  APowerSuit::UnEquip()
+void APowerSuit::UnEquip()
 {	
-	UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit UnEquip ****************\n %s"), *GetName());	
-	
-	if(IsPendingKill())
+	UE_LOG(PowerSuit_Log, Warning, TEXT("**************** PowerSuit UnEquip ****************\n %s"), *GetName());
+	if (IsPendingKill()) {
 		UE_LOG(PowerSuit_Log, Display, TEXT("is Pending kill "));
+	}
 
+	if (!Module || !Module->nInventory) {
+		UE_LOG(PowerSuit_Log, Error, TEXT("Can't UnEquip a suit that doesn't have a Module or ModuleInventory?"));
+		return;
+	}
+
+	if (GetInstigator() && Cast<AFGCharacterPlayer>(GetInstigator()))
+	{
+		if (Cast<AFGCharacterPlayer>(GetInstigator())->IsDrivingVehicle()) {
+			UE_LOG(PowerSuit_Log, Warning, TEXT("is Driving a Vehicle, so OverrideReboot"));
+			OverrideReboot = true;
+		} else {
+			OverrideReboot = false;
+		}
+	}
+		
 	if (Module->nInventory)
 	{
 		if (IsPendingKill())
-			UE_LOG(PowerSuit_Log, Display, TEXT("is Pending kill "))
+			UE_LOG(PowerSuit_Log, Display, TEXT("(No Inventory becase is Pending kill)"))
 		else
 		{
 			UE_LOG(PowerSuit_Log, Display, TEXT("Valid Inventory %s "), *Module->nInventory->GetName());
@@ -98,10 +112,13 @@ void  APowerSuit::UnEquip()
 	}
 	if (Module && !IsPendingKill() && Module->MoveC)
 	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("Called reset stats"));
-		Module->ResetStats();
+		UE_LOG(PowerSuit_Log, Display, TEXT("Unequip Called reset stats"));
+		// Don't notify because could be unequipping on disconnect
+		Module->ResetStats(false);
 	}
-	if (Module->MoveC && Module->MoveC->MovementMode == MOVE_Custom && (Module->MoveC->CustomMovementMode == ECustomMovementMode::CMM_Hover || Module->MoveC->CustomMovementMode == ECustomMovementMode::CMM_HoverSlowFall))
+	if (Module->MoveC &&
+		Module->MoveC->MovementMode == MOVE_Custom &&
+		(Module->MoveC->CustomMovementMode == ECustomMovementMode::CMM_Hover || Module->MoveC->CustomMovementMode == ECustomMovementMode::CMM_HoverSlowFall))
 	{
 		SetHoverMode(EHoverPackMode::HPM_Inactive);
 		Module->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
@@ -111,7 +128,11 @@ void  APowerSuit::UnEquip()
 	Super::UnEquip();
 };
 
-
+void APowerSuit::WasRemovedFromSlot() {
+	UE_LOG(PowerSuit_Log, Warning, TEXT("**************** PowerSuit WasRemovedFromSlot ****************\n %s"), *GetName());
+	// Since it's not a hand equipment, this should never be called. Keeping this here in case it does
+	Super::WasRemovedFromSlot();
+}
 
 void APowerSuit::Tick(float DeltaSeconds)
 {
@@ -140,11 +161,10 @@ void APowerSuit::Tick(float DeltaSeconds)
 				InnerBattery->GetPowerInfo()->SetHasPower(true);
 				InnerBattery->GetPowerInfo()->GetBatteryInfo()->SetActive(true);
 				InnerBattery->GetPowerInfo()->GetBatteryInfo()->SetPowerStore(1000.f);
-				UE_LOG(LogTemp, Error, TEXT("SetBattery Storage"));
+				UE_LOG(PowerSuit_Log, Display, TEXT("SetBattery Storage"));
 
 			}
-			
-			UE_LOG(LogTemp, Error, TEXT("NO CON"));
+			//UE_LOG(PowerSuit_Log, Display, TEXT("NO CON"));
 			ConnectToPowerConnection(mCurrentPowerConnection);
 			mCurrentPowerConnection = InnerBattery;
 			mHasConnection = true;
@@ -155,7 +175,7 @@ void APowerSuit::Tick(float DeltaSeconds)
 	{
 		if (mHasConnection && mCurrentPowerConnection == InnerBattery)
 		{
-			UE_LOG(LogTemp, Error, TEXT("CON Removed"));
+			//UE_LOG(PowerSuit_Log, Display, TEXT("CON Removed"));
 			DisconnectFromCurrentPowerConnection();
 			mHasConnection = false;
 		}
@@ -166,6 +186,7 @@ void APowerSuit::Tick(float DeltaSeconds)
 void APowerSuit::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(APowerSuit,OverrideReboot);
 }
 
 bool APowerSuit::ShouldSaveState() const
@@ -206,8 +227,7 @@ void APowerSuit::AddEquipmentActionBindings()
 	AFGPlayerController * Pc = Cast<AFGPlayerController>(GetInstigator()->GetController());
 	if (!Pc)
 		return;
-	UInputSettings* InputSettings = UInputSettings::GetInputSettings();
-
+	
 	UFGInputLibrary::UpdateInputMappings(Pc);
 	FInputActionKeyMapping JumpKey = UFGInputLibrary::GetKeyMappingForAction(Pc, "Jump_Drift", false);
 	FInputActionKeyMapping crouchKey = UFGInputLibrary::GetKeyMappingForAction(Pc, "Crouch", false);
@@ -231,24 +251,37 @@ void APowerSuit::OnCharacterMovementModeChanged(EMovementMode PreviousMovementMo
 {
 	if (!Module || !Module->MoveC)
 		return;
+	OnMovementModeChanged.Broadcast(PreviousMovementMode, PreviousCustomMode, NewMovementMode, NewCustomMode);
+
 	if (NewCustomMode == 0 || (PreviousMovementMode == MOVE_Swimming && (NewMovementMode == MOVE_Walking || NewMovementMode == MOVE_Falling) ))
 	{
-		UE_LOG(LogTemp, Error, TEXT(" GroundSpeed Before : Module->MoveC->MaxWalkSpeed %f mMaxSprintSpeed %f MaxFlySpeed %f"), Module->MoveC->MaxWalkSpeed, Module->MoveC->mMaxSprintSpeed, Module->MoveC->MaxFlySpeed);
-
 		Module->MoveC->mMaxSprintSpeed = Cast< UFGCharacterMovementComponent>(Module->MoveC->GetClass()->GetDefaultObject())->mMaxSprintSpeed;//900.f;
 		Module->MoveC->mMaxSprintSpeed += Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSprintSpeed).value(); //ESMC_mMaxSprintSpeed
 		Module->MoveC->mMaxSprintSpeed *= Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSprintSpeed).ClampMult(); //ESMC_mMaxSprintSpeed
-		UE_LOG(LogTemp, Error, TEXT(" GroundSpeed  After : Module->MoveC->MaxWalkSpeed %f mMaxSprintSpeed %f MaxFlySpeed %f"), Module->MoveC->MaxWalkSpeed, Module->MoveC->mMaxSprintSpeed, Module->MoveC->MaxFlySpeed);
-
+		if(HasAuthority() && !UFGBlueprintFunctionLibrary::IsLocallyHumanControlled(GetInstigator()))
+		{
+			Module->RemoteUpdateMovementGround(Module->MoveC->mMaxSprintSpeed);
+		}
 	}
 	else if(NewCustomMode == 4)
 	{
-		UE_LOG(LogTemp, Error, TEXT(" AirSpeed : Module->MoveC->MaxWalkSpeed %f mMaxSprintSpeed %f MaxFlySpeed %f"), Module->MoveC->MaxWalkSpeed, Module->MoveC->mMaxSprintSpeed, Module->MoveC->MaxFlySpeed);
-		Module->MoveC->mMaxSprintSpeed = mHoverSpeed;//900.f;
+		
+		Module->MoveC->mMaxSprintSpeed = Cast<APowerSuit>(GetClass()->GetDefaultObject())->mHoverSpeed;//900.f;
+		//Module->MoveC->CheatFlySpeedVertical = Module->HoverMovementSpeedAdded;
 		Module->MoveC->mMaxSprintSpeed += Module->GetFlightPropertySafe(ESuitFlightProperty::EFP_mHoverSpeed).value(); //ESMC_mMaxSprintSpeed
 		Module->MoveC->mMaxSprintSpeed *= Module->GetFlightPropertySafe(ESuitFlightProperty::EFP_mHoverSpeed).ClampMult(); //ESMC_mMaxSprintSpeed
-	}
-	else
-		UE_LOG(LogTemp, Error, TEXT(" NO ACTION : Module->MoveC->MaxWalkSpeed %f mMaxSprintSpeed %f MaxFlySpeed %f"), Module->MoveC->MaxWalkSpeed, Module->MoveC->mMaxSprintSpeed, Module->MoveC->MaxFlySpeed);
+		Module->MoveC->mMaxSprintSpeed += Module->HoverMovementSpeedAdded;
+		mHoverSpeed = Module->MoveC->mMaxSprintSpeed;
 
+
+		mHoverAccelerationSpeed = Cast<APowerSuit>(GetClass()->GetDefaultObject())->mHoverAccelerationSpeed;//900.f;
+		mHoverAccelerationSpeed += Module->GetFlightPropertySafe(ESuitFlightProperty::EFP_mHoverAccelerationSpeed).value(); //ESMC_mMaxSprintSpeed
+		mHoverAccelerationSpeed *= Module->GetFlightPropertySafe(ESuitFlightProperty::EFP_mHoverAccelerationSpeed).ClampMult(); //ESMC_mMaxSprintSpeed
+		mHoverAccelerationSpeed += Module->HoverMovementSpeedAccelAdded;
+
+		if(HasAuthority() && !UFGBlueprintFunctionLibrary::IsLocallyHumanControlled(GetInstigator()))
+		{
+			Module->RemoteUpdateMovementAir(Module->MoveC->mMaxSprintSpeed,mHoverAccelerationSpeed);
+		}
+	}
 }

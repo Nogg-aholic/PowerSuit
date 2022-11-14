@@ -12,8 +12,6 @@
 #include "DamageTypes/FGDamageType.h"
 #include "PowerSuitData.generated.h"
 
-
-
 DECLARE_LOG_CATEGORY_EXTERN(PowerSuit_Log, Log, Log);
 
 #ifdef FOR_MODSHIPPING
@@ -93,14 +91,6 @@ DECLARE_LOG_CATEGORY_EXTERN(PowerSuit_Log, Log, Log);
 	struct steal_mHoverSprintMultiplier {
 		typedef float AFGHoverPack::* type;
 		friend type get(steal_mHoverSprintMultiplier);
-	};
-	struct steal_mRailRoadSurfSpeed {
-		typedef float AFGHoverPack::* type;
-		friend type get(steal_mRailRoadSurfSpeed);
-	};
-	struct steal_mRailroadSurfSensitivity {
-		typedef float AFGHoverPack::* type;
-		friend type get(steal_mRailroadSurfSensitivity);
 	};
 	struct steal_mHoverFriction {
 		typedef float AFGHoverPack::* type;
@@ -203,8 +193,6 @@ DECLARE_LOG_CATEGORY_EXTERN(PowerSuit_Log, Log, Log);
 	template struct Steal<steal_mHoverSpeed, &AFGHoverPack::mHoverSpeed>;
 	template struct Steal<steal_mHoverAccelerationSpeed, &AFGHoverPack::mHoverAccelerationSpeed>;
 	template struct Steal<steal_mHoverSprintMultiplier, &AFGHoverPack::mHoverSprintMultiplier>;
-	template struct Steal<steal_mRailRoadSurfSpeed, &AFGHoverPack::mRailRoadSurfSpeed>;
-	template struct Steal<steal_mRailroadSurfSensitivity, &AFGHoverPack::mRailroadSurfSensitivity>;
 	template struct Steal<steal_mHoverFriction, &AFGHoverPack::mHoverFriction>;
 	template struct Steal<steal_mJumpKeyHoldActivationTime, &AFGHoverPack::mJumpKeyHoldActivationTime>;
 	template struct Steal<steal_mFallSpeedLimitWhenPowered, &AFGHoverPack::mFallSpeedLimitWhenPowered>;
@@ -251,21 +239,26 @@ enum EPowerSuitState
 	PS_STANDING UMETA(Displayname = "Standing", Tooltip = "On the ground and standing still. Modifying this state's speed doesn't do anything."),
 	PS_WALKING UMETA(Displayname = "Walking", Tooltip = "On the ground and pressing a movement key."),
 	PS_SPRINTING UMETA(Displayname = "Sprinting", Tooltip = "On the ground and pressing a movement key AND the boost key."),
-	PS_HOVER UMETA(Displayname = "Hovering", Tooltip = "Hovering and not pressing any movement keys. The hover equivalent of the Flight Falling state."),
-	PS_FLYUP UMETA(Displayname = "Flying/Hovering Up", Tooltip = "Either hovering or flying and pressing the spacebar to ascend."),
-	PS_FLYDOWN	UMETA(Displayname = "Flying/Hovering Down", Tooltip = "Either hovering or flying and pressing left alt to descend. This speed seems to be capped at terminal velocity of ~41m/s."),
-	PS_HOVERMOVE UMETA(Displayname = "Flying/Hovering & Moving", Tooltip = "Either hovering or flying and actively pressing a movement key."),
-	PS_HOVERSPRINT UMETA(Displayname = "Flying/Hovering & Sprinting", Tooltip = "Either hovering or flying and pressing the boost key."),
+	PS_HOVER UMETA(Displayname = "Hovering", Tooltip = "Hovering and not pressing any movement keys. Never entered with gravity flight. The hover equivalent of the Flight Falling state."),
+	PS_FLYUP UMETA(Displayname = "Flying Up", Tooltip = "Either hovering or flying and pressing the spacebar to ascend."),
+	PS_FLYDOWN	UMETA(Displayname = "Flying Down", Tooltip = "Either hovering or flying and pressing descend. This speed seems to be capped at terminal velocity of ~41m/s."),
+	PS_HOVERMOVE UMETA(Displayname = "Flying & Moving", Tooltip = "Either hovering or flying and actively pressing a movement key."),
+	PS_HOVERSPRINT UMETA(Displayname = "Flying & Boosting", Tooltip = "Either hovering or flying, pressing a walking key, and pressing the boost key."),
 	PS_PIPEHYPER_RIDE UMETA(Displayname = "HyperTube Riding", Tooltip = "Riding in a hypertube. NOTE: This state can't have speed modified as of 0.3.0, but you can still apply power/fuel costs to it."),
-	PS_PIPEHYPER_SPRINT UMETA(Displayname = "HyperTube Sprinting", Tooltip = "Actively accelerating or decelerating in a hypertube."),
-	PS_FALLING UMETA(Displayname = "Flight Falling", Tooltip = "Flying and not pressing any movement keys. The non-hover equivalent of the Hovering state."),
+	PS_PIPEHYPER_SPRINT UMETA(Displayname = "HyperTube Boosting", Tooltip = "Actively accelerating or decelerating in a hypertube."),
+	PS_FALLING UMETA(Displayname = "Falling", Tooltip = "Falling. Also when no keys are pressed for Gravity flight."),
 	PS_SLIDING UMETA(Displayname = "Sliding", Tooltip = "Sliding and not Boosting."),
-	PS_POWERSLIDE UMETA(Displayname = "Power Sliding", Tooltip = "Sliding with Boost (pressing left alt)."),
-	PS_ZIPLINE UMETA(Displayname = "Zipline Sliding", Tooltip = "Sliding with Boost (pressing left alt)."),
-	PS_ZIPLINE_SPRINT UMETA(Displayname = "Zipline Sliding Boost", Tooltip = "Sliding with Boost (pressing left alt)."),
+	PS_POWERSLIDE UMETA(Displayname = "Power Sliding", Tooltip = "Sliding with Boost."),
+	PS_ZIPLINE UMETA(Displayname = "Zipline Riding", Tooltip = "Riding on a Zipline"),
+	PS_ZIPLINE_SPRINT UMETA(Displayname = "Zipline Riding Boost", Tooltip = "Riding on a Zipline with Boost or Brakes(?) key."),
 	PS_REBOOTING UMETA(Displayname = "Rebooting", Tooltip = "Rebooting"),
-	PS_SLOWFALL UMETA(Displayname = "SlowFall", Tooltip = ""),
-
+	PS_SLOWFALL UMETA(Displayname = "SlowFall", Tooltip = "Base game Hoverpack out of power state, the suit should never be in this state"),
+	PS_FLYUPSPRINT	UMETA(Displayname = "Flying Up & Boosting", Tooltip = "Ascent key with Boost key"),
+	PS_FLYDOWNSPRINT	UMETA(Displayname = "Flying Down & Boosting", Tooltip = "Descent key with Boost key"),
+	PS_FLYUPDIAGONAL	UMETA(Displayname = "Flying Up Diagonal", Tooltip = "Ascent key and movement key"),
+	PS_FLYDOWNDIAGONAL	UMETA(Displayname = "Flying Down Diagonal", Tooltip = "Descent key and movement key"),
+	PS_FLYUPDIAGONALSPRINT	UMETA(Displayname = "Flying Up Diagonal & Boosting", Tooltip = "Ascent key and movement key, with Boost key"),
+	PS_FLYDOWNDIAGONALSPRINT	UMETA(Displayname = "Flying Down Diagonal & Boosting", Tooltip = "Descent key and movement key, with Boost key"),
 	/** Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change. */
 	PowerSuitStateMAX UMETA(hidden, Displayname = "Invalid value!"),
 };
@@ -282,7 +275,6 @@ enum ENDamageType
 	DamageTypeMAX = 1 << 5 UMETA(hidden, Displayname = "Invalid value!", Tooltip = "Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change.")
 
 };
-//SuitFlag_HasBeltImmunity = 1 << 0 UMETA(Tooltip = "Prevents belts from moving the character against their intended direction of movement"),
 
 UENUM(Blueprinttype, meta = (Bitflags, UseEnumValuesAsMaskValuesInEditor = "true"))
 enum ESuitFlag
@@ -305,9 +297,9 @@ enum ESuitFlagAdvanced
 {
 	SuitFlagAdvanced_Null = 0x00 UMETA(hidden, Displayname = "Invalid value!", Tooltip = "Invalid value entry; this was probably caused by an update to PowerSuit that caused something's name to change."),
 	SuitFlagAdvanced_NoRefuel = 1 << 0 UMETA(Tooltip = "With this on, the suit will not follow its normal refueling logic (eat item at 0 to full fill). It is up to a custom implementation to manage refueling instead."),
-	SuitFlagAdvanced_IgnoreBelts = 1 << 1 UMETA(Tooltip = "Placeholder for future implementation"),
-	SuitFlagAdvanced_ZipLineAccel = 1 << 2 UMETA(Tooltip = "Placeholder for future implementation"),
-	SuitFlagAdvanced_Temp3 = 1 << 3 UMETA(Tooltip = "Placeholder for future implementation"),
+	SuitFlagAdvanced_IgnoreBelts = 1 << 1 UMETA(Tooltip = "Smart Belt Immunity, belts can't move the player except if the player is boosting and looking in that direction. Also see source for available named properties to boost speed."),
+	SuitFlagAdvanced_ZipLineAccel = 1 << 2 UMETA(Tooltip = "Allow boost/brakes key to be used on ziplines and put into the relevant movestate"),
+	SuitFlagAdvanced_AlwaysWantsFuel = 1 << 3 UMETA(Tooltip = "Affects Fuel Fuse logic. When set, the suit is always considered as having fuel consumption even if there isn't any right now -> suit will Fuel Fuse break when out of fuel."),
 	SuitFlagAdvanced_Temp4 = 1 << 4 UMETA(Tooltip = "Placeholder for future implementation"),
 	SuitFlagAdvanced_Temp5 = 1 << 5 UMETA(Tooltip = "Placeholder for future implementation"),
 	SuitFlagAdvanced_Temp6 = 1 << 6 UMETA(Tooltip = "Placeholder for future implementation"),
@@ -371,14 +363,25 @@ enum ESuitProperty
 	nShieldRegen UMETA(Displayname = "nShieldRegen"),
 
 	/**
-	* The time the Suit needs to reboot after blowing the fuse (when out of power for too long).
+	* The time in seconds the Suit needs to reboot after blowing the fuse (when out of power for too long).
 	*	Additive
-	8	Positive for increased time
+	*	Positive for increased time
 	*/
 	nFuseTime UMETA(Displayname = "nFuseTime"),
 
 	/**
-	* The 'grace period' the Suit for being out of power before it blows the fuse and has to reboot.
+	* The time in seconds the Suit keeps Fuel-consuming modules disabled for when out of Fuel.
+	* If this is too low, immense lag will be caused as the suit frequently recalculates stats.
+	* Be very careful with offering anything that allows this.
+	* Minimum final value for this is 1 second as a safety measure
+	*	Additive
+	*	Positive for increased time
+	*/
+	nFuelFuseTime UMETA(Displayname = "nFuelFuseTime"),
+
+	/**
+	* The 'grace period' in seconds the Suit has for being out of power before it blows the fuse and has to reboot.
+	* The suit has free effectively infinite power for this time
 	*	Additive
 	*	Positive for increased time
 	*/
@@ -696,7 +699,7 @@ public:
 
 	void UnlockFuels(UEquipmentModuleComponent* Parent, TArray<TSubclassOf<class UFGItemDescriptor>> FuelsToUnlock);
 
-	void ForgetUnlockedFuels(UEquipmentModuleComponent* Parent);
+	void ForgetUnlockedFuels(UEquipmentModuleComponent* Parent, bool IsDefault);
 
 	FEquipmentStats operator+(const FEquipmentStats& OtherStruct);
 
@@ -794,7 +797,6 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ESuitFlag))
 		int32 RemoveSuitFlags;
-
 
 	/**
 	* Boolean flags for general suit abilities such as being able to enter flight mode.

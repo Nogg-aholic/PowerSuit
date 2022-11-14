@@ -70,11 +70,17 @@ protected:
 
 
 	// Added to Suit Overlay
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Tooltip = "Overlay Module Widget, Added above the Suits Overlay Widget ( permantly in view )"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Tooltip = "Overlay Module Widget, Added above the Suit's Overlay Widget in the HUD ( permanently in view )"))
 		TSubclassOf<UPowerSuitWidget> OMW;
 
 
 	// Added to Inventory UI
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Tooltip = "Inventory Module Widget, Added to the Character Inventory Widget"))
 		TSubclassOf<UPowerSuitWidget> IMW;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Tooltip = "Sound for the suit to play when equipped, this is implemented in the Suit"))
+		USoundBase * EquipSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Tooltip = "Sound for the suit to play when unequipped, this is implemented in the Suit"))
+		USoundBase* UnEquipSound;
 };

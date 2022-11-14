@@ -16,7 +16,7 @@ void UEMC_AttachmentModule::PreTick()
 			}
 			else
 			{
-				i->AttachmentPreTick(Parent->Delta);
+				i->AttachmentPreTick(Parent->LastDeltaTime);
 			}
 	}
 	for (auto * i : Attachments)
@@ -31,7 +31,7 @@ void UEMC_AttachmentModule::PreTick()
 			}
 			else
 			{
-				i->AttachmentPreTick(Parent->Delta);
+				i->AttachmentPreTick(Parent->LastDeltaTime);
 			}
 		}
 	}
@@ -42,12 +42,12 @@ void UEMC_AttachmentModule::Tick()
 	for (auto * i : InactiveAttachments)
 	{
 		if (i)
-			i->AttachmentTick(Parent->Delta);
+			i->AttachmentTick(Parent->LastDeltaTime);
 	}
 	for (auto * i : Attachments)
 	{
 		if (i)
-			i->AttachmentTick(Parent->Delta);
+			i->AttachmentTick(Parent->LastDeltaTime);
 	}
 }
 // Server and Client
@@ -56,12 +56,12 @@ void UEMC_AttachmentModule::PostTick()
 	for (auto * i :InactiveAttachments)
 	{
 		if (i)
-			i->AttachmentPostTick(Parent->Delta);
+			i->AttachmentPostTick(Parent->LastDeltaTime);
 	}
 	for (auto * i : Attachments)
 	{
 		if (i)
-			i->AttachmentPostTick(Parent->Delta);
+			i->AttachmentPostTick(Parent->LastDeltaTime);
 	}
 }
 

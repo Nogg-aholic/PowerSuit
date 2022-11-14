@@ -30,7 +30,7 @@ void UEMC_HealthModule::PostTick()
 				HealthBuffer = 0.f;
 			}
 			else
-				HealthBuffer = HealthBuffer + (Parent->GetSuitPropertySafe(ESuitProperty::nHealthRegen).value() * Parent->Delta);
+				HealthBuffer = HealthBuffer + (Parent->GetSuitPropertySafe(ESuitProperty::nHealthRegen).value() * Parent->LastDeltaTime);
 	}
 }
 // Server Only

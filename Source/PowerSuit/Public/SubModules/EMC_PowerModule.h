@@ -20,18 +20,17 @@ private:
 
 	void PreTick();
 	void Tick() const;
-	void PostTick() const;
+	void PostTick();
 
-	void UpdateProductionState() const;
+	bool UpdateProductionState() const;
 
-
-	void RegenPower() const;
-
-	FTimespan TimeSinceFuseBreak() const;
+	void RegenPower();
 
 	void TryRestart() const;
 
 	void TryBreakFuse();
+
+	bool SentOverdrawStartEvent;
 
 public:
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
@@ -39,10 +38,17 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
 		float GetFuseTimerDuration() const;
-	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
-	float GetOverDrawDuration() const;
 
-	void CacheFuseTimerDuration();
+	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
+		float GetOverDrawDuration() const;
+
+	// How long has it been since the fuse break event (not the overdraw, which started before the fuse break)
+	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
+		FTimespan TimeSinceFuseBreak() const;
+
+	// How long has it been since the suit last had power (since overdraw started)
+	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
+		FTimespan TimeSinceOverdrawStart() const;
 
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
 		bool IsFuseIntact() const;
@@ -59,6 +65,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
 		float GetPowerDraw() const;
 
+	void CacheFuseTimerDuration();
 
 	float CachedFuseTime = 0.f;
 

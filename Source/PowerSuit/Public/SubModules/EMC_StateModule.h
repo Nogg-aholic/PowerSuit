@@ -27,9 +27,6 @@ public:
 	void UpdateSuitState();
 
 
-	void HoverModeChange();
-
-
 	// State Bools
 
 
@@ -38,6 +35,8 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = "Equipment")
 		bool HKey_Down = false;
+
+	FDateTime LastDownPress;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Equipment")
 		bool HKey_Accel = false;

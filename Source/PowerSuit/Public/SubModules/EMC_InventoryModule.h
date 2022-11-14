@@ -35,6 +35,7 @@ private:
 	void PostTick();
 
 	void SubtractModuleStats(TSubclassOf<class UEquipmentModuleDescriptor> Item, int32 Index);
+	bool TestModuleAttachments() const;
 
 	bool CheckCreateModuleStats(const FInventoryStack Stack, const int32 Ind);
 
@@ -52,7 +53,7 @@ private:
 
 	APowerSuitModuleAttachment* CreateAttachmentStateIfNeeded(FInventoryStack Stack, const UEquipmentModuleDescriptor* ItemObj, const TSubclassOf<class UEquipmentModuleDescriptor> Item, const int32 Index);
 
-	bool MergeOnIndex(int32 Ind, bool Safe = true);
+	bool MergeOnIndex(int32 Ind, FInventoryStack & Stack, bool Safe = true);
 
 	void MergeStats(FInventoryStack Stack, FEquipmentStats& StatsRef);
 
@@ -78,4 +79,8 @@ public:
 	TMap< int32, FEquipmentStats> ItemsRemembered;
 	UPROPERTY()
 	TArray<TSubclassOf<class UEquipmentModuleDescriptor>> UniquesActive;
+
+
+
+	bool Bailout;
 };

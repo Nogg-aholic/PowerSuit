@@ -10,6 +10,8 @@
 #include "SubModules/EMC_StateModule.h"
 #define LOCTEXT_NAMESPACE "FPowerSuitModule"
 
+DEFINE_LOG_CATEGORY(LogGame);
+
 class APowerSuit;
 
 void FPowerSuitModule::StartupModule()

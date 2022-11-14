@@ -70,7 +70,10 @@ Saved/*
 # Compiled source files for the engine to use
 Intermediate/*
 Plugins/*/Intermediate/*
-PowerSuit_Assets
+
 # Cache files for the editor to use
 DerivedDataCache/*
 SF_ModProject/Plugins/PowerSuit/Metadata/Crypto.json
+
+# Ignore copyrighted assets stored in the master repo instead
+Content/Assets/GitIgnoredAssets/

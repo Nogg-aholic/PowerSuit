@@ -41,11 +41,10 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 		FEquipmentStats ReceiveModuleStats(FEquipmentStats DefaultStats);
 
-
-	// This is called before an Attachment is Installed and gives the Opportunity
-// to overwrite Default assigned Stats before they are accounted for
+	// Called by suit when wearer takes damage, gives attachments a chance to adjust it before the shield or resistances do
+	// Server Only
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-		float ReceiveDamage(float DmgIn);
+		float ReceiveDamage(float damageAmount, const class UDamageType* damageType, class AController* instigatedBy, AActor* damageCauser);
 
 	// This will Attach the Attachment to the Suit, overwrite to do something else
 	UFUNCTION(BlueprintNativeEvent)
@@ -70,7 +69,11 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	float GetDeltaFuelConsumption(float DeltaTime) const;
 
-	// How much Power in MW do we consume this Frame? Can also be negative for production
+
+	// How much Power in MW do we Produce this Frame? Cannot be negative for Consumption
+	UFUNCTION(BlueprintNativeEvent)
+	float GetDeltaPowerProduction(float DeltaTime) const;
+	// How much Power in MW do we consume this Frame? Cannot be negative for production
 	UFUNCTION(BlueprintNativeEvent)
 	float GetDeltaPowerConsumption(float DeltaTime) const;
 
@@ -104,7 +107,7 @@ public:
 		void ServerSetBoolValue(bool Value, uint8 Index);
 
 	// The (parent) Equipment Module that owns this attachment instance. Access suit properties and module stuff from this.
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, DisplayName="Parent EMC")
 	UEquipmentModuleComponent * ParentModule;
 
 	// Slot index of the module in the suit inventory

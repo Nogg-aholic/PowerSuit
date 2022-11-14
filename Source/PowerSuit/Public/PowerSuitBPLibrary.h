@@ -2,6 +2,9 @@
 
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "FGCheatManager.h"
+#include "Buildables/FGBuildable.h"
+#include "Replication/FGReplicationDetailInventoryComponent.h"
+
 #include "EquipmentModuleComponent.h"
 #include "Replication/PowerSuitRCO.h"
 #include "SubModules/EMC_StateModule.h"
@@ -21,6 +24,10 @@ class UPowerSuitBPLibrary : public UBlueprintFunctionLibrary
 public:
 	UFUNCTION(BlueprintPure)
 		static float GetPropertyResult(FModMultProperty prop) { return prop.value();	};
+
+	UFUNCTION(BlueprintPure)
+		static TArray<TSubclassOf<UFGItemDescriptor>> GetAllItemsFiltered(TArray<class TSubclassOf<UFGItemDescriptor>> AllItems, const FString FilterString, const int32 ResutLimit);
+
 
 	UFUNCTION(BlueprintCallable)
 	static void UpdateInnerConnectionRange(APowerSuit* Suit);
@@ -94,7 +101,7 @@ public:
 	// this is used by the Inventory Component
 	// Only use this if you know what you are doing
 	UFUNCTION(BlueprintCallable)
-		static void UpdateAllNoRefresh(APowerSuit * EquipmentParent, bool Notify = false);
+		static void UpdateAllNoRefresh(APowerSuit * EquipmentParent, bool Notify = true);
 
 	UFUNCTION(BlueprintPure, Category = "EquipmentStats")
 		static bool HasSuitFlag(ESuitFlag Flag, FEquipmentStats Stats)  { return Stats.HasFlag(Flag); };
@@ -115,7 +122,7 @@ public:
 	// NOT REPLICATED ! see SetProperty for Instructions;
 	
 	UFUNCTION(BlueprintCallable)
-	void SetSuitPropertyNamed(FEquipmentStats& Stats, FName Prop, FModMultProperty Property);
+		static void SetSuitPropertyNamed(FEquipmentStats& Stats, FName Prop, FModMultProperty Property);
 
 	UFUNCTION(BlueprintCallable)
 		static void SetPropertyGeneral(UPARAM(ref) FEquipmentStats& Stats, EEquipmentStatsProperty PropertyType, uint8 Index, FModMultProperty Property);
@@ -123,21 +130,37 @@ public:
 	UFUNCTION(BlueprintCallable)
 		static void SetSuitFlag(UPARAM(ref) FEquipmentStats& Stats, ESuitFlag Flag, bool Enabled);
 
-	UFUNCTION(BlueprintCallable)
-	static void BindOnWidgetConstruct(TSubclassOf<UUserWidget> WidgetClass, FOnWidgetConstruct Binding);
-
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "PowerSuit Bind on Actor Construct"))
 	static void BindOnActorConstruct(TSubclassOf<AActor> ActorClass, FOnObjectConstruct Binding);
+
+	static FOnObjectConstruct OnObjectConstruct;
 	
 	UFUNCTION(BlueprintCallable)
 	static void SetUseDistanceOnPlayer(AFGCharacterPlayer* Player, float Distance);
-	
-
-	static FOnWidgetConstruct OnWidgetConstruct;
-
-	static FOnObjectConstruct OnObjectConstruct;
 
 	UFUNCTION(BlueprintCallable)
 		static void SetInnerConnection(APowerSuit* Suit, UFGPowerConnectionComponent* Connection);
+	UFUNCTION(BlueprintCallable)
+		static void InitBattery(UFGPowerConnectionComponent* Connection, float Capacity, float inputCapacity);
+
+	UFUNCTION(BlueprintCallable)
+		static float GetBatteryState(UFGPowerConnectionComponent* Connection);
+	UFUNCTION(BlueprintCallable)
+		static float GetBatteryInput(UFGPowerConnectionComponent* Connection);
+	UFUNCTION(BlueprintCallable)
+		static float AddPowerStore(UFGPowerConnectionComponent* Connection, float PowerStore);
+	UFUNCTION(BlueprintCallable)
+		static float RemovePowerStore(UFGPowerConnectionComponent* Connection, float PowerStore);
 	
+	// Approximation !! not guaranteed to fit !!! 
+	UFUNCTION(BlueprintCallable)
+		static int32 GetAvailableSpaceForItem(UFGInventoryComponent* Inventory, TSubclassOf<class UFGItemDescriptor> ItemClass, int32 MaxStacks);
+
+	// Likely to break; probably nullptr
+	UFUNCTION(BlueprintCallable)
+		static TSubclassOf<UFGRecipe> GetBuiltWithRecipe(AFGBuildable* Building);
+
+	UFUNCTION(BlueprintCallable)
+		static class UFGInventoryComponent* GetReplicationDetailActiveInventoryComponent(UFGReplicationDetailInventoryComponent* ReplicationDetailComponent);
+
 };

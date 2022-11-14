@@ -16,4 +16,7 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
 		void WidgetCreated(APowerSuitModuleAttachment * Parent);
+
+	UPROPERTY(BlueprintReadWrite)
+		APowerSuitModuleAttachment* ParentModule;
 };

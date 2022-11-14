@@ -50,7 +50,7 @@ void FEquipmentStats::SetupDefaults()
 void FEquipmentStats::UnlockFuels(UEquipmentModuleComponent* Parent, TArray<TSubclassOf<class UFGItemDescriptor>> FuelsToUnlock)
 {
 
-	Parent->DefaultStats.ForgetUnlockedFuels(Parent);
+	Parent->DefaultStats.ForgetUnlockedFuels(Parent, true);
 
 	
 	// Add fuels that are granted by modules
@@ -70,7 +70,9 @@ void FEquipmentStats::UnlockFuels(UEquipmentModuleComponent* Parent, TArray<TSub
 
 	TArray<FItemAmount> SuitCostToUse; 
 #ifdef FOR_MODSHIPPING
-	SuitCostToUse = Parent->EquipmentParent->mCostToUse;
+	// SuitCostToUse = Parent->EquipmentParent->mCostToUse;
+	// TODOU5 - I had to switch this to an Accessor access transformer, and I'm not sure I did it right...
+	SuitCostToUse = Parent->EquipmentParent->GetCostToUse();
 #else
 	SuitCostToUse = Parent->EquipmentParent->*get(steal_mCostToUse());
 #endif
@@ -86,7 +88,7 @@ void FEquipmentStats::UnlockFuels(UEquipmentModuleComponent* Parent, TArray<TSub
 	}
 };
 
-void FEquipmentStats::ForgetUnlockedFuels(UEquipmentModuleComponent* Parent)
+void FEquipmentStats::ForgetUnlockedFuels(UEquipmentModuleComponent* Parent,bool IsDefault)
 {
 	for (auto e : nUnlockedAllowedFuels) {
 		if (Parent->FuelModule->nAllowedFuels.Contains(e))
@@ -109,6 +111,29 @@ void FEquipmentStats::ForgetUnlockedFuels(UEquipmentModuleComponent* Parent)
 			}
 		}
 	}
+
+	TArray<FItemAmount> SuitCostToUse;
+#ifdef FOR_MODSHIPPING
+	// SuitCostToUse = Parent->EquipmentParent->mCostToUse;
+	// TODOU5 - I had to switch this to an Accessor access transformer, and I'm not sure I did it right...
+	SuitCostToUse = Parent->EquipmentParent->GetCostToUse();
+#else
+	SuitCostToUse = Parent->EquipmentParent->*get(steal_mCostToUse());
+#endif
+
+	if (!IsDefault)
+	{
+		// Add fuels from suit Cost to Use, ignoring specified counts (notably, this is done after module fuels. This means module fuels have higher priority than suit fuels.)
+		for (FItemAmount e : SuitCostToUse)
+		{
+			if (!Parent->FuelModule->nAllowedFuels.Contains(e.ItemClass))
+			{
+				Parent->FuelModule->nAllowedFuels.Add(e.ItemClass);
+				Parent->DefaultStats.nUnlockedAllowedFuels.Add(e.ItemClass);
+			}
+		}
+	}
+	
 }
 
 FEquipmentStats FEquipmentStats::operator+(const FEquipmentStats& OtherStruct)

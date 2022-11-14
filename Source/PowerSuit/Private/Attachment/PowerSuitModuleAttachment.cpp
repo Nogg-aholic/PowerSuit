@@ -38,9 +38,9 @@ bool APowerSuitModuleAttachment::NeedTransform_Implementation()
 	return false;
 }
 
-float APowerSuitModuleAttachment::ReceiveDamage_Implementation(float DmgIn)
+float APowerSuitModuleAttachment::ReceiveDamage_Implementation(float damageAmount, const class UDamageType* damageType, class AController* instigatedBy, AActor* damageCauser)
 {
-	return DmgIn;
+	return damageAmount;
 }
 
 
@@ -60,7 +60,7 @@ void APowerSuitModuleAttachment::DetachFromSuit_Implementation() {
 void APowerSuitModuleAttachment::AttachmentInstalled_Implementation(FInventoryItem Item) {  };
 void APowerSuitModuleAttachment::AttachmentUnInstalled_Implementation() {  };
 
-
+float APowerSuitModuleAttachment::GetDeltaPowerProduction_Implementation(float DeltaTime)const { return 0.0f; };
 
 float APowerSuitModuleAttachment::GetDeltaPowerConsumption_Implementation(float DeltaTime)const  { return 0.0f;};
 

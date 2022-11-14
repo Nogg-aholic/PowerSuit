@@ -64,10 +64,13 @@ void UEMC_StateModule::PostTick()
 
 void UEMC_StateModule::CheckHotkeys()
 {
-	APlayerController* Controller = Cast< APlayerController >(Parent->EquipmentParent->GetInstigatorController());
-	Parent->EquipmentParent;
 
-	if (!UFGBlueprintFunctionLibrary::IsLocallyHumanControlled(Parent->EquipmentParent->GetInstigator()) && Controller->HasAuthority())
+	if (!Parent || !Parent->EquipmentParent || !Parent->EquipmentParent->GetInstigator())
+		return;
+
+	APlayerController* Controller = Cast< APlayerController >(Parent->EquipmentParent->GetInstigatorController());
+	
+	if (!Controller || !UFGBlueprintFunctionLibrary::IsLocallyHumanControlled(Parent->EquipmentParent->GetInstigator()) && Controller->HasAuthority())
 	{	
 		// server and not humanly controlled doesnt need to update Hotkeys
 		return;
@@ -155,13 +158,30 @@ void UEMC_StateModule::CheckHotkeys()
 		if (Controller->IsInputKeyDown(Parent->KB_Down) != HKey_Down)
 		{
 			HKey_Down = Controller->IsInputKeyDown(Parent->KB_Down);
+			LastDownPress = FDateTime::Now();
 			if (!Controller->HasAuthority())
 				Parent->RCO->ServerSetHotKeyDownAccel(Parent, HKey_Down);
 		}
 		// Accel Hotkey , this is Sprinting key mostly shift
-		if (Parent->MoveC->mIsSprinting != HKey_Accel)
+
+		bool WantsSprint = false;
+		if (Parent->MoveC->mIsSprinting || Parent->MoveC->mWantsToSprint)
+			WantsSprint = true;
+		bool AccelKeyDown = false;
+		if (Controller->IsInputKeyDown(Parent->KB_Accel))
+			AccelKeyDown = true;
+		bool WantsAccel = false;
+		if (WantsSprint || AccelKeyDown)
 		{
-			HKey_Accel = Parent->MoveC->mIsSprinting;
+			WantsAccel = true;
+		}
+		else
+		{
+			WantsAccel = false;
+		}
+		if (HKey_Accel != WantsAccel)
+		{
+			HKey_Accel = WantsAccel;
 			if (!Controller->HasAuthority())
 				Parent->RCO->ServerSetHotKeyDirectionalAccel(Parent, HKey_Accel);
 		}
@@ -185,22 +205,26 @@ void UEMC_StateModule::UpdateSuitState()
 		to fix this we use RCOs to replicate from Remote and use Parent->SuitState for all
 		out Consumption/Production Logic
 	*/
-
+	if (!Parent || !Parent->EquipmentParent || !Parent->EquipmentParent->GetInstigator())
+		return;
 	const bool Controlled = UFGBlueprintFunctionLibrary::IsLocallyHumanControlled(Parent->EquipmentParent->GetInstigator());
 	if (!Parent->EquipmentParent->HasAuthority())
 	{
 		if (!Controlled)
 		{
-			// server and not humanly controlled doesnt need to update Hotkeys
+			// Remote and not humanly controlled doesnt need to update Hotkeys
 			return;
 		}
 	}
-
+	const auto Before = Parent->SuitState;
 	if (!Parent->nProducing)
 	{
-		Parent->TKey_Fly = false;
-		Parent->TKey_NoGravity = false;
-		Parent->TKey_NoFriction = false;
+		if(Parent->EquipmentParent->HasAuthority())
+		{
+			Parent->TKey_Fly = false;
+			Parent->TKey_NoGravity = false;
+			Parent->TKey_NoFriction = false;	
+		}
 		if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_Hover || Parent->nCustomMovementMode == ECustomMovementMode::CMM_HoverSlowFall)
 		{
 			Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive);
@@ -230,10 +254,13 @@ void UEMC_StateModule::UpdateSuitState()
 		else if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_HoverSlowFall && !Parent->TKey_NoGravity)
 		{
 			Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive);
+			if(Parent->EquipmentParent->HasAuthority())
+			{
+				Parent->SuitState = EPowerSuitState::PS_FALLING;
+				Parent->TKey_Fly = false;
+			}
 			Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
 			Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
-			Parent->SuitState = EPowerSuitState::PS_FALLING;
-			Parent->TKey_Fly = false;
 			UE_LOG(PowerSuit_Log, Display, TEXT("Disabled SlowFall"));
 		}
 		else if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_Hover || Parent->nCustomMovementMode == ECustomMovementMode::CMM_HoverSlowFall)
@@ -244,21 +271,58 @@ void UEMC_StateModule::UpdateSuitState()
 			{
 				if (!Parent->TKey_NoGravity && !HKey_Up)
 				{
+				
+					if(Parent->EquipmentParent->HasAuthority())
+					{
+						Parent->SuitState = EPowerSuitState::PS_FALLING;
+						Parent->TKey_Fly = false;
+					}
 					Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive);
 					Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
-					Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
-					Parent->SuitState = EPowerSuitState::PS_FALLING;
-					Parent->TKey_Fly = false;
+                    Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
 					UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight - FlyUpKey Released"));
 				}
-				else
+				else if(Parent->EquipmentParent->HasAuthority())
 				{
-					if (HKey_Accel && Parent->MoveC->Velocity.Size2D() > 0.1f)
-						Parent->SuitState = EPowerSuitState::PS_HOVERSPRINT;
-					else if (HKey_Down)
-						Parent->SuitState = EPowerSuitState::PS_FLYDOWN;
+					
+					if (HKey_Up && HKey_Accel)
+					{
+						if (Parent->MoveC->Velocity.Size2D() > 0.1f)
+						{
+							Parent->SuitState = EPowerSuitState::PS_FLYUPDIAGONALSPRINT;
+						}
+						else
+							Parent->SuitState = EPowerSuitState::PS_FLYUPSPRINT;
+					}
 					else if (HKey_Up)
+					{
+						if (Parent->MoveC->Velocity.Size2D() > 0.1f)
+						{
+							Parent->SuitState = EPowerSuitState::PS_FLYUPDIAGONAL;
+						}
+						else
 						Parent->SuitState = EPowerSuitState::PS_FLYUP;
+					}
+					else if (HKey_Down && HKey_Accel)
+					{
+						if (Parent->MoveC->Velocity.Size2D() > 0.1f)
+						{
+							Parent->SuitState = EPowerSuitState::PS_FLYDOWNDIAGONALSPRINT;
+						}
+						else
+							Parent->SuitState = EPowerSuitState::PS_FLYDOWNSPRINT;
+					}
+					else if (HKey_Down)
+					{
+						if (Parent->MoveC->Velocity.Size2D() > 0.1f)
+						{
+							Parent->SuitState = EPowerSuitState::PS_FLYDOWNDIAGONAL;
+						}
+						else
+							Parent->SuitState = EPowerSuitState::PS_FLYDOWN;
+					}
+					else if (HKey_Accel && Parent->MoveC->Velocity.Size2D() > 0.1f)
+						Parent->SuitState = EPowerSuitState::PS_HOVERSPRINT;
 					else if (Parent->MoveC->Velocity.Size2D() > 0.1f)
 						Parent->SuitState = EPowerSuitState::PS_HOVERMOVE;
 					else
@@ -267,11 +331,14 @@ void UEMC_StateModule::UpdateSuitState()
 			}
 			else
 			{
+				if(Parent->EquipmentParent->HasAuthority())
+				{
+					Parent->SuitState = EPowerSuitState::PS_FALLING;
+					Parent->TKey_Fly = false;
+				}
 				Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive);
 				Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
 				Parent->MoveC->MovementMode = EMovementMode::MOVE_Falling;
-				Parent->SuitState = EPowerSuitState::PS_FALLING;
-				Parent->TKey_Fly = false;
 				UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight, cannot fly or doesnt want to"));
 			}
 		}
@@ -282,6 +349,7 @@ void UEMC_StateModule::UpdateSuitState()
 	}
 	else if (Parent->nMovementMode == EMovementMode::MOVE_Walking)
 	{
+		// deactivate wanting to fly if we landed, cannot fly on ground
 		if (Parent->MoveC->Velocity.Size2D() == 0)
 			Parent->SuitState = EPowerSuitState::PS_STANDING;
 		else
@@ -306,18 +374,37 @@ void UEMC_StateModule::UpdateSuitState()
 	else if (Parent->nMovementMode == EMovementMode::MOVE_Falling)
 	{
 		if(Controlled)
-			Parent->FallingTime = Parent->FallingTime + Parent->Delta;
+			Parent->FallingTime = Parent->FallingTime + Parent->LastDeltaTime;
 
 		// if we want to fly and are in the Air we allow if Unlocked
 		if (Parent->TKey_Fly && Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked) && Parent->nCurrentPower > 0.1f &&  !Parent->MoveC->IsInHyperPipe())
 		{
 			if(!(!Parent->TKey_NoGravity && !HKey_Up))
 			{
-				Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Hover);
-				Parent->SuitState = EPowerSuitState::PS_HOVER;
-				Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_Hover);
-				Parent->MoveC->MovementMode = EMovementMode::MOVE_Custom;
-				UE_LOG(PowerSuit_Log, Display, TEXT("Enabled Hover mode"));
+				if (FTimespan(FDateTime::Now() - LastDownPress).GetTotalSeconds() > 0.15f)
+				{
+					if(Parent->EquipmentParent->HasAuthority())
+					{
+						Parent->SuitState = EPowerSuitState::PS_HOVER;
+					}
+					Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Hover);
+					Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_Hover);
+					Parent->MoveC->MovementMode = EMovementMode::MOVE_Custom;
+					UE_LOG(PowerSuit_Log, Display, TEXT("Enabled Hover mode"));
+				}
+				else
+				{
+					UE_LOG(PowerSuit_Log, Display, TEXT("Ignored Enabled Hover mode, assuming Touble Tap"));
+					if (Parent->EquipmentParent->GetInstigator()->HasAuthority())
+					{
+						Parent->TKey_Fly = false;
+					}
+					else
+					{
+						Parent->TKey_Fly = false;
+						Parent->RCO->ServerSetFlying(Parent, false);
+					}
+				}
 			}
 		}
 		else
@@ -331,8 +418,30 @@ void UEMC_StateModule::UpdateSuitState()
 	}
 	else
 	{
-		UE_LOG(PowerSuit_Log, Error, TEXT("What State is this ? %s"), *FString::FromInt(static_cast<int32>(Parent->nMovementMode)));
+		//UE_LOG(PowerSuit_Log, Error, TEXT("What State is this ? %s"), *FString::FromInt(static_cast<int32>(Parent->nMovementMode)));
 	}
+
+	if (Before != Parent->SuitState)
+	{
+		Parent->EquipmentParent->OnSuitStateUpdate.Broadcast(Before,Parent->SuitState);
+		if (
+			Parent->SuitState == EPowerSuitState::PS_FLYUP 
+			|| Parent->SuitState == EPowerSuitState::PS_FLYDOWN 
+			|| Parent->SuitState == EPowerSuitState::PS_FLYDOWNSPRINT 
+			|| Parent->SuitState == EPowerSuitState::PS_FLYUPSPRINT 
+			|| Parent->SuitState == EPowerSuitState::PS_HOVER 
+			|| Parent->SuitState == EPowerSuitState::PS_HOVERMOVE 
+			|| Parent->SuitState == EPowerSuitState::PS_HOVERSPRINT
+			|| Parent->SuitState == EPowerSuitState::PS_FLYDOWNDIAGONALSPRINT
+			|| Parent->SuitState == EPowerSuitState::PS_FLYUPDIAGONALSPRINT
+			|| Parent->SuitState == EPowerSuitState::PS_FLYUPDIAGONAL
+			|| Parent->SuitState == EPowerSuitState::PS_FLYDOWNDIAGONAL
+			)
+		{
+			Parent->EquipmentParent->OnCharacterMovementModeChanged(Parent->MoveC->MovementMode, Parent->MoveC->CustomMovementMode, Parent->MoveC->MovementMode, Parent->MoveC->CustomMovementMode);
+		}
+	}
+
 }
 
 
@@ -344,31 +453,33 @@ void UEMC_StateModule::ReplicateStates()
 		Since we Trust the Client with all his State Variables and some of them arent replicated
 		we do this here manually from client -> Host
 	*/
+	if (!Parent || !Parent->EquipmentParent || !Parent->EquipmentParent->GetInstigator())
+		return;
 	if(!Parent->PowerModule)
 		return;
 	Parent->EquipmentParent->OnCheckHotkeys();
 
 	const bool Controlled = UFGBlueprintFunctionLibrary::IsLocallyHumanControlled(Parent->EquipmentParent->GetInstigator());
-
-
-	// deactivate wanting to fly if we landed, cannot fly on ground
-	if (Parent->nMovementMode == EMovementMode::MOVE_Walking && Parent->TKey_Fly)
-	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("Ground Flight Disable"));
-		if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_Hover || Parent->nCustomMovementMode == ECustomMovementMode::CMM_HoverSlowFall)
-		{
-			Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive);
-			Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
-		}
-		Parent->TKey_Fly = false;
-		if (Controlled)
-			Parent->EquipmentParent->OnFlyingChanged(false);
-	}
-
+	
 	// return here if we dont have a valid component 
 	// can happen when using Trains maybe
 	if (!Parent->MoveC)
 		return;
+
+	// deactivate wanting to fly if we landed, cannot fly on ground
+	if (Parent->nMovementMode == EMovementMode::MOVE_Walking && Parent->TKey_Fly)
+	{
+		if (Parent->nCustomMovementMode == ECustomMovementMode::CMM_Hover || Parent->nCustomMovementMode == ECustomMovementMode::CMM_HoverSlowFall)
+		{
+			UE_LOG(PowerSuit_Log, Display, TEXT("Ground Flight Disable"));
+			Parent->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Inactive,false);
+			Parent->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
+			Parent->nMovementMode = EMovementMode::MOVE_Walking;
+			//if (Controlled)
+			//	Parent->EquipmentParent->OnFlyingChanged(false);
+		}
+		Parent->TKey_Fly = false;
+	}
 
 	// we either aren on the Server or a Remote Client wanting to replicate here
 	// Replicate mIsSprinting
@@ -389,7 +500,6 @@ void UEMC_StateModule::ReplicateStates()
 	if (Parent->MoveC->MovementMode != Parent->nMovementMode)
 	{
 		Parent->nMovementMode = Parent->MoveC->MovementMode;
-		HoverModeChange();
 		if (Controlled)
 			Parent->EquipmentParent->OnMoveRep(static_cast<uint8>(Parent->nMovementMode));
 	}
@@ -401,13 +511,4 @@ void UEMC_StateModule::ReplicateStates()
 			Parent->EquipmentParent->OnCustomMovementMode(Parent->nCustomMovementMode);
 	}
 	
-}
-
-
-void UEMC_StateModule::HoverModeChange()
-{
-	if (!Parent->EquipmentParent)
-	{
-		return;
-	}
 }

@@ -17,14 +17,14 @@ void UEMC_HyperTubeModule::ModifyPipeSpeed()
 	{
 		const float DistanceToLink = Cast<AFGBuildablePipeHyper>(Data.mTravelingPipeHyper)->mLength - Data.mPipeProgressReal;
 		const float DistanceFromLink = Data.mPipeProgressReal;
-		const float DeltaMovement = Parent->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSpeedInPipes).value() * Parent->Delta;
+		const float DeltaMovement = Parent->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSpeedInPipes).value() * Parent->LastDeltaTime;
 		if (DistanceToLink > 1000.f - DeltaMovement && FMath::Abs(DistanceFromLink) > 1000.f + DeltaMovement)
 		{
 			// need to create Speed variable for Pipes
 			if (Parent->StateModule->HKey_Accel)
-				Data.mPipeVelocityReal = FMath::Clamp((speed + ((speed * Parent->Delta))), -5000.f - Parent->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSpeedInPipes).value(), 5000.f + Parent->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSpeedInPipes).value());
+				Data.mPipeVelocityReal = FMath::Clamp((speed + ((speed * Parent->LastDeltaTime))), -5000.f - Parent->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSpeedInPipes).value(), 5000.f + Parent->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSpeedInPipes).value());
 			else
-				Data.mPipeVelocityReal = FMath::Clamp((speed - ((speed * Parent->Delta))), -100000.f, 100000.f);
+				Data.mPipeVelocityReal = FMath::Clamp((speed - ((speed * Parent->LastDeltaTime))), -100000.f, 100000.f);
 			LastPipeVelocity = Data.mPipeVelocityReal;
 			Data.mPipeVelocity = Data.mPipeVelocityReal;
 		}

@@ -12,30 +12,61 @@
 void UEMC_FuelModule::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-
 }
 
+bool UEMC_FuelModule::FuelFuseRecoveryPeriodElapsed() const {
+	return FTimespan(TimeSinceFuelFuseBreak()).GetTotalSeconds() >= GetFuelFuseTimerDuration();
+}
+
+float UEMC_FuelModule::GetFuelFuseTimerDuration() const
+{
+	return FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuelFuseTime).value(), 1.f, 10000.f);
+}
+
+FTimespan UEMC_FuelModule::TimeSinceFuelFuseBreak() const
+{
+	return FDateTime::Now() - Parent->nFuelFuseBreak;
+}
+
+void UEMC_FuelModule::ForcefullyBreakFuelFuse(bool drainFuel)
+{
+	// Shut down the suit since the fuse has blown, starting the restart process
+
+	if (drainFuel) {
+		Parent->nFuelAmount = 0.0f;
+	}
+
+	bool wasFuelFuseIntact = Parent->nFuelFuseStatus;
+
+	Parent->nFuelFuseBreak = FDateTime::Now();
+	Parent->nFuelFuseStatus = false;
+	Parent->Client_FuelFuseBreak();
+	if (wasFuelFuseIntact) {
+		// Only broadcast the event if it's a "new" fuse break, not a continued still down
+		UE_LOG(PowerSuit_Log, Display, TEXT("Broadcasting event for FuelFuse break"));
+		Parent->OnFuelFuseTriggered.Broadcast(Parent->nFuelFuseStatus, Parent->nFuelFuseBreak);
+	}
+}
 
 // Consume fuel items if needed to refuel the suit
 void UEMC_FuelModule::TryReload()
 {
-	
-
 	AFGCharacterPlayer* pawn = Cast< AFGCharacterPlayer>(Parent->EquipmentParent->GetInstigator());
 	if (pawn)
 	{
 		if (!pawn->HasAuthority())
 			return;
 
-		if (Parent->Stats.HasAdvancedFlag(ESuitFlagAdvanced::SuitFlagAdvanced_NoRefuel))
-		{
-			return;
+		// allow custom refuel implementations
+		if (!Parent->Stats.HasAdvancedFlag(ESuitFlagAdvanced::SuitFlagAdvanced_NoRefuel)) {
+			// cycle through each fuel item specified in 'cost to use' in the order they are listed (top has highest priority)
+			for (const TSubclassOf<class UFGItemDescriptor>& i : nAllowedFuels) {
+				if (ConsumeFuelItem(pawn->GetInventory(), i, 1)) {
+					break;
+				}
+			}
 		}
-		// cycle through each fuel item specified in 'cost to use' in the order they are listed (top has highest priority)
-		for (const TSubclassOf<class UFGItemDescriptor> & i : nAllowedFuels)
-			if (ConsumeFuelItem(pawn->GetInventory(), i, 1))
-				break;
+		
 	}
 }
 
@@ -51,14 +82,14 @@ bool UEMC_FuelModule::ConsumeFuelItem(UFGInventoryComponent* Inventory, TSubclas
 			const float TankSize = FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value(), 1.f, 99999999999.f);
 			const float MJPercent = (ItemMJ * FuelEfficiency) / TankSize;
 			Parent->nFuelAmount = FMath::Clamp(MJPercent, 0.f, 1.f);
-			Parent->OnConsumeFuelItem.Broadcast(inClass, 0, 1);
+			Parent->OnConsumeFuelItem.Broadcast(inClass, 0, inAmount);
 			return true;
 		}
 	}
 	return false;
 }
 
-// Only Server
+// Server Only
 void UEMC_FuelModule::PreTick()
 {
 	if (Parent->EquipmentParent->HasAuthority()) 
@@ -81,43 +112,70 @@ void UEMC_FuelModule::PreTick()
 // Server Only
 void UEMC_FuelModule::Tick() const
 {
-	if (!Parent->EquipmentParent->HasAuthority())
-	{
+	if (!Parent->EquipmentParent->HasAuthority()) {
 		return;
 	}
 	float Fuel = 0;
 
-	for (auto * i : Parent->AttachmentModule->Attachments)
-		if (i)
-			Fuel += i->GetDeltaFuelConsumption(Parent->Delta);
+	for (auto* attach : Parent->AttachmentModule->Attachments) {
+		if (attach) {
+			Fuel += attach->GetDeltaFuelConsumption(Parent->LastDeltaTime);
+		}
+	}
 
-	if (Parent->nFuelConsumption != Fuel)
-	{
+	if (Parent->nFuelConsumption != Fuel) {
 		Parent->nFuelConsumption = Fuel;
 	}
 }
 
 // Server Only
-void UEMC_FuelModule::PostTick() const
+void UEMC_FuelModule::PostTick()
 {
-	if (!Parent->EquipmentParent->HasAuthority())
-	{
+	if (!Parent->EquipmentParent->HasAuthority()) {
 		return;
 	}
-	if (Parent->nProducing)
-	{
-		if (!Parent->EquipmentParent)
+	if (Parent->nProducing) {
+		if (!Parent->EquipmentParent) {
 			return;
+		}
 
-		if (Parent->nFuelAmount <= 0 && Parent->nFuelConsumption >= 0.f)
+		const bool desiresFuel = (Parent->nFuelConsumption > 0.f) || Parent->Stats.HasAdvancedFlag(ESuitFlagAdvanced::SuitFlagAdvanced_AlwaysWantsFuel);
+		if (Parent->nFuelAmount <= 0.01 && desiresFuel) {
+			if (Parent->nFuelFuseStatus) {
+				UE_LOG(PowerSuit_Log, Display, TEXT("Fuel amount <= 0.01 and there was consumption, breaking fuel fuse"));
+				ForcefullyBreakFuelFuse(false);
+			}
+			else {
+				// UE_LOG(PowerSuit_Log, Display, TEXT("Fuel amount <= 0.01 and there was consumption, BUT fuse already broken"));
+			}
 			return;
+		} else if (!Parent->nFuelFuseStatus) {
+			TryRestart();
+		}
 
 		// From Percent to Actual MJ Amount
 		// Subtracting the Fuel Consumption Cost in MJ for this frame(Delta)
 		// division by MJ of the Item brings us back to Percent
 		const float MJCurrent = Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value() * FMath::Clamp(Parent->nFuelAmount, 0.f, 1.f);
-		Parent->nFuelAmount = FMath::Clamp(((MJCurrent - (Parent->nFuelConsumption * Parent->Delta)))/FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value(), 1.f, 999999999.f), 0.f, 1.f);
+		Parent->nFuelAmount =
+			FMath::Clamp(((MJCurrent - (Parent->nFuelConsumption * Parent->LastDeltaTime)))
+				/
+				FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value(), 1.f, 999999999.f), 0.f, 1.f);
 	}
 }
 
-
+void UEMC_FuelModule::TryRestart() const
+{
+	if (FuelFuseRecoveryPeriodElapsed()) {
+		if (Parent->nFuelAmount > 0.01) {
+			UE_LOG(PowerSuit_Log, Display, TEXT("Restarting fuel fuse because enough time has elapsed and we have > 0.01 fuel"));
+			Parent->nFuelFuseStatus = true;
+			Parent->Client_FuelFuseRecover();
+			Parent->OnFuelFuseTriggered.Broadcast(Parent->nFuelFuseStatus, Parent->nFuelFuseBreak);
+		} else {
+			// UE_LOG(PowerSuit_Log, Display, TEXT("Enough time elapsed, but not enough fuel to restart"));
+		}
+	} else {
+		// UE_LOG(PowerSuit_Log, Display, TEXT("Waiting on time elapse to try restarting"));
+	}
+}

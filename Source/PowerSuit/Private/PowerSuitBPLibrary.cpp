@@ -7,11 +7,13 @@
 #include "SubModules/EMC_PowerModule.h"
 
 #include "FGCharacterMovementComponent.h"
-
+#include "FGPowerConnectionComponent.h"
+#include "FGPowerInfoComponent.h"
 #include "PowerSuit.h"
 #include "Patching/BlueprintHookHelper.h"
 #include "Patching/BlueprintHookManager.h"
 #include "Patching/NativeHookManager.h"
+#include "Replication/FGReplicationDetailInventoryComponent.h"
 
 UPowerSuitBPLibrary::UPowerSuitBPLibrary(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -213,8 +215,6 @@ void UPowerSuitBPLibrary::ResetFlightStats(APowerSuit * EquipmentParent, bool No
 	EquipmentParent->mHoverAccelerationSpeed = MovementCDO->mHoverAccelerationSpeed;
 	EquipmentParent->mHoverSprintMultiplier = MovementCDO->mHoverSprintMultiplier;
 
-	EquipmentParent->mRailRoadSurfSpeed = MovementCDO->mRailRoadSurfSpeed;
-	EquipmentParent->mRailroadSurfSensitivity = MovementCDO->mRailroadSurfSensitivity;
 	EquipmentParent->mHoverFriction = MovementCDO->mHoverFriction;
 
 	EquipmentParent->mJumpKeyHoldActivationTime = MovementCDO->mJumpKeyHoldActivationTime;
@@ -269,8 +269,6 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent, bool N
 	EquipmentParent->mHoverAccelerationSpeed +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverAccelerationSpeed).value();
 	EquipmentParent->mHoverSprintMultiplier +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverSprintMultiplier).value();
 
-	EquipmentParent->mRailRoadSurfSpeed +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mRailRoadSurfSpeed).value();
-	EquipmentParent->mRailroadSurfSensitivity +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mRailroadSurfSensitivity).value();
 	EquipmentParent->mHoverFriction +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverFriction).value();
 
 	EquipmentParent->mJumpKeyHoldActivationTime +=  EquipmentParent->Module->GetFlightPropertySafe(EFP_mJumpKeyHoldActivationTime).value();
@@ -319,8 +317,6 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent, bool N
 	EquipmentParent->mHoverAccelerationSpeed *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverAccelerationSpeed).ClampMult();
 	EquipmentParent->mHoverSprintMultiplier *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverSprintMultiplier).ClampMult();
 
-	EquipmentParent->mRailRoadSurfSpeed *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mRailRoadSurfSpeed).ClampMult();
-	EquipmentParent->mRailroadSurfSensitivity *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mRailroadSurfSensitivity).ClampMult();
 	EquipmentParent->mHoverFriction *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mHoverFriction).ClampMult();
 
 	EquipmentParent->mJumpKeyHoldActivationTime *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mJumpKeyHoldActivationTime).ClampMult();
@@ -362,8 +358,8 @@ void UPowerSuitBPLibrary::UpdateFlightStats(APowerSuit * EquipmentParent, bool N
 	EquipmentParent->*get(steal_mPowerCapacity()) *= EquipmentParent->Module->GetFlightPropertySafe(EFP_mPowerCapacity).ClampMult();
 #endif
 
-	UE_LOG(LogTemp, Error, TEXT("HoverSpeed is : %f"), EquipmentParent->*get(steal_mHoverSpeed()));
-	UE_LOG(LogTemp, Error, TEXT("mHoverAccelerationSpeed is : %f"), EquipmentParent->*get(steal_mHoverAccelerationSpeed()));
+	// UE_LOG(LogTemp, Error, TEXT("HoverSpeed is : %f"), EquipmentParent->*get(steal_mHoverSpeed()));
+	// UE_LOG(LogTemp, Error, TEXT("mHoverAccelerationSpeed is : %f"), EquipmentParent->*get(steal_mHoverAccelerationSpeed()));
 	if(Notify)
 		EquipmentParent->OnPowerSuitStatUpdate.Broadcast(1);
 
@@ -425,16 +421,23 @@ void UPowerSuitBPLibrary::UpdateInventorySize(APowerSuit* EquipmentParent, bool 
 
 void UPowerSuitBPLibrary::UpdateAllNoRefresh(APowerSuit* EquipmentParent, bool Notify)
 {
-	if (!EquipmentParent)
+	if (!EquipmentParent) {
 		return;
-	UE_LOG(PowerSuit_Log, Error, TEXT("UpdateAllNoRefresh"));
+	}
+	UE_LOG(PowerSuit_Log, Warning, TEXT("UpdateAllNoRefresh"));
 	UpdateInventorySize(EquipmentParent);
 	UpdateFlags(EquipmentParent);
 	UpdateFlightStats(EquipmentParent);
 	UpdateMovementComponent(EquipmentParent);
 	EquipmentParent->Module->PowerModule->CacheFuseTimerDuration();
 	EquipmentParent->Module->HealthModule->SetMaxHealth();
-	EquipmentParent->OnPowerSuitStatUpdate.Broadcast(0);
+
+	// TODO crashes here if host disconnects while client is still on, need to debug, the IsBound didn't help
+	// if (EquipmentParent->OnPowerSuitStatUpdate.IsBound() && !EquipmentParent->GetInstigatorCharacter()->IsPendingKillOrUnreachable()) {
+	if (Notify) {
+		EquipmentParent->OnPowerSuitStatUpdate.Broadcast(0);
+	}
+	// }
 }
 
 
@@ -499,33 +502,14 @@ void UPowerSuitBPLibrary::SetPropertyGeneral(FEquipmentStats& Stats, EEquipmentS
 
 void UPowerSuitBPLibrary::SetSuitFlag(FEquipmentStats& Stats, ESuitFlag Flag, bool Enabled)
 {
-	const bool Has = Stats.HasFlag(Flag);
-	if (Has && Enabled)
+	const bool AlreadyHas = Stats.HasFlag(Flag);
+	if (AlreadyHas && Enabled) {
 		return;
-	else if (!Has && Enabled)
-	{
+	} else if (!AlreadyHas && Enabled) {
 		Stats.SuitFlags += Flag;
-	}
-	else if (Has && !Enabled)
-	{
+	} else if (AlreadyHas && !Enabled) {
 		Stats.SuitFlags -= Flag;
 	}
-}
-
-
-
-void UPowerSuitBPLibrary::BindOnWidgetConstruct(const TSubclassOf<UUserWidget> WidgetClass,FOnWidgetConstruct Binding) {
-	if(!WidgetClass)
-		return;
-	UFunction* ConstructFunction = WidgetClass->FindFunctionByName(TEXT("Construct"));
-	if (!ConstructFunction || ConstructFunction->IsNative())
-	{
-		return;
-	}
-	UBlueprintHookManager* HookManager = GEngine->GetEngineSubsystem<UBlueprintHookManager>();
-	HookManager->HookBlueprintFunction(ConstructFunction, [Binding](FBlueprintHookHelper& HookHelper) {
-		Binding.ExecuteIfBound(Cast<UUserWidget>(HookHelper.GetContext()));
-	}, EPredefinedHookOffset::Return);
 }
 
 void UPowerSuitBPLibrary::BindOnActorConstruct(const TSubclassOf<AActor> ActorClass,FOnObjectConstruct Binding) {
@@ -575,6 +559,79 @@ void UPowerSuitBPLibrary::SetInnerConnection(APowerSuit * Suit, UFGPowerConnecti
 
 }
 
+void UPowerSuitBPLibrary::InitBattery(UFGPowerConnectionComponent* Connection,float Capacity,float inputCapacity)
+{
+	if (!Connection ||!Connection->GetPowerInfo() )
+		return;
+	if (!Connection->GetPowerInfo()->GetBatteryInfo())
+		Connection->GetPowerInfo()->InitializeBatteryInfo(Capacity, inputCapacity);
+
+	Connection->GetPowerInfo()->SetMaximumTargetConsumption(inputCapacity);
+}
+float UPowerSuitBPLibrary::GetBatteryState(UFGPowerConnectionComponent* Connection)
+{
+	if (!Connection || !Connection->GetPowerInfo()->GetBatteryInfo())
+		return 0.f;
+	return Connection->GetPowerInfo()->GetBatteryInfo()->GetPowerStore();
+}
+
+float UPowerSuitBPLibrary::GetBatteryInput(UFGPowerConnectionComponent* Connection)
+{
+	if (!Connection ||!Connection->GetPowerInfo() || !Connection->GetPowerInfo()->GetBatteryInfo())
+		return 0.f;
+
+	return Connection->GetPowerInfo()->GetBatteryInfo()->GetPowerInput();
+}
+
+float UPowerSuitBPLibrary::AddPowerStore(UFGPowerConnectionComponent* Connection, float PowerStore)
+{
+	if (!Connection ||!Connection->GetPowerInfo() || !Connection->GetPowerInfo()->GetBatteryInfo())
+		return 0.f;
+	const float Before = Connection->GetPowerInfo()->GetBatteryInfo()->GetPowerStore();
+	Connection->GetPowerInfo()->GetBatteryInfo()->SetPowerStore(FMath::Clamp(Connection->GetPowerInfo()->GetBatteryInfo()->GetPowerStore() + FMath::Clamp(PowerStore,0.f, Connection->GetPowerInfo()->GetBatteryInfo()->mPowerInputCapacity), 0.f, 100000000.f));
+	const float Overflow = Connection->GetPowerInfo()->GetBatteryInfo()->GetPowerStore() - Before;
+	Connection->GetPowerInfo()->GetBatteryInfo()->mPowerInput = Overflow;
+	return Overflow;
+}
+
+float UPowerSuitBPLibrary::RemovePowerStore(UFGPowerConnectionComponent* Connection, float PowerStore)
+{
+	if (!Connection || !Connection->GetPowerInfo() || !Connection->GetPowerInfo()->GetBatteryInfo())
+		return 0.f;
+
+	if (Connection->GetPowerInfo()->GetBatteryInfo()->GetPowerStore() > 0.f)
+	{
+		const float Before = Connection->GetPowerInfo()->GetBatteryInfo()->GetPowerStore();
+		Connection->GetPowerInfo()->GetBatteryInfo()->SetPowerStore(FMath::Clamp(Connection->GetPowerInfo()->GetBatteryInfo()->GetPowerStore() - PowerStore, 0.f, 100000000.f));
+		const float Overflow = Before - Connection->GetPowerInfo()->GetBatteryInfo()->GetPowerStore();
+		return Overflow;
+	}
+	return 0.f;
+}
+
+
+TArray<TSubclassOf<UFGItemDescriptor>> UPowerSuitBPLibrary::GetAllItemsFiltered(TArray<class TSubclassOf<UFGItemDescriptor>> AllItems, const FString FilterString, const int32 ResutLimit)
+{
+	if (FilterString.IsEmpty()) {
+		return AllItems;
+	}
+
+	TArray<TSubclassOf<class UFGItemDescriptor>> ArrOut;
+	for (auto entry : AllItems) {
+		auto cdo = entry.GetDefaultObject();
+		// Checking CDO validity + entry non-null because it was finding some fake vehicle descriptors?
+		if (cdo && entry) {
+			if (cdo->GetItemName(entry).ToString().Contains(*FilterString) && ArrOut.Num() < ResutLimit) {
+				ArrOut.Add(entry);
+			} else if (ArrOut.Num() >= ResutLimit) {
+				break;
+			}
+		}
+	}
+
+	return ArrOut;
+}
+
 void UPowerSuitBPLibrary::UpdateInnerConnectionRange(APowerSuit* Suit)
 {
 #ifdef FOR_MODSHIPPING
@@ -615,4 +672,39 @@ void UPowerSuitBPLibrary::UpdateInnerConnectionRange(APowerSuit* Suit)
 	}
 
 #endif
+}
+
+int32 UPowerSuitBPLibrary::GetAvailableSpaceForItem(UFGInventoryComponent* Inventory, TSubclassOf<class UFGItemDescriptor> ItemClass,int32 MaxStacks)
+{
+	if (!Inventory)
+		return 0;
+
+	FInventoryItem Item = FInventoryItem(ItemClass);
+	const bool HasSpace = Inventory->HasEnoughSpaceForItem(FInventoryItem(Item));
+	if (!HasSpace)
+		return 0;
+	const int32 StackSize = ItemClass.GetDefaultObject()->GetStackSizeConverted(ItemClass);
+	FInventoryStack Stack;
+	Stack.Item = FInventoryItem(Item);
+	for (auto i = MaxStacks; i > 0; i--)
+	{
+		Stack.NumItems = i * StackSize;
+		if (Inventory->HasEnoughSpaceForStack(Stack))
+			return Stack.NumItems;
+	}
+	return StackSize;
+}
+
+
+TSubclassOf<UFGRecipe> UPowerSuitBPLibrary::GetBuiltWithRecipe(AFGBuildable* Building)
+{
+	if (!Building) {
+		return nullptr;
+	}
+	return Building->GetBuiltWithRecipe();
+}
+
+
+class UFGInventoryComponent* UPowerSuitBPLibrary::GetReplicationDetailActiveInventoryComponent(UFGReplicationDetailInventoryComponent* ReplicationDetailComponent) {
+	return ReplicationDetailComponent->GetActiveInventoryComponent();
 }

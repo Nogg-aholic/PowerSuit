@@ -12,12 +12,11 @@
 #include "Equipment_PowerSuit.generated.h"
 
 
-
-
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPowerSuitFrictionToggle, FKey, Key);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPowerSuitUIToggle, FKey, Key);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPowerSuitStatUpdate, int32, Type);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnMovementModeChanged, EMovementMode, PreviousMovementMode, uint8, PreviousCustomMode, EMovementMode, NewMovementMode, uint8, NewCustomMode);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSuitStateUpdate, TEnumAsByte<EPowerSuitState>, StateBefore,TEnumAsByte<EPowerSuitState>, State);
 
 /**
  * 
@@ -28,11 +27,13 @@ class POWERSUIT_API APowerSuit : public AFGHoverPack
 	GENERATED_BODY()
 		APowerSuit();
 
+	friend class UEMC_StateModule;
 	virtual void BeginPlay() override;
 	virtual void Destroyed() override;
-
 	virtual void Equip(class AFGCharacterPlayer* character) override;
+	virtual void WasSlottedIn(class AFGCharacterPlayer* holder);
 	virtual void UnEquip() override;
+	virtual void WasRemovedFromSlot();
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 	virtual bool ShouldSaveState() const override;
@@ -68,6 +69,12 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Equipment", DisplayName = "Event OnPowerSuitStatUpdate")
 		FPowerSuitStatUpdate OnPowerSuitStatUpdate;
 
+	UPROPERTY(BlueprintAssignable, Category = "Equipment", DisplayName = "Event OnMovementModeChanged")
+		FOnMovementModeChanged OnMovementModeChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "Equipment", DisplayName = "Event OnSuitStateUpdate")
+		FOnSuitStateUpdate OnSuitStateUpdate;
+
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnCheckHotkeys();
 	UFUNCTION(BlueprintImplementableEvent)
@@ -86,13 +93,18 @@ public:
 		void OnPlayAirBreakSound();
 
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, DisplayName="EMC Module")
 		UEquipmentModuleComponent * Module;
 
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 		float BeltVelocityAcceptanceAngle = 35.f;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Movement")
-	UFGPowerConnectionComponent* InnerBattery;
+	UPROPERTY(BlueprintReadWrite, Category = "Components")
+		UFGPowerConnectionComponent* InnerBattery;
+
+	// I think this prevents fuse break when past the time limit? used in TryBreakFuse, and TryRestart, so not really sure why this is BPRW - Rob
+	UPROPERTY(BlueprintReadWrite, Replicated)
+		bool OverrideReboot = false;
+
 };
