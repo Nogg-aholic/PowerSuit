@@ -107,4 +107,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, Replicated)
 		bool OverrideReboot = false;
 
+	// If pressing Ctrl+Space should start flight immediately regardless of jump time
+	UPROPERTY(BlueprintReadWrite)
+		bool EnableCtrlSpaceStartFlight;
 };

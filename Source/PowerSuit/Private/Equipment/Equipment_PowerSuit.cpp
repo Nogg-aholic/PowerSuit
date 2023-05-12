@@ -21,7 +21,6 @@ APowerSuit::APowerSuit()
 	this->Module->SetupAttachment(this->RootComponent);
 	this->Module->SetNetAddressable(); // Make net addressable
 	this->Module->SetIsReplicated(true);
-
 }
 
 
@@ -253,7 +252,7 @@ void APowerSuit::OnCharacterMovementModeChanged(EMovementMode PreviousMovementMo
 		return;
 	OnMovementModeChanged.Broadcast(PreviousMovementMode, PreviousCustomMode, NewMovementMode, NewCustomMode);
 
-	if (NewCustomMode == 0 || (PreviousMovementMode == MOVE_Swimming && (NewMovementMode == MOVE_Walking || NewMovementMode == MOVE_Falling) ))
+	if (NewCustomMode == ECustomMovementMode::CMM_None || (PreviousMovementMode == MOVE_Swimming && (NewMovementMode == MOVE_Walking || NewMovementMode == MOVE_Falling) ))
 	{
 		Module->MoveC->mMaxSprintSpeed = Cast< UFGCharacterMovementComponent>(Module->MoveC->GetClass()->GetDefaultObject())->mMaxSprintSpeed;//900.f;
 		Module->MoveC->mMaxSprintSpeed += Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSprintSpeed).value(); //ESMC_mMaxSprintSpeed
@@ -263,7 +262,7 @@ void APowerSuit::OnCharacterMovementModeChanged(EMovementMode PreviousMovementMo
 			Module->RemoteUpdateMovementGround(Module->MoveC->mMaxSprintSpeed);
 		}
 	}
-	else if(NewCustomMode == 4)
+	else if(NewCustomMode == ECustomMovementMode::CMM_Hover)
 	{
 		
 		Module->MoveC->mMaxSprintSpeed = Cast<APowerSuit>(GetClass()->GetDefaultObject())->mHoverSpeed;//900.f;

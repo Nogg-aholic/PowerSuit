@@ -90,7 +90,7 @@ void UEMC_StateModule::CheckHotkeys()
 			};
 		}
 
-		// Toggle Hotkey, controls Gravity if allowed
+		// Toggle Hotkey, controls Flight Friction if allowed
 		if (Controller->WasInputKeyJustPressed(Parent->KB_Toggle2))
 		{
 			if (Parent->Stats.HasFlag(ESuitFlag::SuitFlag_HasNoFrictionMode))
@@ -130,7 +130,8 @@ void UEMC_StateModule::CheckHotkeys()
 #else
 				const float& JumpHoldTime = Parent->EquipmentParent->*get(steal_mJumpKeyHoldActivationTime());
 #endif
-				if (!Parent->TKey_Fly && (Parent->FallingTime > JumpHoldTime) || Controller->IsInputKeyDown(EKeys::LeftControl))
+				if (!Parent->TKey_Fly && (Parent->FallingTime > JumpHoldTime) ||
+					(Controller->IsInputKeyDown(EKeys::LeftControl) && Parent->EquipmentParent->EnableCtrlSpaceStartFlight) )
 				{
 
 					if (Parent->EquipmentParent->GetInstigator()->HasAuthority())

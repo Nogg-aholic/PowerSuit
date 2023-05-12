@@ -270,7 +270,7 @@ void UEMC_InventoryModule::RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> It
 		}
 		else
 		{
-			Parent->OnModuleInstalled.Broadcast(StackAdded.Item.ItemClass, Cast<APowerSuitModuleAttachment>(StackAdded.Item.ItemState.Get()));
+			Parent->OnModuleInstalled.Broadcast(StackAdded.Item.GetItemClass(), Cast<APowerSuitModuleAttachment>(StackAdded.Item.ItemState.Get()));
 			UPowerSuitBPLibrary::UpdateAllNoRefresh(Parent->EquipmentParent);
 		}
 	}
@@ -291,9 +291,9 @@ void UEMC_InventoryModule::RefreshInventoryAdd(TSubclassOf<UFGItemDescriptor> It
 
 void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & StatsRef)
 {
-	const TSubclassOf< class UEquipmentModuleDescriptor> Item = Stack.Item.ItemClass;
+	const TSubclassOf< class UEquipmentModuleDescriptor> Item = Stack.Item.GetItemClass();
 	const bool Unique = Item.GetDefaultObject()->GetnUniqueUsage(Item);
-	if (!Stack.Item.ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()) || (Unique && !UEquipmentModuleDescriptor::IsAllowedByUnique(Item,UniquesActive)))
+	if (!Item->IsChildOf(UEquipmentModuleDescriptor::StaticClass()) || (Unique && !UEquipmentModuleDescriptor::IsAllowedByUnique(Item,UniquesActive)))
 	{
 		if(Unique)
 			UE_LOG(PowerSuit_Log,Error,TEXT("Unique wasnt Filtered!"))
@@ -345,7 +345,7 @@ void UEMC_InventoryModule::MergeStats(FInventoryStack Stack, FEquipmentStats & S
 	}
 	else
 	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("Merged Stats from : %s"), *Stack.Item.ItemClass->GetName());
+		UE_LOG(PowerSuit_Log, Display, TEXT("Merged Stats from : %s"), *Item->GetName());
 		Parent->Stats + StatsRef;
 		StatsRef.UnlockFuels(Parent, Item.GetDefaultObject()->nAllowedFuels);
 		
@@ -395,7 +395,7 @@ bool UEMC_InventoryModule::MergeOnIndex(const int32 Ind, FInventoryStack& Stack,
 	{
 		Stack = FInventoryStack();
 		Parent->nInventory->GetStackFromIndex(Ind, Stack);
-		if (Stack.Item.ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()))
+		if (Stack.Item.GetItemClass()->IsChildOf(UEquipmentModuleDescriptor::StaticClass()))
 		{
 			CheckCreateModuleStats(Stack, Ind);
 			if(Bailout)
@@ -431,7 +431,7 @@ bool UEMC_InventoryModule::UpdateOnIndex(const int32 Index)
 		Parent->nInventory->GetStackFromIndex(Index, Stack);
 		if (Stack.HasItems())
 		{
-			TSubclassOf< class UEquipmentModuleDescriptor> item = Stack.Item.ItemClass;
+			TSubclassOf< class UEquipmentModuleDescriptor> item = Stack.Item.GetItemClass();
 			SubtractModuleStats(item,Index);
 			CheckCreateModuleStats(Stack, Index);
 			if(Bailout)
@@ -534,7 +534,7 @@ bool UEMC_InventoryModule::TestModuleAttachments() const
 			FInventoryStack Stack = FInventoryStack();
 			Parent->nInventory->GetStackFromIndex(Ind, Stack);
 			
-			const TSubclassOf< class UEquipmentModuleDescriptor> Item = Stack.Item.ItemClass;
+			const TSubclassOf< class UEquipmentModuleDescriptor> Item = Stack.Item.GetItemClass();
 			const UEquipmentModuleDescriptor* ItemObj = Item.GetDefaultObject();
 			if (ItemObj->GetnAttachment(Item))
 			{
@@ -550,15 +550,15 @@ bool UEMC_InventoryModule::TestModuleAttachments() const
 
 bool UEMC_InventoryModule::CheckCreateModuleStats(const FInventoryStack Stack, const int32 Ind)
 {
-	
-	if (!Stack.HasItems() || !Stack.Item.ItemClass  || !Stack.Item.ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()))
+	const TSubclassOf< class UEquipmentModuleDescriptor> Item = Stack.Item.GetItemClass();
+	if (!Stack.HasItems() || !Item || !Item->IsChildOf(UEquipmentModuleDescriptor::StaticClass()))
 	{
 		return false;
 	};
 
 	if (ItemsRemembered.Contains(Ind))
 	{
-		if (ItemsRemembered.Find(Ind)->mCachedDescriptor == Stack.Item.ItemClass)
+		if (ItemsRemembered.Find(Ind)->mCachedDescriptor == Item)
 		{
 			return true;
 		}
@@ -570,7 +570,6 @@ bool UEMC_InventoryModule::CheckCreateModuleStats(const FInventoryStack Stack, c
 	}
 	else
 	{
-		const TSubclassOf< class UEquipmentModuleDescriptor> Item = Stack.Item.ItemClass;
 		const UEquipmentModuleDescriptor* ItemObj = Item.GetDefaultObject();
 		if (ItemObj->GetnAttachment(Item))
 		{
@@ -641,7 +640,7 @@ FEquipmentStats& UEMC_InventoryModule::GetModuleStats(const FInventoryStack Stac
 {
 	if (ItemsRemembered.Contains(Ind))
 	{
-		if (ItemsRemembered.Find(Ind)->mCachedDescriptor == Stack.Item.ItemClass)
+		if (ItemsRemembered.Find(Ind)->mCachedDescriptor == Stack.Item.GetItemClass())
 		{
 			return *ItemsRemembered.Find(Ind);
 		}

@@ -115,16 +115,18 @@ void UEMC_FuelModule::Tick() const
 	if (!Parent->EquipmentParent->HasAuthority()) {
 		return;
 	}
-	float Fuel = 0;
+	float fuelConsumptionFromAttachments = 0;
 
 	for (auto* attach : Parent->AttachmentModule->Attachments) {
 		if (attach) {
-			Fuel += attach->GetDeltaFuelConsumption(Parent->LastDeltaTime);
+			fuelConsumptionFromAttachments += attach->GetDeltaFuelConsumption(Parent->LastDeltaTime);
 		}
 	}
 
-	if (Parent->nFuelConsumption != Fuel) {
-		Parent->nFuelConsumption = Fuel;
+	// UE_LOG(PowerSuit_Log, Display, TEXT("Tick: Fuel consumption from attach is %f"), fuelConsumptionFromAttachments);
+
+	if (Parent->nFuelConsumption != fuelConsumptionFromAttachments) {
+		Parent->nFuelConsumption = fuelConsumptionFromAttachments;
 	}
 }
 
@@ -142,25 +144,29 @@ void UEMC_FuelModule::PostTick()
 		const bool desiresFuel = (Parent->nFuelConsumption > 0.f) || Parent->Stats.HasAdvancedFlag(ESuitFlagAdvanced::SuitFlagAdvanced_AlwaysWantsFuel);
 		if (Parent->nFuelAmount <= 0.01 && desiresFuel) {
 			if (Parent->nFuelFuseStatus) {
-				UE_LOG(PowerSuit_Log, Display, TEXT("Fuel amount <= 0.01 and there was consumption, breaking fuel fuse"));
+				// UE_LOG(PowerSuit_Log, Display, TEXT("PostTick: Fuel amount <= 0.01 and there was consumption, breaking fuel fuse"));
 				ForcefullyBreakFuelFuse(false);
 			}
 			else {
-				// UE_LOG(PowerSuit_Log, Display, TEXT("Fuel amount <= 0.01 and there was consumption, BUT fuse already broken"));
+				// UE_LOG(PowerSuit_Log, Display, TEXT("PostTick: Fuel amount <= 0.01 and there was consumption, BUT fuse already broken"));
 			}
-			return;
+			// return;
 		} else if (!Parent->nFuelFuseStatus) {
+			// UE_LOG(PowerSuit_Log, Display, TEXT("PostTick: TryRestart"));
 			TryRestart();
 		}
 
 		// From Percent to Actual MJ Amount
 		// Subtracting the Fuel Consumption Cost in MJ for this frame(Delta)
-		// division by MJ of the Item brings us back to Percent
-		const float MJCurrent = Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value() * FMath::Clamp(Parent->nFuelAmount, 0.f, 1.f);
-		Parent->nFuelAmount =
-			FMath::Clamp(((MJCurrent - (Parent->nFuelConsumption * Parent->LastDeltaTime)))
-				/
-				FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value(), 1.f, 999999999.f), 0.f, 1.f);
+		// division by MJ of the Tank brings us back to Percent
+		const float FuelTankSizeMJ = FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value(), 1.f, 999999999.f);
+		const float StoredFuelMJ = FuelTankSizeMJ * FMath::Clamp(Parent->nFuelAmount, 0.f, 1.f);
+		const float FuelChangeThisDeltaTimeMJ = Parent->nFuelConsumption * Parent->LastDeltaTime;
+		// UE_LOG(PowerSuit_Log, Display, TEXT("PostTick: Fuel Delta is %f"), FuelChangeThisDeltaTimeMJ);
+
+		const float NewFuelAmount = FMath::Clamp((StoredFuelMJ - FuelChangeThisDeltaTimeMJ) / FuelTankSizeMJ, 0.f, 1.f);
+		// UE_LOG(PowerSuit_Log, Display, TEXT("PostTick: NewFuelAmount is %f"), NewFuelAmount);
+		Parent->nFuelAmount = NewFuelAmount;
 	}
 }
 
