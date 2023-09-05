@@ -123,7 +123,7 @@ void UEMC_PowerModule::RegenPower()
 	// Are we out of power?
 	if (Parent->nCurrentPower <= 0.01f)
 	{
-		// UE_LOG(PowerSuit_Log, Display, TEXT("Time since overdraw is %f / %f"), (float) TimeSinceOverdrawStart().GetTotalSeconds(), (float) Parent->GetSuitPropertySafe(ESuitProperty::nFuseTimeOverDraw).value());
+		// UE_LOG(LogPowerSuitCpp, Display, TEXT("Time since overdraw is %f / %f"), (float) TimeSinceOverdrawStart().GetTotalSeconds(), (float) Parent->GetSuitPropertySafe(ESuitProperty::nFuseTimeOverDraw).value());
 		// Are we still within the overdraw time?
 		if (IsFuseIntact()) {
 
@@ -141,7 +141,7 @@ void UEMC_PowerModule::RegenPower()
 
 			/*
 			// This should only end up called once per overdraw since these calls should put it in a mode where it's no longer producing power -> RegenPower not called?
-			UE_LOG(PowerSuit_Log, Display, TEXT("23131 Overdraw called"));
+			UE_LOG(LogPowerSuitCpp, Display, TEXT("23131 Overdraw called"));
 			Parent->Client_FuseBreakOverDraw();
 			
 			// TODO not sure if this is still needed here?
@@ -216,7 +216,7 @@ void UEMC_PowerModule::TryBreakFuse()
 	}
 	else
 	{
-		UE_LOG(PowerSuit_Log, Error, TEXT(" IF you see this, Debug me. Something Toggled Suit State while Fuse was broken"));
+		UE_LOG(LogPowerSuitCpp, Error, TEXT(" IF you see this, Debug me. Something Toggled Suit State while Fuse was broken"));
 	}
 }
 

@@ -1,0 +1,19 @@
+# This file defines items in the private repo that will not be copied into the public one
+# by the script that copies files out of a multi-mod project-level repo into public repos.
+# This should not be used as a replacement for the repo's gitignore,
+# but instead to save time and disk space by avoiding copying build files that are already gitignored.
+# Glob syntax, # is comment, but the globs are evaluated based on the script running directory so it's best to prefix everything with **/ to ensure it will work
+
+# Build/generated files
+**/Saved/**
+**/Intermediate/**
+**/Binaries/**
+
+# Backups or early release zips
+**/*.7z
+**/*.001
+**/*.002
+**/*.003
+
+# PowerSuit gitignored art assets
+**Content/Assets/GitIgnoredAssets/**

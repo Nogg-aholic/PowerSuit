@@ -10,7 +10,7 @@ void UEMC_AttachmentModule::PreTick()
 		if (i)
 			if (i->GetIsConditionMet())
 			{
-				UE_LOG(PowerSuit_Log,Warning,TEXT("Attachment : %s caused Update on Index %i while going Active"), *i->GetName(), i->InventorySlot)
+				UE_LOG(LogPowerSuitCpp,Warning,TEXT("Attachment : %s caused Update on Index %i while going Active"), *i->GetName(), i->InventorySlot)
 				Parent->InventoryModule->UpdateOnIndex(i->InventorySlot);
 				return;
 			}
@@ -25,7 +25,7 @@ void UEMC_AttachmentModule::PreTick()
 		{
 			if (!i->GetIsConditionMet())
 			{
-				UE_LOG(PowerSuit_Log, Warning, TEXT("Attachment : %s caused Update on Index %i while going inActive"), *i->GetName(), i->InventorySlot)
+				UE_LOG(LogPowerSuitCpp, Warning, TEXT("Attachment : %s caused Update on Index %i while going inActive"), *i->GetName(), i->InventorySlot)
 				Parent->InventoryModule->UpdateOnIndex(i->InventorySlot);
 				return;
 			}
@@ -68,7 +68,7 @@ void UEMC_AttachmentModule::PostTick()
 // Server and Client
 void UEMC_AttachmentModule::ResetAttachments()
 {
-	if (IsPendingKill())
+	if (!IsValid(this))
 		return;
 	if (!Parent->GetOwner())
 		return;

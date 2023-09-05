@@ -170,3 +170,22 @@ void APowerSuitModuleAttachment::SetSuitFlag(ESuitFlag Flag, bool Enabled)
 	}
 }
 
+void APowerSuitModuleAttachment::SetSuitFlagAdvanced(ESuitFlagAdvanced Flag, bool Enabled)
+{
+	if (!HasAuthority())
+	{
+		ParentModule->RCO->ServerSetSuitFlagAdvanced(this, Flag, Enabled);
+	}
+	const bool Has = AttachmentStats.HasAdvancedFlag(Flag);
+	if (Has && Enabled)
+		return;
+	else if (!Has && Enabled)
+	{
+		AttachmentStats.SuitFlagsAdvanced += Flag;
+	}
+	else if (Has && !Enabled)
+	{
+		AttachmentStats.SuitFlagsAdvanced -= Flag;
+	}
+}
+

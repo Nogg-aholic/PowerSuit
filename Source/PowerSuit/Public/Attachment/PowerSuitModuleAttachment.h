@@ -149,4 +149,7 @@ public:
 	// NOT REPLICATED ! see SetProperty for Instructions;
 	UFUNCTION(BlueprintCallable)
 		void SetSuitFlag(ESuitFlag Flag, bool Enabled);
+	// NOT REPLICATED ! see SetProperty for Instructions;
+	UFUNCTION(BlueprintCallable)
+		void SetSuitFlagAdvanced(ESuitFlagAdvanced Flag, bool Enabled);
 };

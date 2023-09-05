@@ -1,4 +1,5 @@
 #pragma once
+#include "PowerSuit.h"
 
 #include "SubModules/EMC_SubModule.h"
 #include "Equipment/Equipment_PowerSuit.h"
@@ -42,7 +43,7 @@ public:
 		bool HKey_Accel = false;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Equipment")
-		bool HKey_Breaks = false;
+		bool HKey_DeAccel = false;
 
 
 

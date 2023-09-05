@@ -1,4 +1,5 @@
 #pragma once
+#include "PowerSuit.h"
 
 #include "SubModules/EMC_SubModule.h"
 #include "EMC_AttachmentModule.generated.h"

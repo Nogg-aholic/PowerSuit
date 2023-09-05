@@ -1,6 +1,3 @@
-
-
-
 #include "EquipmentModuleComponent.h"
 #include "Equipment/Equipment_PowerSuit.h"
 #include "FGHealthComponent.h"
@@ -121,19 +118,15 @@ void UEquipmentModuleComponent::EquippedTick(float DeltaTime)
 
 void UEquipmentModuleComponent::SetupSubModules()
 {
-
 	AFGPlayerController* Controller = Cast< AFGPlayerController>(EquipmentParent->GetInstigatorController());
-	if (!Controller)
-	{
-		UE_LOG(PowerSuit_Log, Error, TEXT("Controller cast failed! fix this "));
+	if (!Controller) {
+		UE_LOG(LogPowerSuitCpp, Error, TEXT("Controller cast failed! fix this "));
 		return;
 	}
 
 	if (!PowerModule)
 	{
-
-		UE_LOG(PowerSuit_Log, Display, TEXT("Creating SubModules "));
-
+		UE_LOG(LogPowerSuitCpp, Display, TEXT("Creating SubModules "));
 		StateModule = NewObject<UEMC_StateModule>(); // 1
 		AttachmentModule = NewObject<UEMC_AttachmentModule>(); // 2
 		PowerModule = NewObject<UEMC_PowerModule>(); // 3 
@@ -155,15 +148,15 @@ void UEquipmentModuleComponent::SetupSubModules()
 	ZiplineModule->Parent = this; // 8
 	HealthModule->Parent = this; // 9
 
-	RCO = Cast< UPowerSuitRCO>(Controller->GetRemoteCallObjectOfClass(UPowerSuitRCO::StaticClass()));
-
+	RCO = Cast<UPowerSuitRCO>(Controller->GetRemoteCallObjectOfClass(UPowerSuitRCO::StaticClass()));
 	if (!RCO)
 	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("Registered RCO"));
+		// Why this this here twice? -Rob
+		UE_LOG(LogPowerSuitCpp, Display, TEXT("Registered RCO"));
 		RCO = Cast< UPowerSuitRCO>(Controller->RegisterRemoteCallObjectClass(UPowerSuitRCO::StaticClass()));
 		if (!RCO)
 		{
-			UE_LOG(PowerSuit_Log, Error, TEXT("No RCO ! Fix this "));
+			UE_LOG(LogPowerSuitCpp, Error, TEXT("No RCO ! Fix this "));
 			return;
 		}
 	}
@@ -172,30 +165,24 @@ void UEquipmentModuleComponent::SetupSubModules()
 
 void UEquipmentModuleComponent::Init( APowerSuit * Parent)
 {
-
-	UE_LOG(PowerSuit_Log, Display, TEXT("InitCall"));
-	if (!Parent)
-	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("No Parent on InitCall"));
-
+	UE_LOG(LogPowerSuitCpp, Display, TEXT("InitCall"));
+	if (!Parent) {
+		UE_LOG(LogPowerSuitCpp, Display, TEXT("No Parent on InitCall"));
 		return;
 	}
 
-
-	if (!Parent->GetInstigator())
-	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("No Instigator on InitCall"));
+	if (!Parent->GetInstigator()) {
+		UE_LOG(LogPowerSuitCpp, Display, TEXT("No Instigator on InitCall"));
 		return;
 	}
 
 	EquipmentParent = Parent;
-	AFGCharacterPlayer* Character = Cast< AFGCharacterPlayer>(EquipmentParent->GetInstigator());
+	AFGCharacterPlayer* Character = Cast<AFGCharacterPlayer>(EquipmentParent->GetInstigator());
 	MoveC = Character->GetFGMovementComponent();
 
 	SetupSubModules();
 
 	InventoryModule->InitInventory();
-
 }
 
 
@@ -289,10 +276,6 @@ float UEquipmentModuleComponent::CalculateDamage(float DmgIn, int32 Type, TSubcl
 	return Dmg;
 }
 
-
-
-
-
 void UEquipmentModuleComponent::RemoteInventoryRefresh_Implementation(bool IsAdd, TSubclassOf<UFGItemDescriptor> Class, int32 Amount)
 {
 	if (!EquipmentParent || !EquipmentParent->GetInstigator() || EquipmentParent->GetInstigator()->HasAuthority())
@@ -303,16 +286,16 @@ void UEquipmentModuleComponent::RemoteInventoryRefresh_Implementation(bool IsAdd
 		if (IsAdd)
 		{
 			OnModuleInstalled.Broadcast(Class, nullptr);
-			UE_LOG(PowerSuit_Log, Display, TEXT("Remote with RefreshInventoryAdd"))
+			UE_LOG(LogPowerSuitCpp, Display, TEXT("Remote with RefreshInventoryAdd"))
 		}
 		else
 		{
 			OnModuleUnInstalled.Broadcast(Class, nullptr);
-			UE_LOG(PowerSuit_Log, Display, TEXT("Remote with RefreshInventoryRemove"));
+			UE_LOG(LogPowerSuitCpp, Display, TEXT("Remote with RefreshInventoryRemove"));
 		}
 	}
 	
-	UE_LOG(PowerSuit_Log, Display, TEXT("Remote Refresh Scheduled for 0.2 sec"));
+	UE_LOG(LogPowerSuitCpp, Display, TEXT("Remote Refresh Scheduled for 0.2 sec"));
 
 	// Used by EquipmentModuleComponent to delay the update of remote suit inventories. Intentionally allows new executions to cancel the old ones.
 
@@ -343,7 +326,7 @@ void UEquipmentModuleComponent::RemoteUpdateMovementAir_Implementation(const flo
 	EquipmentParent->mHoverSpeed = Speed;
 	MoveC->mMaxSprintSpeed = Speed;
 	EquipmentParent->mHoverAccelerationSpeed = Accel;
-	UE_LOG(PowerSuit_Log, Display, TEXT("Remote updated flight props with HoverMovementSpeedAdded: %f HoverMovementSpeedAccelAdded: %f"), Speed, Accel);
+	UE_LOG(LogPowerSuitCpp, Display, TEXT("Remote updated flight props with HoverMovementSpeedAdded: %f HoverMovementSpeedAccelAdded: %f"), Speed, Accel);
 }
 
 FModMultProperty UEquipmentModuleComponent::GetSuitPropertySafe(ESuitProperty prop) const
@@ -368,7 +351,6 @@ FModMultProperty UEquipmentModuleComponent::GetFlightPropertySafe(ESuitFlightPro
 {
 	if (!Stats.nFlightProperties.Contains(prop))
 		return FModMultProperty();
-
 	return *Stats.nFlightProperties.Find(prop);
 }
 
@@ -376,24 +358,22 @@ FModMultProperty UEquipmentModuleComponent::GetNamedPropertySafe(FName prop) con
 {
 	if (Stats.nNamedProperties.Contains(prop))
 		return *Stats.nNamedProperties.Find(prop);
-	else
-		return FModMultProperty();
+	return FModMultProperty();
 }
 
 FModMultProperty UEquipmentModuleComponent::GetStatePropertySafe(TMap<TEnumAsByte<EPowerSuitState>, FModMultProperty> Map, const EPowerSuitState Prop)
 {
 	if (Map.Contains(Prop))
 		return *Map.Find(Prop);
-	else
-		return FModMultProperty();
+	return FModMultProperty();
 }
 
 
 void UEquipmentModuleComponent::ResetStats(bool Notify)
 {
-	if (!EquipmentParent ||EquipmentParent->IsPendingKill() || !EquipmentParent->GetInstigator() || EquipmentParent->GetInstigator()->IsPendingKill())
+	if (!EquipmentParent || !IsValid(EquipmentParent) || !EquipmentParent->GetInstigator() || !IsValid(EquipmentParent->GetInstigator()))
 		return;
-	UE_LOG(PowerSuit_Log, Display, TEXT("Resetting Stats"));
+	UE_LOG(LogPowerSuitCpp, Display, TEXT("Resetting Stats"));
 	AttachmentModule->ResetAttachments();
 
 	// Reset everything
@@ -443,8 +423,6 @@ bool UEquipmentModuleComponent::NeedTransform_Implementation()
 	return false;
 }
 
-
-
 bool UEquipmentModuleComponent::VerifyItem(TSubclassOf< UFGItemDescriptor > ItemClass, int32 Amount) const
 {
 	if (SuitState == EPowerSuitState::PS_REBOOTING)
@@ -455,9 +433,8 @@ bool UEquipmentModuleComponent::VerifyItem(TSubclassOf< UFGItemDescriptor > Item
 	
 	if (ItemClass->IsChildOf(UEquipmentModuleDescriptor::StaticClass()))
 	{
-		// ReSharper disable once CppMsExtDoubleUserConversionInCopyInit
-		const TSubclassOf<class UEquipmentModuleDescriptor> Item = ItemClass;
-		if (!UEquipmentModuleDescriptor::IsAllowedByUnique(Item,InventoryModule->UniquesActive))
+		const auto moduleDesc = TSubclassOf<class UEquipmentModuleDescriptor>(ItemClass);
+		if (!UEquipmentModuleDescriptor::IsAllowedByUnique(moduleDesc,InventoryModule->UniquesActive))
 		{
 			OnInventoryDropFail.Broadcast(ItemClass, Amount,0);
 			return false;

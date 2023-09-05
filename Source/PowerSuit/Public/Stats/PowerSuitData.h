@@ -12,8 +12,6 @@
 #include "DamageTypes/FGDamageType.h"
 #include "PowerSuitData.generated.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(PowerSuit_Log, Log, Log);
-
 #ifdef FOR_MODSHIPPING
 // Header Edits 
 #else
@@ -300,7 +298,7 @@ enum ESuitFlagAdvanced
 	SuitFlagAdvanced_IgnoreBelts = 1 << 1 UMETA(Tooltip = "Smart Belt Immunity, belts can't move the player except if the player is boosting and looking in that direction. Also see source for available named properties to boost speed."),
 	SuitFlagAdvanced_ZipLineAccel = 1 << 2 UMETA(Tooltip = "Allow boost/brakes key to be used on ziplines and put into the relevant movestate"),
 	SuitFlagAdvanced_AlwaysWantsFuel = 1 << 3 UMETA(Tooltip = "Affects Fuel Fuse logic. When set, the suit is always considered as having fuel consumption even if there isn't any right now -> suit will Fuel Fuse break when out of fuel."),
-	SuitFlagAdvanced_Temp4 = 1 << 4 UMETA(Tooltip = "Placeholder for future implementation"),
+	SuitFlagAdvanced_ExitPipesEarly = 1 << 4 UMETA(Tooltip = "Allow exiting hypertubes early by flying with thrust flight"),
 	SuitFlagAdvanced_Temp5 = 1 << 5 UMETA(Tooltip = "Placeholder for future implementation"),
 	SuitFlagAdvanced_Temp6 = 1 << 6 UMETA(Tooltip = "Placeholder for future implementation"),
 	SuitFlagAdvanced_Temp7 = 1 << 7 UMETA(Tooltip = "Placeholder for future implementation"),
@@ -705,16 +703,14 @@ public:
 
 	FEquipmentStats operator-(const FEquipmentStats& OtherStruct);
 
-	bool HasFlag(UPARAM(meta = (Bitmask, BitmaskEnum = ESuitFlag)) int32 Bitmask) const;;
+	bool HasFlag(UPARAM(meta = (Bitmask, BitmaskEnum = "/Script/PowerSuit.ESuitFlag")) int32 Bitmask) const;;
+	bool HasRemoveFlag(UPARAM(meta = (Bitmask, BitmaskEnum = "/Script/PowerSuit.ESuitFlag")) int32 Bitmask) const;;
 
-	bool HasDamageMask(UPARAM(meta = (Bitmask, BitmaskEnum = ENDamageType)) int32 Bitmask) const;;
+	bool HasDamageMask(UPARAM(meta = (Bitmask, BitmaskEnum = "/Script/PowerSuit.ENDamageType")) int32 Bitmask) const;;
+	bool HasRemoveDamageMask(UPARAM(meta = (Bitmask, BitmaskEnum = "/Script/PowerSuit.ENDamageType")) int32 Bitmask) const;;
 
-	bool HasRemoveFlag(UPARAM(meta = (Bitmask, BitmaskEnum = ESuitFlag)) int32 Bitmask) const;;
-
-	bool HasRemoveDamageMask(UPARAM(meta = (Bitmask, BitmaskEnum = ENDamageType)) int32 Bitmask) const;;
-
-	bool HasAdvancedFlag(UPARAM(meta = (Bitmask, BitmaskEnum = ESuitFlag)) int32 Bitmask) const;;
-	bool HasAdvancedRemoveFlag(UPARAM(meta = (Bitmask, BitmaskEnum = ESuitFlag)) int32 Bitmask) const;;
+	bool HasAdvancedFlag(UPARAM(meta = (Bitmask, BitmaskEnum = "/Script/PowerSuit.ESuitFlagAdvanced")) int32 Bitmask) const;;
+	bool HasAdvancedRemoveFlag(UPARAM(meta = (Bitmask, BitmaskEnum = "/Script/PowerSuit.ESuitFlagAdvanced")) int32 Bitmask) const;;
 
 	/**
 	* Settings that change base numeric properties of the suit
@@ -773,7 +769,7 @@ public:
 	/**
 	*	What Damage Types the Suit's EnergyShield can Absorb
 	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ENDamageType))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = "/Script/PowerSuit.ENDamageType"))
 		int32 DamageShieldAbsorption;
 
 	/**
@@ -781,13 +777,13 @@ public:
 	*   Use this to remove suit damage types when a certain module is installed.
 	*   Always takes precedence over DamageShieldAbsorption.
 	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ENDamageType))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = "/Script/PowerSuit.ENDamageType"))
 		int32 RemoveDamageShieldAbsorption;
 
 	/**
 	* Boolean flags for general suit abilities such as being able to enter flight mode.
 	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ESuitFlag))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = "/Script/PowerSuit.ESuitFlag"))
 		int32 SuitFlags;
 
 	/**
@@ -795,19 +791,19 @@ public:
 	* Use this to remove suit abilities when a certain module is installed.
 	* Always takes precedence over SuitFlags.
 	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ESuitFlag))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = "/Script/PowerSuit.ESuitFlag"))
 		int32 RemoveSuitFlags;
 
 	/**
 	* Boolean flags for general suit abilities such as being able to enter flight mode.
 	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ESuitFlagAdvanced))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = "/Script/PowerSuit.ESuitFlagAdvanced"))
 		int32 SuitFlagsAdvanced;
 
 	/**
 	* Boolean flags for general suit abilities such as being able to enter flight mode.
 	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = ESuitFlagAdvanced))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, meta = (Bitmask, BitmaskEnum = "/Script/PowerSuit.ESuitFlagAdvanced"))
 		int32 RemoveSuitFlagsAdvanced;
 
 	/*

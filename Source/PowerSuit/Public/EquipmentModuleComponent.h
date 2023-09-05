@@ -1,4 +1,5 @@
 #pragma once
+#include "PowerSuit.h"
 #include "Components/ActorComponent.h"
 #include "Equipment/EquipmentModuleDescriptor.h"
 #include "Equipment/FGHoverPack.h"
@@ -50,6 +51,7 @@ public:
 
 	virtual bool NeedTransform_Implementation() override;
 
+	// Used to determine if an item can be put into the suit equip slots. Bound in cpp by function name.
 	UFUNCTION()
 		bool VerifyItem(TSubclassOf<UFGItemDescriptor> ItemClass, int32 Amount) const;
 
@@ -63,7 +65,7 @@ public:
 		FOnBufferRefuel OnBufferRefuel;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnInventoryDropFail, TSubclassOf<class UFGItemDescriptor>, Item, int32, Amount, int32, Type);
-	// 0 == Unique excluded; 1 == Not Equipment Descriptor; 2 == Reboot
+	// 0 == Unique excluded; 1 == Not Equipment Descriptor; 2 == Rebooting
 	UPROPERTY(BlueprintAssignable, Category = "EquipmentModule")
 		FOnInventoryDropFail OnInventoryDropFail;
 
@@ -138,7 +140,7 @@ public:
 
 	// Calculate damage while factoring in damage resistances, will send the damage to shield first if the module stats has shield damage flag for that type
 	UFUNCTION(BlueprintCallable, Category = "EquipmentModule")
-		float CalculateDamage(float DmgIn, UPARAM(meta = (Bitmask, BitmaskEnum = ENDamageType)) int32 Type, TSubclassOf<class UFGDamageType> BpType,FHitResult Impact);
+		float CalculateDamage(float DmgIn, UPARAM(meta = (Bitmask, BitmaskEnum = "/Script/PowerSuit.ENDamageType")) int32 Type, TSubclassOf<class UFGDamageType> BpType, FHitResult Impact);
 
 
 	UFUNCTION(BlueprintPure, Category = "EquipmentModule")
@@ -298,9 +300,9 @@ public:
 
 
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
-		FKey KB_Toggle;
+		FKey KB_ToggleFlightGravity;
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
-		FKey KB_Toggle2;
+		FKey KB_ToggleFlightFriction;
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
 		FKey KB_Up;
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
@@ -308,7 +310,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
 		FKey KB_Accel;
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
-		FKey KB_Breaks;
+		FKey KB_DeAccel;
 	UPROPERTY(BlueprintReadWrite, Category = "Movement")
 		FKey KB_UI;
 

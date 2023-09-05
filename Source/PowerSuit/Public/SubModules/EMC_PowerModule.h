@@ -1,4 +1,6 @@
 #pragma once
+#include "PowerSuit.h"
+
 #include "SubModules/EMC_SubModule.h"
 #include "EMC_PowerModule.generated.h"
 

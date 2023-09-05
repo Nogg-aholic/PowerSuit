@@ -4,9 +4,6 @@
 #include "Attachment/PowerSuitModuleAttachment.h"
 #include "SubModules/EMC_InventoryModule.h"
 
-DEFINE_LOG_CATEGORY(PowerSuit_Log);
-
-
 FEquipmentStats::FEquipmentStats(): SuitFlagsAdvanced(0), RemoveSuitFlagsAdvanced(0), mCachedAttachment(nullptr)
 {
 	nMovementProperties = {};

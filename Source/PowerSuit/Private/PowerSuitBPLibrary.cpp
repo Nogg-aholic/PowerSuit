@@ -9,6 +9,7 @@
 #include "FGCharacterMovementComponent.h"
 #include "FGPowerConnectionComponent.h"
 #include "FGPowerInfoComponent.h"
+#include "FGInventoryComponent.h"
 #include "PowerSuit.h"
 #include "Patching/BlueprintHookHelper.h"
 #include "Patching/BlueprintHookManager.h"
@@ -424,7 +425,7 @@ void UPowerSuitBPLibrary::UpdateAllNoRefresh(APowerSuit* EquipmentParent, bool N
 	if (!EquipmentParent) {
 		return;
 	}
-	UE_LOG(PowerSuit_Log, Warning, TEXT("UpdateAllNoRefresh"));
+	UE_LOG(LogPowerSuitCpp, Warning, TEXT("UpdateAllNoRefresh"));
 	UpdateInventorySize(EquipmentParent);
 	UpdateFlags(EquipmentParent);
 	UpdateFlightStats(EquipmentParent);
@@ -509,6 +510,20 @@ void UPowerSuitBPLibrary::SetSuitFlag(FEquipmentStats& Stats, ESuitFlag Flag, bo
 		Stats.SuitFlags += Flag;
 	} else if (AlreadyHas && !Enabled) {
 		Stats.SuitFlags -= Flag;
+	}
+}
+
+void UPowerSuitBPLibrary::SetSuitFlagAdvanced(FEquipmentStats& Stats, ESuitFlagAdvanced Flag, bool Enabled)
+{
+	const bool AlreadyHas = Stats.HasAdvancedFlag(Flag);
+	if (AlreadyHas && Enabled) {
+		return;
+	}
+	else if (!AlreadyHas && Enabled) {
+		Stats.SuitFlagsAdvanced += Flag;
+	}
+	else if (AlreadyHas && !Enabled) {
+		Stats.SuitFlagsAdvanced -= Flag;
 	}
 }
 
@@ -704,7 +719,23 @@ TSubclassOf<UFGRecipe> UPowerSuitBPLibrary::GetBuiltWithRecipe(AFGBuildable* Bui
 	return Building->GetBuiltWithRecipe();
 }
 
+class UFGInventoryComponent* UPowerSuitBPLibrary::GetReplicationDetailActiveInventoryComponent(FReplicationDetailData* ReplicationDetailData) {
+	return ReplicationDetailData->GetActiveInventoryComponent();
+}
 
-class UFGInventoryComponent* UPowerSuitBPLibrary::GetReplicationDetailActiveInventoryComponent(UFGReplicationDetailInventoryComponent* ReplicationDetailComponent) {
-	return ReplicationDetailComponent->GetActiveInventoryComponent();
+void UPowerSuitBPLibrary::GetReplicationDetailData(AFGBuildable* buildable, TArray<FReplicationDetailData*>& out_repDetailData) {
+	buildable->GetAllReplicationDetailDataMembers(out_repDetailData);
+}
+
+TArray<UFGInventoryComponent*> UPowerSuitBPLibrary::GetRealInventoryComponents(AFGBuildable* buildable) {
+	if (!buildable)
+		return TArray<UFGInventoryComponent*>();
+	TArray<FReplicationDetailData*> data;
+	UPowerSuitBPLibrary::GetReplicationDetailData(buildable, data);
+
+	TArray<UFGInventoryComponent*> inventories;
+	for (auto entry : data) {
+		inventories.Add(UPowerSuitBPLibrary::GetReplicationDetailActiveInventoryComponent(entry));
+	}
+	return inventories;
 }

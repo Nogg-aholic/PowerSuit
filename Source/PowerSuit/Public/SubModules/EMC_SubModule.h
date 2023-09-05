@@ -1,4 +1,5 @@
 #pragma once
+#include "PowerSuit.h"
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"

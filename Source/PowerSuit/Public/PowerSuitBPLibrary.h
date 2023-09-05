@@ -1,5 +1,5 @@
 #pragma once
-
+#include "PowerSuit.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "FGCheatManager.h"
 #include "Buildables/FGBuildable.h"
@@ -106,6 +106,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "EquipmentStats")
 		static bool HasSuitFlag(ESuitFlag Flag, FEquipmentStats Stats)  { return Stats.HasFlag(Flag); };
 	UFUNCTION(BlueprintPure, Category = "EquipmentStats")
+		static bool HasSuitFlagAdvanced(ESuitFlagAdvanced Flag, FEquipmentStats Stats) { return Stats.HasAdvancedFlag(Flag); };
+	UFUNCTION(BlueprintPure, Category = "EquipmentStats")
 		static bool HasDamageFlag(ENDamageType Type, FEquipmentStats Stats) { return Stats.HasDamageMask(Type); };
 
 
@@ -120,15 +122,17 @@ public:
 	UFUNCTION(BlueprintCallable)
 		static void SetSuitProperty(UPARAM(ref) FEquipmentStats& Stats, ESuitProperty Enum, FModMultProperty Property);
 	// NOT REPLICATED ! see SetProperty for Instructions;
-	
 	UFUNCTION(BlueprintCallable)
 		static void SetSuitPropertyNamed(FEquipmentStats& Stats, FName Prop, FModMultProperty Property);
-
+	// NOT REPLICATED ! see SetProperty for Instructions;
 	UFUNCTION(BlueprintCallable)
 		static void SetPropertyGeneral(UPARAM(ref) FEquipmentStats& Stats, EEquipmentStatsProperty PropertyType, uint8 Index, FModMultProperty Property);
 	// NOT REPLICATED ! see SetProperty for Instructions;
 	UFUNCTION(BlueprintCallable)
 		static void SetSuitFlag(UPARAM(ref) FEquipmentStats& Stats, ESuitFlag Flag, bool Enabled);
+	// NOT REPLICATED ! see SetProperty for Instructions;
+	UFUNCTION(BlueprintCallable)
+		static void SetSuitFlagAdvanced(UPARAM(ref) FEquipmentStats& Stats, ESuitFlagAdvanced Flag, bool Enabled);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "PowerSuit Bind on Actor Construct"))
 	static void BindOnActorConstruct(TSubclassOf<AActor> ActorClass, FOnObjectConstruct Binding);
@@ -160,7 +164,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 		static TSubclassOf<UFGRecipe> GetBuiltWithRecipe(AFGBuildable* Building);
 
+	// Struct is not blueprint compatible so must handle this part all in cpp
+	static class UFGInventoryComponent* GetReplicationDetailActiveInventoryComponent(FReplicationDetailData* ReplicationDetailData);
+	// Struct is not blueprint compatible so must handle this part all in cpp
+	static void GetReplicationDetailData(AFGBuildable* buildable, TArray<FReplicationDetailData*>& out_repDetailData);
+
+	// Use the replication detail data system to get the real inventory component used by a buildable
 	UFUNCTION(BlueprintCallable)
-		static class UFGInventoryComponent* GetReplicationDetailActiveInventoryComponent(UFGReplicationDetailInventoryComponent* ReplicationDetailComponent);
+		static TArray<UFGInventoryComponent*> GetRealInventoryComponents(AFGBuildable* buildable);
 
 };

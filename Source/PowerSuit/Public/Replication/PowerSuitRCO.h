@@ -1,16 +1,13 @@
-
-
 #pragma once
 
+#include "PowerSuit.h"
 #include "CoreMinimal.h"
 #include "FGRemoteCallObject.h"
 #include "EquipmentModuleComponent.h"
+#include "Resources/FGItemDescriptor.h"
 
 #include "PowerSuitRCO.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class POWERSUIT_API UPowerSuitRCO : public UFGRemoteCallObject
 {
@@ -74,5 +71,10 @@ public:
 	UFUNCTION(BlueprintCallable, Server, unreliable)
 	void ServerSetSuitFlag(APowerSuitModuleAttachment* Attachment, ESuitFlag Flag, bool Enabled);
 	UFUNCTION(BlueprintCallable, Server, unreliable)
+		void ServerSetSuitFlagAdvanced(APowerSuitModuleAttachment* Attachment, ESuitFlagAdvanced Flag, bool Enabled);
+	UFUNCTION(BlueprintCallable, Server, unreliable)
 		void ServerUpdateCurrentHoverMode(UEquipmentModuleComponent* Component, EHoverPackMode Index);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+		void ServerSetUserPreferredFuelType(APowerSuit* Suit, TSubclassOf<UFGItemDescriptor> item);
 };

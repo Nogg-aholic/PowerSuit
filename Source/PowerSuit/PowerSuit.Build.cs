@@ -1,10 +1,9 @@
-// Some copyright should be here...
-
 using UnrealBuildTool;
 using System.IO;
+using System;
+using System.Runtime.InteropServices;
 using System.Text;
-using Tools.DotNETCommon;
-
+using EpicGames.Core;
 
 public class PowerSuit : ModuleRules
 {
@@ -18,7 +17,7 @@ public class PowerSuit : ModuleRules
         PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-                "Core", "CoreUObject","Engine","InputCore","UMG",
+                "Core", "CoreUObject","Engine","InputCore", "EnhancedInput", "UMG",
                 "SML",
                 "FactoryGame"
 				// ... add private dependencies that you statically link with here ...	

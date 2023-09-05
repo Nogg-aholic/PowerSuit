@@ -1,4 +1,3 @@
-
 #include "Equipment/Equipment_PowerSuit.h"
 
 #include "FGGameState.h"
@@ -13,6 +12,8 @@
 #include "SubModules/EMC_HealthModule.h"
 #include "SubModules/EMC_StateModule.h"
 
+#include "EnhancedInputSubsystems.h"
+
 #include "FactoryGame.h"
 
 APowerSuit::APowerSuit()
@@ -21,13 +22,14 @@ APowerSuit::APowerSuit()
 	this->Module->SetupAttachment(this->RootComponent);
 	this->Module->SetNetAddressable(); // Make net addressable
 	this->Module->SetIsReplicated(true);
+	this->SuitMappingPriority = -101; // Lower (higher prio) than PlayerMovement
 }
 
 
 
 void APowerSuit::BeginPlay()
 {
-	UE_LOG(PowerSuit_Log, Display, TEXT("**************** PowerSuit Spawn ****************\n %s"), *GetName());
+	UE_LOG(LogPowerSuitCpp, Display, TEXT("**************** PowerSuit Spawn ****************\n %s"), *GetName());
 	Super::BeginPlay();
 }
 
@@ -40,7 +42,7 @@ void APowerSuit::OnConnectionStatusUpdatedReplacement(bool HasConnection)
 		{
 			if (Module->SuitState == EPowerSuitState::PS_HOVER || Module->SuitState == EPowerSuitState::PS_HOVERSPRINT || Module->SuitState == EPowerSuitState::PS_HOVERMOVE || Module->SuitState == EPowerSuitState::PS_SLOWFALL)
 			{
-				UE_LOG(PowerSuit_Log, Warning, TEXT("**************** PowerSuit Re-Enabling Hover ****************\n %s"), *GetName());
+				UE_LOG(LogPowerSuitCpp, Warning, TEXT("**************** PowerSuit Re-Enabling Hover ****************\n %s"), *GetName());
 				Module->MoveC->CustomMovementMode = uint8(ECustomMovementMode::CMM_Hover);
 				Module->EquipmentParent->SetHoverMode(EHoverPackMode::HPM_Hover);
 			}
@@ -49,12 +51,12 @@ void APowerSuit::OnConnectionStatusUpdatedReplacement(bool HasConnection)
 }
 void APowerSuit::Destroyed()
 {
-	UE_LOG(PowerSuit_Log, Warning, TEXT("**************** PowerSuit Destroyed ****************\n %s"), *GetName());
+	UE_LOG(LogPowerSuitCpp, Warning, TEXT("**************** PowerSuit Destroyed ****************\n %s"), *GetName());
 	Super::Destroyed();
 }
 
 void APowerSuit::Equip(class AFGCharacterPlayer* character){
-	UE_LOG(PowerSuit_Log, Warning, TEXT("**************** PowerSuit Equip ****************\n %s"), *GetName());
+	UE_LOG(LogPowerSuitCpp, Warning, TEXT("**************** PowerSuit Equip ****************\n %s"), *GetName());
 	Super::Equip(character);
 	if (character && character->HasAuthority())
 	{	
@@ -62,34 +64,36 @@ void APowerSuit::Equip(class AFGCharacterPlayer* character){
 		SetOwner(character->GetController());
 		if (Module)
 		{
-			UE_LOG(PowerSuit_Log, Warning, TEXT("**************** PS EMC Init ****************\n %s"), *GetName());
+			UE_LOG(LogPowerSuitCpp, Warning, TEXT("**************** PS EMC Init ****************\n %s"), *GetName());
 			Module->Init(this);
 		}
 	}
 };
 
 void APowerSuit::WasSlottedIn(class AFGCharacterPlayer* holder) {
-	UE_LOG(PowerSuit_Log, Warning, TEXT("**************** PowerSuit SlottedIn ****************\n %s"), *GetName());
+	UE_LOG(LogPowerSuitCpp, Warning, TEXT("**************** PowerSuit SlottedIn ****************\n %s"), *GetName());
 	// Since it's not a hand equipment, this should never be called. Keeping this here in case it does
 	Super::WasSlottedIn(holder);
 }
 
 void APowerSuit::UnEquip()
 {	
-	UE_LOG(PowerSuit_Log, Warning, TEXT("**************** PowerSuit UnEquip ****************\n %s"), *GetName());
-	if (IsPendingKill()) {
-		UE_LOG(PowerSuit_Log, Display, TEXT("is Pending kill "));
+	UE_LOG(LogPowerSuitCpp, Warning, TEXT("**************** PowerSuit UnEquip ****************\n %s"), *GetName());
+	if (!IsValid(this)) {
+		UE_LOG(LogPowerSuitCpp, Display, TEXT("is Pending kill "));
 	}
 
+	SuitClearEquipmentActionBindings();
+
 	if (!Module || !Module->nInventory) {
-		UE_LOG(PowerSuit_Log, Error, TEXT("Can't UnEquip a suit that doesn't have a Module or ModuleInventory?"));
+		UE_LOG(LogPowerSuitCpp, Error, TEXT("Can't UnEquip a suit that doesn't have a Module or ModuleInventory?"));
 		return;
 	}
 
 	if (GetInstigator() && Cast<AFGCharacterPlayer>(GetInstigator()))
 	{
 		if (Cast<AFGCharacterPlayer>(GetInstigator())->IsDrivingVehicle()) {
-			UE_LOG(PowerSuit_Log, Warning, TEXT("is Driving a Vehicle, so OverrideReboot"));
+			UE_LOG(LogPowerSuitCpp, Warning, TEXT("is Driving a Vehicle, so OverrideReboot"));
 			OverrideReboot = true;
 		} else {
 			OverrideReboot = false;
@@ -98,20 +102,19 @@ void APowerSuit::UnEquip()
 		
 	if (Module->nInventory)
 	{
-		if (IsPendingKill())
-			UE_LOG(PowerSuit_Log, Display, TEXT("(No Inventory becase is Pending kill)"))
-		else
-		{
-			UE_LOG(PowerSuit_Log, Display, TEXT("Valid Inventory %s "), *Module->nInventory->GetName());
+		if (!IsValid(this)) {
+			UE_LOG(LogPowerSuitCpp, Display, TEXT("(No Inventory because is Pending kill)"))
+		} else {
+			UE_LOG(LogPowerSuitCpp, Display, TEXT("Valid Inventory %s "), *Module->nInventory->GetName());
 		}
 	}
 	else
 	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("Inventory Invalid !!"));
+		UE_LOG(LogPowerSuitCpp, Display, TEXT("Inventory Invalid !!"));
 	}
-	if (Module && !IsPendingKill() && Module->MoveC)
+	if (Module && IsValid(this) && Module->MoveC)
 	{
-		UE_LOG(PowerSuit_Log, Display, TEXT("Unequip Called reset stats"));
+		UE_LOG(LogPowerSuitCpp, Display, TEXT("Unequip Called reset stats"));
 		// Don't notify because could be unequipping on disconnect
 		Module->ResetStats(false);
 	}
@@ -122,14 +125,14 @@ void APowerSuit::UnEquip()
 		SetHoverMode(EHoverPackMode::HPM_Inactive);
 		Module->MoveC->CustomMovementMode = static_cast<uint8>(ECustomMovementMode::CMM_None);
 		Module->MoveC->MovementMode = EMovementMode::MOVE_Falling;
-		UE_LOG(PowerSuit_Log, Display, TEXT("Disabled Flight"));
+		UE_LOG(LogPowerSuitCpp, Display, TEXT("Disabled Flight"));
 	}
 	Super::UnEquip();
 };
 
 void APowerSuit::WasRemovedFromSlot() {
-	UE_LOG(PowerSuit_Log, Warning, TEXT("**************** PowerSuit WasRemovedFromSlot ****************\n %s"), *GetName());
-	// Since it's not a hand equipment, this should never be called. Keeping this here in case it does
+	UE_LOG(LogPowerSuitCpp, Warning, TEXT("**************** PowerSuit WasRemovedFromSlot ****************\n %s"), *GetName());
+	// Since it's not a hand equipment, this should never be called...? unsure. Keeping this here in case it does
 	Super::WasRemovedFromSlot();
 }
 
@@ -144,37 +147,31 @@ void APowerSuit::Tick(float DeltaSeconds)
 
 	Module->EquippedTick(DeltaSeconds);
 	
-
-
+	// Manage HoverPack's power connection to prevent flight when not allowed
 	if (Module->TKey_Fly && Module->Stats.HasFlag(ESuitFlag::SuitFlag_HasFlightUnlocked) && Module->nProducing)
 	{
 		mCurrentConnectionLocation = GetInstigator()->GetActorLocation();
 		mCurrentPowerLevel = 1.f;
-		if (InnerBattery && !mHasConnection)
-		{
-			if (!InnerBattery->HasPower() && InnerBattery->GetPowerInfo() && HasAuthority())
-			{
+		if (InnerBattery && !mHasConnection) {
+			if (!InnerBattery->HasPower() && InnerBattery->GetPowerInfo() && HasAuthority()) {
 				if (!InnerBattery->GetPowerInfo()->GetBatteryInfo())
 					InnerBattery->GetPowerInfo()->InitializeBatteryInfo(1000.f, 1000.f);
 				InnerBattery->SetHasPower(true);
 				InnerBattery->GetPowerInfo()->SetHasPower(true);
 				InnerBattery->GetPowerInfo()->GetBatteryInfo()->SetActive(true);
 				InnerBattery->GetPowerInfo()->GetBatteryInfo()->SetPowerStore(1000.f);
-				UE_LOG(PowerSuit_Log, Display, TEXT("SetBattery Storage"));
+				UE_LOG(LogPowerSuitCpp, Display, TEXT("SetBattery Storage"));
 
 			}
-			//UE_LOG(PowerSuit_Log, Display, TEXT("NO CON"));
+			//UE_LOG(LogPowerSuitCpp, Display, TEXT("NO CON"));
 			ConnectToPowerConnection(mCurrentPowerConnection);
 			mCurrentPowerConnection = InnerBattery;
 			mHasConnection = true;
 			SetCharacterHoverMovementMode();
 		}
-	}
-	else
-	{
-		if (mHasConnection && mCurrentPowerConnection == InnerBattery)
-		{
-			//UE_LOG(PowerSuit_Log, Display, TEXT("CON Removed"));
+	} else {
+		if (mHasConnection && mCurrentPowerConnection == InnerBattery) {
+			//UE_LOG(LogPowerSuitCpp, Display, TEXT("CON Removed"));
 			DisconnectFromCurrentPowerConnection();
 			mHasConnection = false;
 		}
@@ -186,13 +183,13 @@ void APowerSuit::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(APowerSuit,OverrideReboot);
+	DOREPLIFETIME(APowerSuit, UserPreferredFuelType);
 }
 
 bool APowerSuit::ShouldSaveState() const
 {
 	return true;
 }
-
 
 float APowerSuit::GetCurrentPowerNormalized() const
 {
@@ -218,38 +215,101 @@ float APowerSuit::GetCurrentPower() const
 	return Module->nCurrentPower;
 }
 
+void APowerSuit::SetUserPreferredFuelType(TSubclassOf<UFGItemDescriptor> item) {
+	if (this->Module->FuelModule->nAllowedFuels.Contains(item)) {
+		this->UserPreferredFuelType = item;
+		OnUserSelectedFuelTypeChange.Broadcast(item);
+	} else {
+		UE_LOG(LogPowerSuitCpp, Warning, TEXT("Tried to set preferred fuel to a fuel that wasn't in the Allowed Fuels, ignored"));
+	}
+}
+
 void APowerSuit::AddEquipmentActionBindings()
 {
 	Super::AddEquipmentActionBindings();
 	if (!GetInstigator())
 		return;
-	AFGPlayerController * Pc = Cast<AFGPlayerController>(GetInstigator()->GetController());
+	const auto Pc = Cast<AFGPlayerController>(GetInstigator()->GetController());
 	if (!Pc)
 		return;
+
+	// We need to register it manually because the automatic one doesn't give it a low enough priority to beat PlayerMovement's -2
+	if (const auto LocalPlayer = Pc->GetLocalPlayer())
+	{
+		if (const auto InputSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		{
+			if (!SuitInputMapping.IsNull())
+			{
+				const auto context = SuitInputMapping.LoadSynchronous();
+				if (InputSystem->HasMappingContext(context)) {
+					UE_LOG(LogPowerSuit_Input, Error, TEXT("SuitInputMapping was already loaded by something else, was it not cleaned up on unequip? did you accidentally list it in the"), *UKismetSystemLibrary::GetDisplayName(context));
+				}
+				else {
+					UE_LOG(LogPowerSuit_Input, Display, TEXT("SuitInputMapping %s loaded by PS Cpp at Priority %d"), *UKismetSystemLibrary::GetDisplayName(context), SuitMappingPriority);
+					InputSystem->AddMappingContext(context, SuitMappingPriority);
+				}
+			}
+			else {
+				UE_LOG(LogPowerSuit_Input, Error, TEXT("SuitInputMapping was null, further keybind attempts will probably fail"));
+			}
+		}
+	}
 	
-	UFGInputLibrary::UpdateInputMappings(Pc);
-	FInputActionKeyMapping JumpKey = UFGInputLibrary::GetKeyMappingForAction(Pc, "Jump_Drift", false);
-	FInputActionKeyMapping crouchKey = UFGInputLibrary::GetKeyMappingForAction(Pc, "Crouch", false);
+	// TODOU8 transition to listen to the modifier keys
+	// pass them in via Gameplay Tags? Arch says no... read from field on cpp-defined Instance Module?
+	// https://discord.com/channels/555424930502541343/862002356626128907/1130872287197937825
+	// https://docs.unrealengine.com/4.26/en-US/ProgrammingAndScripting/Tags/
 
-	FInputActionKeyMapping AccelKey = UFGInputLibrary::GetKeyMappingForAction(Pc, "PowerSuit.Acceleration", false);
-	FInputActionKeyMapping DeAccelKey = UFGInputLibrary::GetKeyMappingForAction(Pc, "PowerSuit.DeAcceleration", false);
-	FInputActionKeyMapping GravityKey = UFGInputLibrary::GetKeyMappingForAction(Pc, "PowerSuit.GravityToggle", false);
-	FInputActionKeyMapping TogKey = UFGInputLibrary::GetKeyMappingForAction(Pc, "PowerSuit.FrictionToggle", false);
-	FInputActionKeyMapping UIgKey = UFGInputLibrary::GetKeyMappingForAction(Pc, "PowerSuit.UIToggle", false);
+	TArray<FKey> discard;
+	UFGInputLibrary::GetCurrentMappingForAction(Pc, "PlayerMovement_Jump", Module->KB_Up, discard);
+	UFGInputLibrary::GetCurrentMappingForAction(Pc, "PlayerMovement_Crouch", Module->KB_Down, discard);
 
-	Module->KB_Up = JumpKey.Key;
-	Module->KB_Accel = AccelKey.Key;
-	Module->KB_Down = crouchKey.Key;
-	Module->KB_Breaks = DeAccelKey.Key;
-	Module->KB_Toggle = GravityKey.Key;
-	Module->KB_Toggle2 = TogKey.Key;
-	Module->KB_UI = UIgKey.Key;
+	UFGInputLibrary::GetCurrentMappingForAction(Pc, "PowerSuit.Suit.Acceleration", Module->KB_Accel, discard);
+	UFGInputLibrary::GetCurrentMappingForAction(Pc, "PowerSuit.Suit.DeAcceleration", Module->KB_DeAccel, discard);
+	UFGInputLibrary::GetCurrentMappingForAction(Pc, "PowerSuit.Suit.GravityToggle", Module->KB_ToggleFlightGravity, discard);
+	UFGInputLibrary::GetCurrentMappingForAction(Pc, "PowerSuit.Suit.FrictionToggle", Module->KB_ToggleFlightFriction, discard);
+	UFGInputLibrary::GetCurrentMappingForAction(Pc, "PowerSuit.Suit.UIToggle", Module->KB_UI, discard);
+
+	UE_LOG(LogPowerSuit_Input, Verbose, TEXT("Debug: GravityKey is bound to %s"), *Module->KB_ToggleFlightGravity.ToString());
+}
+
+void APowerSuit::SuitClearEquipmentActionBindings() {
+
+	if (!GetInstigator()) {
+		UE_LOG(LogPowerSuit_Input, Error, TEXT("GetInstigator was null when trying to ClearEquipmentActionBindings"));
+		return;
+	}
+	const auto playerController = Cast<AFGPlayerController>(GetInstigator()->GetController());
+	if (!playerController) {
+		UE_LOG(LogPowerSuit_Input, Error, TEXT("PlayerController was null when trying to ClearEquipmentActionBindings"));
+		return;
+	}
+
+	// Clean up our manually registered mapping context
+	if (const auto LocalPlayer = playerController->GetLocalPlayer())
+	{
+		if (const auto InputSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		{
+			if (!SuitInputMapping.IsNull())
+			{
+				const auto context = SuitInputMapping.LoadSynchronous();
+				if (InputSystem->HasMappingContext(context)) {
+					UE_LOG(LogPowerSuit_Input, Display, TEXT("Removed SuitInputMappingContext"));
+					InputSystem->RemoveMappingContext(context);
+				}
+				else {
+					UE_LOG(LogPowerSuit_Input, Error, TEXT("SuitInputMapping was not applied when ClearEquipmentActionBindings tried to remove it"));
+				}
+			}
+		}
+	}
 }
 
 void APowerSuit::OnCharacterMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode, EMovementMode NewMovementMode, uint8 NewCustomMode)
 {
 	if (!Module || !Module->MoveC)
 		return;
+	const auto humanControlled = UFGBlueprintFunctionLibrary::IsLocallyHumanControlled(GetInstigator());
 	OnMovementModeChanged.Broadcast(PreviousMovementMode, PreviousCustomMode, NewMovementMode, NewCustomMode);
 
 	if (NewCustomMode == ECustomMovementMode::CMM_None || (PreviousMovementMode == MOVE_Swimming && (NewMovementMode == MOVE_Walking || NewMovementMode == MOVE_Falling) ))
@@ -257,7 +317,7 @@ void APowerSuit::OnCharacterMovementModeChanged(EMovementMode PreviousMovementMo
 		Module->MoveC->mMaxSprintSpeed = Cast< UFGCharacterMovementComponent>(Module->MoveC->GetClass()->GetDefaultObject())->mMaxSprintSpeed;//900.f;
 		Module->MoveC->mMaxSprintSpeed += Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSprintSpeed).value(); //ESMC_mMaxSprintSpeed
 		Module->MoveC->mMaxSprintSpeed *= Module->GetMovementPropertySafe(ESuitMovementProperty::ESMC_mMaxSprintSpeed).ClampMult(); //ESMC_mMaxSprintSpeed
-		if(HasAuthority() && !UFGBlueprintFunctionLibrary::IsLocallyHumanControlled(GetInstigator()))
+		if(HasAuthority() && !humanControlled)
 		{
 			Module->RemoteUpdateMovementGround(Module->MoveC->mMaxSprintSpeed);
 		}
@@ -266,7 +326,6 @@ void APowerSuit::OnCharacterMovementModeChanged(EMovementMode PreviousMovementMo
 	{
 		
 		Module->MoveC->mMaxSprintSpeed = Cast<APowerSuit>(GetClass()->GetDefaultObject())->mHoverSpeed;//900.f;
-		//Module->MoveC->CheatFlySpeedVertical = Module->HoverMovementSpeedAdded;
 		Module->MoveC->mMaxSprintSpeed += Module->GetFlightPropertySafe(ESuitFlightProperty::EFP_mHoverSpeed).value(); //ESMC_mMaxSprintSpeed
 		Module->MoveC->mMaxSprintSpeed *= Module->GetFlightPropertySafe(ESuitFlightProperty::EFP_mHoverSpeed).ClampMult(); //ESMC_mMaxSprintSpeed
 		Module->MoveC->mMaxSprintSpeed += Module->HoverMovementSpeedAdded;
@@ -278,9 +337,11 @@ void APowerSuit::OnCharacterMovementModeChanged(EMovementMode PreviousMovementMo
 		mHoverAccelerationSpeed *= Module->GetFlightPropertySafe(ESuitFlightProperty::EFP_mHoverAccelerationSpeed).ClampMult(); //ESMC_mMaxSprintSpeed
 		mHoverAccelerationSpeed += Module->HoverMovementSpeedAccelAdded;
 
-		if(HasAuthority() && !UFGBlueprintFunctionLibrary::IsLocallyHumanControlled(GetInstigator()))
+		if(HasAuthority() && !humanControlled)
 		{
 			Module->RemoteUpdateMovementAir(Module->MoveC->mMaxSprintSpeed,mHoverAccelerationSpeed);
 		}
 	}
 }
+
+

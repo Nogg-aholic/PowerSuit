@@ -43,7 +43,7 @@ void UEMC_FuelModule::ForcefullyBreakFuelFuse(bool drainFuel)
 	Parent->Client_FuelFuseBreak();
 	if (wasFuelFuseIntact) {
 		// Only broadcast the event if it's a "new" fuse break, not a continued still down
-		UE_LOG(PowerSuit_Log, Display, TEXT("Broadcasting event for FuelFuse break"));
+		UE_LOG(LogPowerSuitCpp, Display, TEXT("Broadcasting event for FuelFuse break"));
 		Parent->OnFuelFuseTriggered.Broadcast(Parent->nFuelFuseStatus, Parent->nFuelFuseBreak);
 	}
 }
@@ -123,7 +123,7 @@ void UEMC_FuelModule::Tick() const
 		}
 	}
 
-	// UE_LOG(PowerSuit_Log, Display, TEXT("Tick: Fuel consumption from attach is %f"), fuelConsumptionFromAttachments);
+	// UE_LOG(LogPowerSuitCpp, Display, TEXT("Tick: Fuel consumption from attach is %f"), fuelConsumptionFromAttachments);
 
 	if (Parent->nFuelConsumption != fuelConsumptionFromAttachments) {
 		Parent->nFuelConsumption = fuelConsumptionFromAttachments;
@@ -144,15 +144,15 @@ void UEMC_FuelModule::PostTick()
 		const bool desiresFuel = (Parent->nFuelConsumption > 0.f) || Parent->Stats.HasAdvancedFlag(ESuitFlagAdvanced::SuitFlagAdvanced_AlwaysWantsFuel);
 		if (Parent->nFuelAmount <= 0.01 && desiresFuel) {
 			if (Parent->nFuelFuseStatus) {
-				// UE_LOG(PowerSuit_Log, Display, TEXT("PostTick: Fuel amount <= 0.01 and there was consumption, breaking fuel fuse"));
+				// UE_LOG(LogPowerSuitCpp, Display, TEXT("PostTick: Fuel amount <= 0.01 and there was consumption, breaking fuel fuse"));
 				ForcefullyBreakFuelFuse(false);
 			}
 			else {
-				// UE_LOG(PowerSuit_Log, Display, TEXT("PostTick: Fuel amount <= 0.01 and there was consumption, BUT fuse already broken"));
+				// UE_LOG(LogPowerSuitCpp, Display, TEXT("PostTick: Fuel amount <= 0.01 and there was consumption, BUT fuse already broken"));
 			}
 			// return;
 		} else if (!Parent->nFuelFuseStatus) {
-			// UE_LOG(PowerSuit_Log, Display, TEXT("PostTick: TryRestart"));
+			// UE_LOG(LogPowerSuitCpp, Display, TEXT("PostTick: TryRestart"));
 			TryRestart();
 		}
 
@@ -162,10 +162,10 @@ void UEMC_FuelModule::PostTick()
 		const float FuelTankSizeMJ = FMath::Clamp(Parent->GetSuitPropertySafe(ESuitProperty::nFuelTankSize).value(), 1.f, 999999999.f);
 		const float StoredFuelMJ = FuelTankSizeMJ * FMath::Clamp(Parent->nFuelAmount, 0.f, 1.f);
 		const float FuelChangeThisDeltaTimeMJ = Parent->nFuelConsumption * Parent->LastDeltaTime;
-		// UE_LOG(PowerSuit_Log, Display, TEXT("PostTick: Fuel Delta is %f"), FuelChangeThisDeltaTimeMJ);
+		// UE_LOG(LogPowerSuitCpp, Display, TEXT("PostTick: Fuel Delta is %f"), FuelChangeThisDeltaTimeMJ);
 
 		const float NewFuelAmount = FMath::Clamp((StoredFuelMJ - FuelChangeThisDeltaTimeMJ) / FuelTankSizeMJ, 0.f, 1.f);
-		// UE_LOG(PowerSuit_Log, Display, TEXT("PostTick: NewFuelAmount is %f"), NewFuelAmount);
+		// UE_LOG(LogPowerSuitCpp, Display, TEXT("PostTick: NewFuelAmount is %f"), NewFuelAmount);
 		Parent->nFuelAmount = NewFuelAmount;
 	}
 }
@@ -174,14 +174,14 @@ void UEMC_FuelModule::TryRestart() const
 {
 	if (FuelFuseRecoveryPeriodElapsed()) {
 		if (Parent->nFuelAmount > 0.01) {
-			UE_LOG(PowerSuit_Log, Display, TEXT("Restarting fuel fuse because enough time has elapsed and we have > 0.01 fuel"));
+			UE_LOG(LogPowerSuitCpp, Display, TEXT("Restarting fuel fuse because enough time has elapsed and we have > 0.01 fuel"));
 			Parent->nFuelFuseStatus = true;
 			Parent->Client_FuelFuseRecover();
 			Parent->OnFuelFuseTriggered.Broadcast(Parent->nFuelFuseStatus, Parent->nFuelFuseBreak);
 		} else {
-			// UE_LOG(PowerSuit_Log, Display, TEXT("Enough time elapsed, but not enough fuel to restart"));
+			// UE_LOG(LogPowerSuitCpp, Display, TEXT("Enough time elapsed, but not enough fuel to restart"));
 		}
 	} else {
-		// UE_LOG(PowerSuit_Log, Display, TEXT("Waiting on time elapse to try restarting"));
+		// UE_LOG(LogPowerSuitCpp, Display, TEXT("Waiting on time elapse to try restarting"));
 	}
 }
