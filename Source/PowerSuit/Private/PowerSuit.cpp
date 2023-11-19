@@ -10,8 +10,6 @@
 #include "SubModules/EMC_StateModule.h"
 #define LOCTEXT_NAMESPACE "FPowerSuitModule"
 
-DEFINE_LOG_CATEGORY(LogGame); // I think this is just here to keep other random headers we include compiling if they happen to use LogGame
-
 DEFINE_LOG_CATEGORY(LogPowerSuitCpp);
 DEFINE_LOG_CATEGORY(LogPowerSuit_Input);
 

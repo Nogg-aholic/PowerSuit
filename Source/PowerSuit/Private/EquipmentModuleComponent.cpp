@@ -1,4 +1,7 @@
 #include "EquipmentModuleComponent.h"
+
+#include "Net/UnrealNetwork.h"
+
 #include "Equipment/Equipment_PowerSuit.h"
 #include "FGHealthComponent.h"
 #include "FGPlayerController.h"
@@ -17,7 +20,6 @@
 #include "Replication/PowerSuitRCO.h"
 #include "Attachment/PowerSuitModuleAttachment.h"
 #include "Buildables/FGBuildablePipeHyper.h"
-
 
 #include "FGCharacterMovementComponent.h"
 

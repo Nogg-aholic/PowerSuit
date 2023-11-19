@@ -1,11 +1,12 @@
-
-
-
 #include "Replication/PowerSuitRCO.h"
+
+#include "Net/UnrealNetwork.h"
+
 #include "SubModules/EMC_StateModule.h"
 #include "Stats/PowerSuitData.h"
 #include "Attachment/PowerSuitModuleAttachment.h"
 #include "SubModules/EMC_InventoryModule.h"
+
 
 void UPowerSuitRCO::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {

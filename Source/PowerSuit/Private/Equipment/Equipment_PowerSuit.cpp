@@ -1,5 +1,7 @@
 #include "Equipment/Equipment_PowerSuit.h"
 
+#include "Net/UnrealNetwork.h"
+
 #include "FGGameState.h"
 #include "Buildables/FGBuildableConveyorBelt.h"
 #include "Buildables/FGBuildableRailroadTrack.h"
