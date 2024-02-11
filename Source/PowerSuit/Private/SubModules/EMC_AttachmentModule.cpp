@@ -5,32 +5,24 @@
 // Server And Client
 void UEMC_AttachmentModule::PreTick()
 {
-	for (auto * i : InactiveAttachments)
-	{
-		if (i)
-			if (i->GetIsConditionMet())
-			{
+	for (auto * i : InactiveAttachments) {
+		if (i) {
+			if (i->GetIsConditionMet()) {
 				UE_LOG(LogPowerSuitCpp,Warning,TEXT("Attachment : %s caused Update on Index %i while going Active"), *i->GetName(), i->InventorySlot)
 				Parent->InventoryModule->UpdateOnIndex(i->InventorySlot);
 				return;
-			}
-			else
-			{
+			} else {
 				i->AttachmentPreTick(Parent->LastDeltaTime);
 			}
+		}
 	}
-	for (auto * i : Attachments)
-	{
-		if (i)
-		{
-			if (!i->GetIsConditionMet())
-			{
+	for (auto * i : Attachments) {
+		if (i) {
+			if (!i->GetIsConditionMet()) {
 				UE_LOG(LogPowerSuitCpp, Warning, TEXT("Attachment : %s caused Update on Index %i while going inActive"), *i->GetName(), i->InventorySlot)
 				Parent->InventoryModule->UpdateOnIndex(i->InventorySlot);
 				return;
-			}
-			else
-			{
+			} else {
 				i->AttachmentPreTick(Parent->LastDeltaTime);
 			}
 		}

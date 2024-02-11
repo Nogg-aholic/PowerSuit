@@ -23,14 +23,14 @@ void UEMC_HealthModule::PostTick()
 	class UFGHealthComponent* HealthComponent = Cast< AFGCharacterPlayer>(Parent->EquipmentParent->GetInstigator())->GetHealthComponent();
 	if (HealthComponent)
 	{
-		if (HealthComponent->GetCurrentHealth() < HealthComponent->GetMaxHealth())
-			if (HealthBuffer > 1.f)
-			{
+		if (HealthComponent->GetCurrentHealth() < HealthComponent->GetMaxHealth()) {
+			if (HealthBuffer > 1.f) {
 				HealthComponent->Heal(HealthBuffer);
 				HealthBuffer = 0.f;
-			}
-			else
+			} else {
 				HealthBuffer = HealthBuffer + (Parent->GetSuitPropertySafe(ESuitProperty::nHealthRegen).value() * Parent->LastDeltaTime);
+			}
+		}
 	}
 }
 // Server Only

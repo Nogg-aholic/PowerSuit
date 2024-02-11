@@ -242,8 +242,8 @@ float UEquipmentModuleComponent::CalculateDamage(float DmgIn, int32 Type, TSubcl
 			{
 				if(Stats.nDamageTypeResistance.Contains(static_cast<ENDamageType>(flag)))
 				{
-					Reduction =+ Stats.nDamageTypeResistance[static_cast<ENDamageType>(flag)].Modifier;
-					ReductionPercent =+ Stats.nDamageTypeResistance[static_cast<ENDamageType>(flag)].Multiplier;
+					Reduction += Stats.nDamageTypeResistance[static_cast<ENDamageType>(flag)].Modifier;
+					ReductionPercent += Stats.nDamageTypeResistance[static_cast<ENDamageType>(flag)].Multiplier;
 					Hits++;
 				}
 			}

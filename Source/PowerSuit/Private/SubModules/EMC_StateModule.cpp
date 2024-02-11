@@ -70,7 +70,7 @@ void UEMC_StateModule::CheckHotkeys()
 
 	APlayerController* Controller = Cast< APlayerController >(Parent->EquipmentParent->GetInstigatorController());
 	
-	if (!Controller || !UFGBlueprintFunctionLibrary::IsLocallyHumanControlled(Parent->EquipmentParent->GetInstigator()) && Controller->HasAuthority())
+	if (!Controller || (!UFGBlueprintFunctionLibrary::IsLocallyHumanControlled(Parent->EquipmentParent->GetInstigator()) && Controller->HasAuthority()))
 	{	
 		// server and not humanly controlled doesn't need to update
 		return;
@@ -147,7 +147,7 @@ void UEMC_StateModule::CheckHotkeys()
 				const bool exceededJumpHoldTime = Parent->FallingTime > JumpHoldTime;
 				const bool usedInstantStartFlight = Controller->IsInputKeyDown(EKeys::LeftControl) && Parent->EquipmentParent->EnableCtrlSpaceStartFlight;
 
-				if (notAlreadyFlying && exceededJumpHoldTime || usedInstantStartFlight)
+				if ((notAlreadyFlying && exceededJumpHoldTime) || usedInstantStartFlight)
 				{
 					wantsToFly = true;
 				}

@@ -2,7 +2,7 @@
 #include "SubModules/EMC_PowerModule.h"
 #include "SubModules/EMC_StateModule.h"
 #include "FGBuildablePipePart.h"
-#include "buildables/FGBuildablePipeHyper.h"
+#include "Buildables/FGBuildablePipeHyper.h"
 
 // Server Only? this was previous on both, something is not replicated here and this helped to prevent stutter and death
 void UEMC_HyperTubeModule::ModifyPipeSpeed()
